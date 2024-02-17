@@ -1,2890 +1,9918 @@
+repeat wait() until game:IsLoaded() wait()
+game:GetService("Players").LocalPlayer.Idled:connect(function()
+game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+end)
 
-
-lib = loadstring(game:HttpGet"https://raw.githubusercontent.com/PriorThey413001/ol/main/cool")()
-local win = lib:CreateWindow("KZUMAKI V3 😱 - PAID", Vector2.new(492, 598), Enum.KeyCode.RightShift)
-local tab1 = win:CreateTab("Page 1")
-local tab2 = win:CreateTab("Page 2")
-local tab3 = win:CreateTab("Page 3")
-local sector1 = tab1:CreateSector("Aimlock","left")
-local sector22 = tab1:CreateSector("Silent Aim","right")
-local sector10 = tab1:CreateSector("Aimlock Fov","left")
-local sector11 = tab1:CreateSector("Misc","right")
-local sector12 = tab1:CreateSector("Misc 2","left")
-local sector13 = tab2:CreateSector("Other","left")
-local sector14 = tab2:CreateSector("Tps 1 - Other","right")
-local sector15 = tab2:CreateSector("Tps 2","left")
-local sector16 = tab2:CreateSector("Tps 3 - Other","right")
-
-
-
-
-getgenv().OldAimPart = "HumanoidRootPart"
-getgenv().AimPart = "HumanoidRootPart" -- For R15 Games: {UpperTorso, LowerTorso, HumanoidRootPart, Head} | For R6 Games: {Head, Torso, HumanoidRootPart}
-getgenv().AimlockKey = "q"
-getgenv().AimRadius = 50 -- How far away from someones character you want to lock on at
-getgenv().ThirdPerson = true
-getgenv().FirstPerson = true
-getgenv().TeamCheck = false -- Check if Target is on your Team (True means it wont lock onto your teamates, false is vice versa) (Set it to false if there are no teams)
-getgenv().PredictMovement = true -- Predicts if they are moving in fast velocity (like jumping) so the aimbot will go a bit faster to match their speed
-getgenv().PredictionVelocity = 9
-getgenv().CheckIfJumped = false
-getgenv().AutoPrediction = false
-local L_13_, L_14_, L_15_, L_16_ = game:GetService"Players", game:GetService"UserInputService", game:GetService"RunService", game:GetService"StarterGui";
-local L_17_, L_18_, L_19_, L_20_, L_21_, L_22_, L_23_ = L_13_.LocalPlayer, L_13_.LocalPlayer:GetMouse(), workspace.CurrentCamera, CFrame.new, Ray.new, Vector3.new, Vector2.new;
-local L_24_, L_25_, L_26_ = false, false, false;
-local L_27_;
-local L_28_;
-getgenv().WorldToViewportPoint = function(L_91_arg0)
-	return L_19_:WorldToViewportPoint(L_91_arg0)
+-- // Variables
+local ws, uis, rs, hs, cas, plrs, stats = game:GetService("Workspace"), game:GetService("UserInputService"), game:GetService("RunService"), game:GetService("HttpService"), game:GetService("ContextActionService"), game:GetService("Players"), game:GetService("Stats")
+--
+local playerlistIndividualTweak = nil
+local pListMistToggle = nil
+--
+local aimviewerTargets = {}
+--
+local removeAimviewerTarget = function(target)
+    local newta = {}
+    for i,v in next, aimviewerTargets do
+        if v[1] ~= target then
+            table.insert(newta, v)
+        end
+    end
+    aimviewerTargets = newta
 end
-getgenv().WorldToScreenPoint = function(L_92_arg0)
-	return L_19_.WorldToScreenPoint(L_19_, L_92_arg0)
+--
+local isAimviewerTarget = function(target)
+    for _, v in next, aimviewerTargets do
+        if v[1] == target then
+            return true
+        end
+    end
+    return false
 end
-getgenv().GetObscuringObjects = function(L_93_arg0)
-	if L_93_arg0 and L_93_arg0:FindFirstChild(getgenv().AimPart) and L_17_ and L_17_.Character:FindFirstChild("Head") then
-		local L_94_ = workspace:FindPartOnRay(L_21_(
-                L_93_arg0[getgenv().AimPart].Position, L_17_.Character.Head.Position)
-            )
-		if L_94_ then
-			return L_94_:IsDescendantOf(L_93_arg0)
-		end
-	end
+--
+local localplayer = plrs.LocalPlayer
+--
+local ResetMemoryCategory, SetMemoryCategory, SetUpvalueName, SetMetatable, ProfileBegin, GetMetatable, GetConstants, GetRegistry, GetUpvalues, GetConstant, SetConstant, GetUpvalue, ValidLevel, LoadModule, SetUpvalue, ProfileEnd, GetProtos, GetLocals, Traceback, SetStack, GetLocal, DumpHeap, GetProto, SetLocal, GetStack, GetFenv, GetInfo, Info = debug.resetmemorycategory, debug.setmemorycategory, debug.setupvaluename, debug.setmetatable, debug.profilebegin, debug.getmetatable, debug.getconstants, debug.getregistry, debug.getupvalues, debug.getconstant, debug.setconstant, debug.getupvalue, debug.validlevel, debug.loadmodule, debug.setupvalue, debug.profileend, debug.getprotos, debug.getlocals, debug.traceback, debug.setstack, debug.getlocal, debug.dumpheap, debug.getproto, debug.setlocal, debug.getstack, debug.getfenv, debug.getinfo, debug.info
+
+local CreateRenderObject = GetUpvalue(Drawing.new, 1)
+local DestroyRenderObject = GetUpvalue(GetUpvalue(Drawing.new, 7).__index, 3)
+local SetRenderProperty = GetUpvalue(GetUpvalue(Drawing.new, 7).__newindex, 4)
+local GetRenderProperty = GetUpvalue(GetUpvalue(Drawing.new, 7).__index, 4)
+--
+local mouse = localplayer:GetMouse()
+--
+local Client = localplayer
+--
+local cZoom, MaxZoom, MinZoom = (workspace.CurrentCamera.CoordinateFrame.p - plrs.LocalPlayer.Character.Head.Position).magnitude, plrs.LocalPlayer.CameraMaxZoomDistance, plrs.LocalPlayer.CameraMinZoomDistance
+local oMaxZoom, oMinZoom = MaxZoom, MinZoom
+--
+local LockScrolling = function()
+    print("LOCK")
+    cZoom, MaxZoom, MinZoom = (workspace.CurrentCamera.CoordinateFrame.p - plrs.LocalPlayer.Character.Head.Position).magnitude, plrs.LocalPlayer.CameraMaxZoomDistance, plrs.LocalPlayer.CameraMinZoomDistance
+    plrs.LocalPlayer.CameraMaxZoomDistance = cZoom
+    plrs.LocalPlayer.CameraMinZoomDistance = cZoom
 end
-getgenv().GetNearestTarget = function()
+local UnlockScrolling = function()
+    print("Unlock")
+    plrs.LocalPlayer.CameraMaxZoomDistance = oMaxZoom
+    plrs.LocalPlayer.CameraMinZoomDistance = oMinZoom
+end
+--
+local Remove = table.remove
+local Unpack = table.unpack
+local Find = table.find
+local Clamp = math.clamp
+-- UI Variables
+if not isfolder("Tyrisware") then
+    makefolder("Tyrisware")
+end
+
+if not isfolder("Tyrisware/Configs") then
+    makefolder("Tyrisware/Configs")
+end
+
+if not isfolder("Tyrisware/Images") then
+    makefolder("Tyrisware/Images")
+end
+local library = {
+    drawings = {},
+    objects = {},
+    hidden = {},
+    connections = {},
+    pointers = {},
+    began = {},
+    ended = {},
+    changed = {},
+    colors = {},
+    hovers = {},
+    Relations = {},
+    folders = {
+        main = "Tyrisware",
+        assets = "Tyrisware/Images",
+        configs = "Tyrisware/Configs"
+    },
+    shared = {
+        initialized = false,
+        fps = 0,
+        ping = 0
+    }
+}
+--
+local utility = {
+    Keyboard = {
+        Letters = {
+            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+        },
+        Modifiers = {
+            ["`"] = "~", ["1"] = "!", ["2"] = "@", ["3"] = "#", ["4"] = "$", ["5"] = "%", ["6"] = "^", ["7"] = "&", ["8"] = "*", ["9"] = "(",
+            ["0"] = ")", ["-"] = "_", ["="] = "+", ["["] = "{", ["]"] = "}", ["\\"] = "|", [";"] = ":", ["'"] = '"', [","] = "<", ["."] = ".",
+            ["/"] = "?"
+        },
+        InputNames = {
+            One = "1", Two = "2", Three = "3", Four = "4", Five = "5", Six = "6", Seven = "7", Eight = "8", Nine = "9", Zero = "0",
+            LeftBracket = "[", RightBracket = "]", Semicolon = ";", BackSlash = "\\", Slash = "/", Minus = "-", Equals = "=", Return = "Enter",
+            Backquote = "`", CapsLock = "Caps", LeftShift = "LShift", RightShift = "RShift", LeftControl = "LCtrl", RightControl = "RCtrl",
+            LeftAlt = "LAlt", RightAlt = "RAlt", Backspace = "Back", Plus = "+", PageUp = "PgUp", PageDown = "PgDown", Delete = "Del",
+            Insert = "Ins", NumLock = "NumL", Comma = ",", Period = "."
+        }
+    }
+}
+local pages = {}
+local sections = {}
+-- Theme Variables
+--local themes = {}
+local theme = {
+    accent = Color3.fromRGB(55, 175, 225),
+    lightcontrast = Color3.fromRGB(30, 30, 30),
+    darkcontrast = Color3.fromRGB(20, 20, 20),
+    outline = Color3.fromRGB(0, 0, 0),
+    inline = Color3.fromRGB(50, 50, 50),
+    textcolor = Color3.fromRGB(255, 255, 255),
+    textdark = Color3.fromRGB(175, 175, 175),
+    textborder = Color3.fromRGB(0, 0, 0),
+    cursoroutline = Color3.fromRGB(10, 10, 10),
+    font = 2,
+    textsize = 13
+}
+
+
+
+
+-- // utility Functions
+do
+    --
     
-	local L_95_ = {}
-	local L_96_  = {}
-	local L_97_ = {}
-	for L_99_forvar0, L_100_forvar1 in pairs(L_13_:GetPlayers()) do
-		if L_100_forvar1 ~= L_17_ then
-			table.insert(L_95_, L_100_forvar1)
-		end
-	end
-	for L_101_forvar0, L_102_forvar1 in pairs(L_95_) do
-		if L_102_forvar1.Character ~= nil then
-			local L_103_ = L_102_forvar1.Character:FindFirstChild("Head")
-			if getgenv().TeamCheck == true and L_102_forvar1.Team ~= L_17_.Team then
-				local L_104_ = (L_102_forvar1.Character:FindFirstChild("Head").Position - game.Workspace.CurrentCamera.CFrame.p).magnitude
-				local L_105_ = Ray.new(game.Workspace.CurrentCamera.CFrame.p, (L_18_.Hit.p - game.Workspace.CurrentCamera.CFrame.p).unit * L_104_)
-				local L_106_, L_107_ = game.Workspace:FindPartOnRay(L_105_, game.Workspace)
-				local L_108_ = math.floor((L_107_ - L_103_.Position).magnitude)
-				L_96_[L_102_forvar1.Name .. L_101_forvar0] = {}
-				L_96_[L_102_forvar1.Name .. L_101_forvar0].dist = L_104_
-				L_96_[L_102_forvar1.Name .. L_101_forvar0].plr = L_102_forvar1
-				L_96_[L_102_forvar1.Name .. L_101_forvar0].diff = L_108_
-				table.insert(L_97_, L_108_)
-			elseif getgenv().TeamCheck == false and L_102_forvar1.Team == L_17_.Team then
-				local L_109_ = (L_102_forvar1.Character:FindFirstChild("Head").Position - game.Workspace.CurrentCamera.CFrame.p).magnitude
-				local L_110_ = Ray.new(game.Workspace.CurrentCamera.CFrame.p, (L_18_.Hit.p - game.Workspace.CurrentCamera.CFrame.p).unit * L_109_)
-				local L_111_, L_112_ = game.Workspace:FindPartOnRay(L_110_, game.Workspace)
-				local L_113_ = math.floor((L_112_ - L_103_.Position).magnitude)
-				L_96_[L_102_forvar1.Name .. L_101_forvar0] = {}
-				L_96_[L_102_forvar1.Name .. L_101_forvar0].dist = L_109_
-				L_96_[L_102_forvar1.Name .. L_101_forvar0].plr = L_102_forvar1
-				L_96_[L_102_forvar1.Name .. L_101_forvar0].diff = L_113_
-				table.insert(L_97_, L_113_)
-			end
-		end
-	end
-	if unpack(L_97_) == nil then
-		return nil
-	end
-	local L_98_ = math.floor(math.min(unpack(L_97_)))
-	if L_98_ > getgenv().AimRadius then
-		return nil
-	end
-	for L_114_forvar0, L_115_forvar1 in pairs(L_96_) do
-		if L_115_forvar1.diff == L_98_ then
-			return L_115_forvar1.plr
-		end
-	end
-	return nil
-end
-L_18_.KeyDown:Connect(function(L_116_arg0)
-	if not (L_14_:GetFocusedTextBox()) then
-		if L_116_arg0 == AimlockKey and L_27_ == nil then
-			pcall(function()
-				if L_25_ ~= true then
-					L_25_ = true
-				end
-				local L_117_;
-				L_117_ = GetNearestTarget()
-				if L_117_ ~= nil then
-					L_27_ = L_117_
-				end
-			end)
-		elseif L_116_arg0 == AimlockKey and L_27_ ~= nil then
-			if L_27_ ~= nil then
-				L_27_ = nil
-			end
-			if L_25_ ~= false then
-				L_25_ = false
-			end
-		end
-	end
-end)
-L_15_.RenderStepped:Connect(function()
-	if getgenv().ThirdPerson == true and getgenv().FirstPerson == true then
-		if (L_19_.Focus.p - L_19_.CoordinateFrame.p).Magnitude > 1 or (L_19_.Focus.p - L_19_.CoordinateFrame.p).Magnitude <= 1 then
-			L_26_ = true
-		else
-			L_26_ = false
-		end
-	elseif getgenv().ThirdPerson == true and getgenv().FirstPerson == false then
-		if (L_19_.Focus.p - L_19_.CoordinateFrame.p).Magnitude > 1 then
-			L_26_ = true
-		else
-			L_26_ = false
-		end
-	elseif getgenv().ThirdPerson == false and getgenv().FirstPerson == true then
-		if (L_19_.Focus.p - L_19_.CoordinateFrame.p).Magnitude <= 1 then
-			L_26_ = true
-		else
-			L_26_ = false
-		end
-	end
-	if L_24_ == true and L_25_ == true then
-		if L_27_ and L_27_.Character and L_27_.Character:FindFirstChild(getgenv().AimPart) then
-			if getgenv().FirstPerson == true then
-				if L_26_ == true then
-					if getgenv().PredictMovement == true then
-						L_19_.CFrame = L_20_(L_19_.CFrame.p, L_27_.Character[getgenv().AimPart].Position + L_27_.Character[getgenv().AimPart].Velocity / PredictionVelocity)
-					elseif getgenv().PredictMovement == false then
-						L_19_.CFrame = L_20_(L_19_.CFrame.p, L_27_.Character[getgenv().AimPart].Position)
-					end
-				end
-			elseif getgenv().ThirdPerson == true then
-				if L_26_ == true then
-					if getgenv().PredictMovement == true then
-						L_19_.CFrame = L_20_(L_19_.CFrame.p, L_27_.Character[getgenv().AimPart].Position + L_27_.Character[getgenv().AimPart].Velocity / PredictionVelocity)
-					elseif getgenv().PredictMovement == false then
-						L_19_.CFrame = L_20_(L_19_.CFrame.p, L_27_.Character[getgenv().AimPart].Position)
-					end
-				end
-			end
-		end
-	end
-	if CheckIfJumped == true then
-		if L_27_.Character.Humanoid.FloorMaterial == Enum.Material.Air then
-			getgenv().AimPart = "RightFoot"
-		else
-			getgenv().AimPart = getgenv().OldAimPart
-		end
-	end
-end)
+    --
+    function utility:Size(xScale,xOffset,yScale,yOffset,instance)
+        if instance then
+            local x = xScale*instance.Size.x+xOffset
+            local y = yScale*instance.Size.y+yOffset
+            --
+            return Vector2.new(x,y)
+        else
+            local vx,vy = ws.CurrentCamera.ViewportSize.x,ws.CurrentCamera.ViewportSize.y
+            --
+            local x = xScale*vx+xOffset
+            local y = yScale*vy+yOffset
+            --
+            return Vector2.new(x,y)
+        end
+    end
+    --
+    function utility:GetClipboard()
+        print("GETCLIPBOARD")
+        repeat task.wait() until iswindowactive()
+        task.wait()
+        local Text = ""
+        --
+        local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = game:GetService("CoreGui")
+        --
+        local TextBox = Instance.new("TextBox", game)
+        TextBox.Size = UDim2.new(0, 0, 0, 0)
+        TextBox.Position = UDim2.new(-999, 0, -999, 0)
+        TextBox.Parent = ScreenGui
+        TextBox.Text = ""
+        --
+        TextBox:CaptureFocus()
+        --
+        keypress(0x11)
+        keypress(0x56) 
+        task.wait()
+        keyrelease(0x56)
+        keyrelease(0x11)
+        --
+        if TextBox.Text == "" then
+            TextBox:CaptureFocus()
+            --
+            task.wait()
+            --
+            keypress(0x11)
+            keypress(0x56) 
+            task.wait()
+            keyrelease(0x56)
+            keyrelease(0x11)
+        end
+        --
+        Text = TextBox.Text
+        --
+        TextBox:Destroy()
+        ScreenGui:Destroy()
 
-
-
-
-sector1:AddToggle("Aimlock",false,function(L_122_arg0)
-L_24_ = L_122_arg0
-end)
-
-sector1:AddToggle("Team Check",false,function(L_126_arg0)
-getgenv().TeamCheck = L_126_arg0
-end)
-
-sector1:AddToggle("Airshot Function",false,function(L_131_arg0)
-CheckIfJumped =  L_131_arg0
-end)
-
-sector1:AddToggle("Auto Prediction",false,function(L_132_arg0)
-AutoPrediction = L_132_arg0
-end)
-
-sector1:AddTextbox("Aimlock Keybind",false,function(L_123_arg0)
-AimlockKey = L_123_arg0
-end)
-
-sector1:AddTextbox("Aimlock Prediction",false,function(L_124_arg0)
-PredictionVelocity = L_124_arg0
-end)
-
-sector1:AddTextbox("Aimlock Radius Func",false,function(L_133_arg0)
-getgenv().AimRadius = L_133_arg0
-end)
-
-sector1:AddDropdown("Bodypart",{"Head";"UpperTorso";"HumanoidRootPart", "LowerTorso"},"HumanoidRootPart",false, function(L_125_arg0)
-getgenv().AimPart = L_125_arg0
-getgenv().OldAimPart = L_125_arg0
-end)
-
-sector22:AddToggle("Silent Aim",false,function(t)
-Aiming.Enabled =t
-end)
-
-
-sector22:AddToggle("Silent Aim V2 (CS)",false,function(t)
-
-end)
-
-sector22:AddToggle("Wall Check",false,function(RAR)
-
-end)
-
-sector22:AddToggle("Fov Circle",false,function(L_75_arg0)
-
-end)
-
-sector22:AddTextbox("Silent Aim Blatantness",false,function(rffe)
-
-end)
-
-sector22:AddTextbox("Silent Aim Predicton",false,function(L_72_arg0)
-
-end)
-
-
-sector22:AddTextbox("Silent Aim Fov Textbox",false,function(hummm)
-
-end)
-
-sector22:AddDropdown("Bodypart",{"Head";"UpperTorso";"HumanoidRootPart", "LowerTorso"},"HumanoidRootPart",false, function(L_73_arg0)
-
-end)
-
-local LP = game.Players.LocalPlayer
-local Mouse = LP:GetMouse()
-local Service = game:GetService("RunService")
-
-circle = Drawing.new("Circle")
-circle.Color = Color3.fromRGB(136, 8, 8)
-circle.Thickness = 0.1
-circle.NumSides = 3500
-circle.Radius = 50
-circle.Visible = false
-circle.Filled = false
-circle.Transparency = 0.5
-
-Service.RenderStepped:Connect(function()
-	circle.Position = Vector2.new(Mouse.X, Mouse.Y + 35)
-end)
-
-sector10:AddToggle("Aimlock Fov", false, function(L_127_arg0)
-	circle.Visible = L_127_arg0
-end)
-
-
-
-
-sector10:AddToggle("Filled Fov", false, function(L_129_arg0)
-	circle.Filled = L_129_arg0
-end)
-
-
-sector10:AddToggle("Square Fov", false, function()
-	circle.NumSides = 4
-end)
-
-sector10:AddToggle("Circle Fov", false, function()
-	circle.NumSides = 350
-end)
-
-sector10:AddSlider("Size Fov", 0, 1, 250, 30, function(L_130_arg0)
-	circle.Radius = L_130_arg0
-end)
-
-
-
-sector11:AddButton("Spinbot (C)", function(L_165_)
-	local L_165_ = false
-	local L_166_ = game:GetService("UserInputService");
-	L_166_.InputBegan:Connect(function(L_167_arg0, L_168_arg1)
-		if (L_167_arg0.KeyCode == Enum.KeyCode.C and L_168_arg1 == false) then
-			if L_165_ == false then
-				L_165_ = true
-				wait()
-				getgenv().urspeed = 500
-				local L_169_ = game.Players.LocalPlayer.Character
-				while wait() do
-					L_169_.HumanoidRootPart.CFrame = L_169_.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(urspeed), 0)
-				end
-			else
-				L_165_ = false
-				getgenv().urspeed = 0
-			end
-		end
-	end);
-	game:GetService('RunService').Stepped:connect(function()
-		if L_165_ == true then
-		end
-	end)
-	game:GetService('RunService').Stepped:connect(function()
-		if L_165_ == false then
-			stopTracks();
-		end
-	end)
-end)
-
-sector11:AddButton("Lay Spinbot (T) ", function()
-	local L_383_ = false
-	local L_384_ = game:GetService("UserInputService");
-	L_384_.InputBegan:Connect(function(L_385_arg0, L_386_arg1)
-		if (L_385_arg0.KeyCode == Enum.KeyCode.T and L_386_arg1 == false) then
-			if L_383_ == false then
-				L_383_ = true
-				wait()
-				getgenv().urspeed = 500
-				local L_387_ = game.Players.LocalPlayer.Character
-				while wait() do
-					L_387_.HumanoidRootPart.CFrame = L_387_.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(urspeed), 0)
-				end
-			else
-				L_383_ = false
-				getgenv().urspeed = 0
-			end
-		end
-	end);
-	game:GetService('RunService').Stepped:connect(function()
-		if L_383_ == true then
-			local L_388_ = Instance.new("Animation");
-			function stopTracks()
-				for L_389_forvar0, L_390_forvar1 in next, game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):GetPlayingAnimationTracks(
-    
-        ) do
-					if (L_390_forvar1.Animation.AnimationId:match("rbxassetid")) then
-						L_390_forvar1:Stop();
-					end;
-				end;
-			end;
-			function loadAnimation(L_391_arg0)
-				if L_388_.AnimationId == L_391_arg0 then
-					L_388_.AnimationId = "1";
-				else
-					L_388_.AnimationId = L_391_arg0;
-					local L_392_ =
-                game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):LoadAnimation(
-                L_388_
-            );
-					L_392_:Play();
-				end;
-			end;
-			loadAnimation("rbxassetid://3152378852");
-			wait(1.2)
-		end
-	end)
-	game:GetService('RunService').Stepped:connect(function()
-		if L_383_ == false then
-			stopTracks();
-		end
-	end)
-end)
-
-
-
-	
-	sector11:AddButton("No Recoil", function()
-		function isframework(L_158_arg0)
-		if tostring(L_158_arg0) == "Framework" then
-			return true
-		end
-		return false
-	end
-	function checkArgs(L_159_arg0, L_160_arg1)
-		if tostring(L_159_arg0):lower():find("camera") and tostring(L_160_arg1) == "CFrame" then
-			return true
-		end
-		return false
-	end
-	newindex = hookmetamethod(game, "__newindex", function(L_161_arg0, L_162_arg1, L_163_arg2)
-		local L_164_ = getcallingscript()
-		if isframework(L_164_) and checkArgs(L_161_arg0, L_162_arg1) then
-			return;
-		end
-		return newindex(L_161_arg0, L_162_arg1, L_163_arg2)
-	end)
-	end)
-	
-	sector11:AddButton("Server Hop", function()
-       local x = {}
-            for _, v in ipairs(game:GetService("HttpService"):JSONDecode(game:HttpGetAsync("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")).data) do
-                if type(v) == "table" and v.maxPlayers > v.playing and v.id ~= game.JobId then
-                    x[#x + 1] = v.id
+        --
+        return Text
+    end
+    --
+    function utility:Position(xScale,xOffset,yScale,yOffset,instance)
+        if instance then
+            local x = instance.Position.x+xScale*instance.Size.x+xOffset
+            local y = instance.Position.y+yScale*instance.Size.y+yOffset
+            --
+            return Vector2.new(x,y)
+        else
+            local vx,vy = ws.CurrentCamera.ViewportSize.x,ws.CurrentCamera.ViewportSize.y
+            --
+            local x = xScale*vx+xOffset
+            local y = yScale*vy+yOffset
+            --
+            return Vector2.new(x,y)
+        end
+    end
+    --
+	function utility:Create(instanceType, instanceOffset, instanceProperties, instanceParent)
+        local instanceType = instanceType or "Frame"
+        local instanceOffset = instanceOffset or {Vector2.new(0,0)}
+        local instanceProperties = instanceProperties or {}
+        local instanceHidden = false
+        local instance = nil
+        --
+		if instanceType == "Frame" or instanceType == "frame" then
+            local frame = Drawing.new("Square")
+            frame.Visible = true
+            frame.Filled = true
+            frame.Thickness = 0
+            frame.Color = Color3.fromRGB(255,255,255)
+            frame.Size = Vector2.new(100,100)
+            frame.Position = Vector2.new(0,0)
+            frame.ZIndex = 50
+            frame.Transparency = library.shared.initialized and 1 or 0
+            instance = frame
+        elseif instanceType == "TextLabel" or instanceType == "textlabel" then
+            local text = Drawing.new("Text")
+            text.Font = 3
+            text.Visible = true
+            text.Outline = true
+            text.Center = false
+            text.Color = Color3.fromRGB(255,255,255)
+            text.ZIndex = 50
+            text.Transparency = library.shared.initialized and 1 or 0
+            instance = text
+        elseif instanceType == "Triangle" or instanceType == "triangle" then
+            local frame = Drawing.new("Triangle")
+            frame.Visible = true
+            frame.Filled = true
+            frame.Thickness = 0
+            frame.Color = Color3.fromRGB(255,255,255)
+            frame.ZIndex = 50
+            frame.Transparency = library.shared.initialized and 1 or 0
+            instance = frame
+        elseif instanceType == "Image" or instanceType == "image" then
+            local image = Drawing.new("Image")
+            image.Size = Vector2.new(12,19)
+            image.Position = Vector2.new(0,0)
+            image.Visible = true
+            image.ZIndex = 50
+            image.Transparency = library.shared.initialized and 1 or 0
+            instance = image
+        elseif instanceType == "Circle" or instanceType == "circle" then
+            local circle = Drawing.new("Circle")
+            circle.Visible = false
+            circle.Color = Color3.fromRGB(255, 0, 0)
+            circle.Thickness = 1
+            circle.NumSides = 30
+            circle.Filled = true
+            circle.Transparency = 1
+            circle.ZIndex = 50
+            circle.Radius = 50
+            circle.Transparency = library.shared.initialized and 1 or 0
+            instance = circle
+        elseif instanceType == "Quad" or instanceType == "quad" then
+            local quad = Drawing.new("Quad")
+            quad.Visible = false
+            quad.Color = Color3.fromRGB(255, 255, 255)
+            quad.Thickness = 1.5
+            quad.Transparency = 1 
+            quad.ZIndex = 50
+            quad.Filled = false
+            quad.Transparency = library.shared.initialized and 1 or 0
+            instance = quad
+        elseif instanceType == "Line" or instanceType == "line" then
+            local line = Drawing.new("Line")
+            line.Visible = false
+            line.Color = Color3.fromRGB(255, 255, 255)
+            line.Thickness = 1.5
+            line.Transparency = 1
+            line.Thickness = 1.5
+            line.ZIndex = 50
+            line.Transparency = library.shared.initialized and 1 or 0
+            instance = line
+        end
+        --
+        if instance then
+            for i, v in pairs(instanceProperties) do
+                if i == "Hidden" or i == "hidden" then
+                    instanceHidden = true
+                else
+                    if library.shared.initialized then
+                        instance[i] = v
+                    else
+                        if instanceProperties.Hidden or instanceProperties.hidden then
+                            instance[i] = v
+                        else
+                            if i ~= "Transparency" then
+                                instance[i] = v
+                            end
+                        end
+                    end
                 end
             end
-            if #x > 0 then
-                game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, x[math.random(1, #x)])
+            --
+            if not instanceHidden then
+                library.drawings[#library.drawings + 1] = {instance, instanceOffset, instanceProperties["Transparency"] or 1}
             else
-             game.StarterGui:SetCore("SendNotification", {
-    Title = "Kzumaki";
-    Text = "Failed 2 Find Server";
-    Duration = 3;
-})
-wait(0)
+                library.hidden[#library.hidden + 1] = {instance}
             end
-		end)
-
-sector11:AddButton("Underground (P,O)", function()
-underground = false
-        plr = game.Players.LocalPlayer
-        mouse = plr:GetMouse()
-        mouse.KeyDown:connect(function(key)
-        
-        if key == "o" then
-        
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,-9,0)
-        game:GetService('RunService').Stepped:connect(function()
-        if underground then
-        game.Players.LocalPlayer.Character.Humanoid:ChangeState(11)
-        end
-        end)
-        end
-        end)
-        wait()
-        
-        plr = game.Players.LocalPlayer
-        mouse = plr:GetMouse()
-        mouse.KeyDown:connect(function(key)
-        
-        if key == "p" then
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,11,0)
-        underground = not underground
-        game.Players.LocalPlayer.Character.Humanoid:ChangeState(11)
-        end
-        end)
-end)
-
-sector11:AddButton("Buy Armor", function()
-local plr = game.Players.LocalPlayer
-	local savedarmourpos = plr.Character.HumanoidRootPart.Position
-	plr.Character.HumanoidRootPart.CFrame = CFrame.new(-938.476685, -25.2498264, 570.100159, -0.0353576206, 9.85617206e-08, -0.999374807, -2.69198441e-09, 1, 9.871858e-08, 0.999374807, 6.18077589e-09, -0.0353576206)
-	wait(.2)
-
-	fireclickdetector(game.Workspace.Ignored.Shop['[High-Medium Armor] - $2300'].ClickDetector)
-	plr.Character.HumanoidRootPart.CFrame = CFrame.new(savedarmourpos)
-end)
-
-sector11:AddButton("Double Barrel Ammo", function()
-local L_506_ = game.Workspace.Ignored.Shop['18 [Double-Barrel SG Ammo] - $60']
-	local L_507_ = L_10_.Character.HumanoidRootPart.Position
-	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = L_506_.Head.CFrame + Vector3.new(0, 3, 0)
-	wait(0.5)
-	fireclickdetector(game.Workspace.Ignored.Shop['18 [Double-Barrel SG Ammo] - $60'].ClickDetector)
-	fireclickdetector(game.Workspace.Ignored.Shop['18 [Double-Barrel SG Ammo] - $60'].ClickDetector)
-	L_10_.Character.HumanoidRootPart.CFrame = CFrame.new(L_507_)
-	L_10_.Character.HumanoidRootPart.CFrame = CFrame.new(L_507_)
-end)
-
-sector11:AddButton("Revolver Ammo", function()
-L_10_ = game:GetService'Players'.LocalPlayer
-	local L_501_ = '12 [Revolver Ammo] - $75'
-	local L_502_ = game.Workspace.Ignored.Shop[L_501_]
-	local L_503_ = L_10_.Character.HumanoidRootPart.Position
-	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = L_502_.Head.CFrame + Vector3.new(0, 3, 0)
-	wait(0.5)
-	fireclickdetector(game.Workspace.Ignored.Shop[L_501_].ClickDetector)
-	fireclickdetector(game.Workspace.Ignored.Shop[L_501_].ClickDetector)
-	L_10_.Character.HumanoidRootPart.CFrame = CFrame.new(L_503_)
-	L_10_.Character.HumanoidRootPart.CFrame = CFrame.new(L_503_)
-end)
-
-sector11:AddButton("Animation Pack", function()
-local FreeAnimationPack = Instance.new("ScreenGui")
-				local AnimationPack = Instance.new("TextButton")
-				local Animations = Instance.new("ScrollingFrame")
-				local UIListLayout = Instance.new("UIListLayout")
-				local Lean = Instance.new("TextButton")
-				local Lay = Instance.new("TextButton")
-				local Dance1 = Instance.new("TextButton")
-				local Dance2 = Instance.new("TextButton")
-				local Greet = Instance.new("TextButton")
-				local ChestPump = Instance.new("TextButton")
-				local Praying = Instance.new("TextButton")
-				local Stop = Instance.new("TextButton")
-				local UniversalAnimation = Instance.new("Animation");
-
-				function stopTracks()
-					for _, v in next, game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):GetPlayingAnimationTracks() do
-						if (v.Animation.AnimationId:match("rbxassetid")) then
-							v:Stop();
-						end;
-					end;
-				end;
-
-				function loadAnimation(id)
-					if UniversalAnimation.AnimationId == id then
-						stopTracks();
-						UniversalAnimation.AnimationId = "1";
-					else
-						UniversalAnimation.AnimationId = id;
-						local animationTrack = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):LoadAnimation(UniversalAnimation);
-						animationTrack:Play();
-					end;
-				end;
-
-				FreeAnimationPack.Name = "FreeAnimationPack"
-				FreeAnimationPack.Parent = game.CoreGui;
-				FreeAnimationPack.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-				AnimationPack.Name = "AnimationPack"
-				AnimationPack.Parent = FreeAnimationPack
-				AnimationPack.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				AnimationPack.BorderSizePixel = 0
-				AnimationPack.Position = UDim2.new(0, 0, 0.388007045, 0)
-				AnimationPack.Size = UDim2.new(0, 100, 0, 20)
-				AnimationPack.Font = Enum.Font.SourceSansBold
-				AnimationPack.Text = "Animations"
-				AnimationPack.TextColor3 = Color3.fromRGB(0, 0, 0)
-				AnimationPack.TextSize = 18.000
-				AnimationPack.MouseButton1Click:Connect(function()
-					if (Animations.Visible == false) then
-						Animations.Visible = true;
-					end;
-				end);
-
-				Animations.Name = "Animations"
-				Animations.Parent = AnimationPack
-				Animations.Active = true
-				Animations.BackgroundColor3 = Color3.fromRGB(102, 102, 102)
-				Animations.Position = UDim2.new(-0.104712225, 0, -1.54173493, 0)
-				Animations.Size = UDim2.new(0, 120, 0, 195)
-				Animations.Visible = false
-				Animations.CanvasPosition = Vector2.new(0, 60.0000305)
-				Animations.CanvasSize = UDim2.new(0, 0, 1, 235)
-
-				UIListLayout.Parent = Animations
-				UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-				UIListLayout.Padding = UDim.new(0, 2)
-
-				Lean.Name = "Lean"
-				Lean.Parent = Animations
-				Lean.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Lean.Size = UDim2.new(1, 0, 0, 30)
-				Lean.Font = Enum.Font.SourceSansBold
-				Lean.Text = "Lean"
-				Lean.TextColor3 = Color3.fromRGB(0, 0, 0)
-				Lean.TextSize = 14.000
-				Lean.MouseButton1Click:Connect(function()
-					stopTracks();
-					loadAnimation("rbxassetid://3152375249");
-				end);
-
-				Lay.Name = "Lay"
-				Lay.Parent = Animations
-				Lay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Lay.Size = UDim2.new(1, 0, 0, 30)
-				Lay.Font = Enum.Font.SourceSansBold
-				Lay.Text = "Lay"
-				Lay.TextColor3 = Color3.fromRGB(0, 0, 0)
-				Lay.TextSize = 14.000
-				Lay.MouseButton1Click:Connect(function()
-					stopTracks();
-					loadAnimation("rbxassetid://3152378852");
-				end);
-
-				Dance1.Name = "Dance1"
-				Dance1.Parent = Animations
-				Dance1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Dance1.Size = UDim2.new(1, 0, 0, 30)
-				Dance1.Font = Enum.Font.SourceSansBold
-				Dance1.Text = "Dance1"
-				Dance1.TextColor3 = Color3.fromRGB(0, 0, 0)
-				Dance1.TextSize = 14.000
-				Dance1.MouseButton1Click:Connect(function()
-					stopTracks();
-					loadAnimation("rbxassetid://3189773368");
-				end);
-
-				Dance2.Name = "Dance2"
-				Dance2.Parent = Animations
-				Dance2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Dance2.Size = UDim2.new(1, 0, 0, 30)
-				Dance2.Font = Enum.Font.SourceSansBold
-				Dance2.Text = "Dance2"
-				Dance2.TextColor3 = Color3.fromRGB(0, 0, 0)
-				Dance2.TextSize = 14.000
-				Dance2.MouseButton1Click:Connect(function()
-					stopTracks();
-					loadAnimation("rbxassetid://3189776546");
-				end);
-
-				Greet.Name = "Greet"
-				Greet.Parent = Animations
-				Greet.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Greet.Size = UDim2.new(1, 0, 0, 30)
-				Greet.Font = Enum.Font.SourceSansBold
-				Greet.Text = "Greet"
-				Greet.TextColor3 = Color3.fromRGB(0, 0, 0)
-				Greet.TextSize = 14.000
-				Greet.MouseButton1Click:Connect(function()
-					stopTracks();
-					loadAnimation("rbxassetid://3189777795");
-				end);
-
-				ChestPump.Name = "ChestPump"
-				ChestPump.Parent = Animations
-				ChestPump.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				ChestPump.Size = UDim2.new(1, 0, 0, 30)
-				ChestPump.Font = Enum.Font.SourceSansBold
-				ChestPump.Text = "Chest Pump"
-				ChestPump.TextColor3 = Color3.fromRGB(0, 0, 0)
-				ChestPump.TextSize = 14.000
-				ChestPump.MouseButton1Click:Connect(function()
-					stopTracks();
-					loadAnimation("rbxassetid://3189779152");
-				end);
-
-				Praying.Name = "Praying"
-				Praying.Parent = Animations
-				Praying.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Praying.Size = UDim2.new(1, 0, 0, 30)
-				Praying.Font = Enum.Font.SourceSansBold
-				Praying.Text = "Praying"
-				Praying.TextColor3 = Color3.fromRGB(0, 0, 0)
-				Praying.TextSize = 14.000
-				Praying.MouseButton1Click:Connect(function()
-					stopTracks();
-					loadAnimation("rbxassetid://3487719500");
-				end);
-
-				Stop.Name = "Stop"
-				Stop.Parent = Animations
-				Stop.BackgroundColor3 = Color3.fromRGB(255, 112, 112)
-				Stop.Size = UDim2.new(1, 0, 0, 30)
-				Stop.Font = Enum.Font.SourceSansBold
-				Stop.Text = "Stop Animation"
-				Stop.TextColor3 = Color3.fromRGB(0, 0, 0)
-				Stop.TextSize = 14.000
-				Stop.MouseButton1Click:Connect(function()
-					stopTracks();
-				end);
-				--scripts
-				local plr = game.Players.LocalPlayer
-
-				plr:GetMouse().KeyDown:Connect(function(K)
-					if K == "p" then
-						Animations.Visible = false
-					end
-				end)
-end)
-
-sector11:AddButton("No Fog", function()
-while true do
-                wait()
-                game.Lighting.FogEnd = 1000000
-                wait()
-                end
-end)
-
-sector11:AddButton("Rejoin", function()
- local tpservice= game:GetService("TeleportService")
-            local plr = game.Players.LocalPlayer
-
-            tpservice:Teleport(game.PlaceId, plr)
-end)
-
-	
-		sector11:AddButton("Chat Spy", function()
-		      -- // Initialise
-        --if (getgenv().ChatSpy) then return getgenv().ChatSpy; end;
-        repeat wait() until game:GetService("ContentProvider").RequestQueueSize == 0;
-        repeat wait() until game:IsLoaded();
-
-        -- // Vars
-        local Players = game:GetService("Players");
-        local StarterGui = game:GetService("StarterGui");
-        local ReplicatedStorage = game:GetService("ReplicatedStorage");
-        local LocalPlayer = Players.LocalPlayer;
-        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui");
-        local DefaultChatSystemChatEvents = ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents");
-        local SayMessageRequest = DefaultChatSystemChatEvents:WaitForChild("SayMessageRequest");
-        local OnMessageDoneFiltering = DefaultChatSystemChatEvents:WaitForChild("OnMessageDoneFiltering");
-        getgenv().ChatSpy = {
-            Enabled = true,
-            SpyOnSelf = true,
-            Public = false,
-            Chat = {
-                Colour  = Color3.fromRGB(255, 0, 0),
-                Font = Enum.Font.SourceSans,
-                TextSize = 18,
-                Text = "",
-            },
-            IgnoreList = {
-                {Message = ":part/1/1/1", ExactMatch = true},
-                {Message = ":part/10/10/10", ExactMatch = true},
-                {Message = "A?????????", ExactMatch = false},
-                {Message = ":colorshifttop 10000 0 0", ExactMatch = true},
-                {Message = ":colorshiftbottom 10000 0 0", ExactMatch = true},
-                {Message = ":colorshifttop 0 10000 0", ExactMatch = true},
-                {Message = ":colorshiftbottom 0 10000 0", ExactMatch = true},
-                {Message = ":colorshifttop 0 0 10000", ExactMatch = true},
-                {Message = ":colorshiftbottom 0 0 10000", ExactMatch = true},
-            },
-        };
-
-        -- // Function
-        function ChatSpy.checkIgnored(message)
-            for i = 1, #ChatSpy.IgnoreList do
-                local v = ChatSpy.IgnoreList[i];
-                if (v.ExactMatch and message == v.Message) or (not v.ExactMatch and string.match(v.Message, message)) then
-                    return true;
-                end;
-            end;
-            return false;
-        end;
-
-        function ChatSpy.onChatted(targetPlayer, message)
-            if (targetPlayer == LocalPlayer and string.lower(message):sub(1, 4) == "/spy") then
-                ChatSpy.Enabled = not ChatSpy.Enabled; wait(0.3);
-                ChatSpy.Chat.Text = "[SPY] - "..(ChatSpy.Enabled and "Enabled." or "Disabled.");
-
-                StarterGui:SetCore("ChatMakeSystemMessage", ChatSpy.Chat);
-            elseif (ChatSpy.Enabled and (ChatSpy.SpyOnSelf or targetPlayer ~= LocalPlayer)) then
-                local message = message:gsub("[\n\r]",''):gsub("\t",' '):gsub("[ ]+",' ');
-
-                local Hidden = true;
-                local Connection = OnMessageDoneFiltering.OnClientEvent:Connect(function(packet, channel)
-                    if (packet.SpeakerUserId == targetPlayer.UserId and packet.Message == message:sub(#message - #packet.Message + 1) and (channel == "All" or (channel == "Team" and not ChatSpy.Public and Players[packet.FromSpeaker].Team == LocalPlayer.Team))) then
-                        Hidden = false;
-                    end;
-                end);
-
-                wait(1);
-                Connection:Disconnect();
-
-                if (Hidden and ChatSpy.Enabled and not ChatSpy.checkIgnored(message)) then
-                    if (#message > 1200) then
-                        message = message:sub(1200) .. "...";
-                    end;
-                    ChatSpy.Chat.Text = "[SPY] - ["..targetPlayer.Name.."]: " .. message;
-                    if (ChatSpy.Public) then SayMessageRequest:FireServer(ChatSpy.Chat.Text, "All"); else StarterGui:SetCore("ChatMakeSystemMessage", ChatSpy.Chat); end;
-                end;
-            end;
-        end;
-
-        -- // Handling Chats
-        local AllPlayers = Players:GetPlayers();
-        for i = 1, #AllPlayers do
-            local player = AllPlayers[i];
-            player.Chatted:Connect(function(message)
-                ChatSpy.onChatted(player, message);
-            end);
-        end;
-
-        Players.PlayerAdded:Connect(function(player)
-            player.Chatted:Connect(function(message)
-                ChatSpy.onChatted(player, message);
-            end);
-        end);
-
-        -- // Initialise Text
-        ChatSpy.Chat.Text = "[SPY] - "..(ChatSpy.Enabled and "Enabled." or "Disabled.");
-        StarterGui:SetCore("ChatMakeSystemMessage", ChatSpy.Chat);
-
-        -- // Update Chat Frame
-        local chatFrame = LocalPlayer.PlayerGui.Chat.Frame;
-        chatFrame.ChatChannelParentFrame.Visible = true;
-        chatFrame.ChatBarParentFrame.Position = chatFrame.ChatChannelParentFrame.Position + UDim2.new(UDim.new(), chatFrame.ChatChannelParentFrame.Size.Y);
-		end)
-    
-    sector11:AddButton("Speed Glitch (X)", function()
-    	local Player = game:GetService("Players").LocalPlayer
-			local Mouse = Player:GetMouse()
-			local SpeedGlitch = false
-			local Wallet = Player.Backpack:FindFirstChild("Wallet")
-
-			local UniversalAnimation = Instance.new("Animation")
-
-			function stopTracks()
-				for _, v in next, game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):GetPlayingAnimationTracks() do
-					if (v.Animation.AnimationId:match("rbxassetid")) then
-						v:Stop()
-					end
-				end
-			end
-
-			function loadAnimation(id)
-				if UniversalAnimation.AnimationId == id then
-					stopTracks()
-					UniversalAnimation.AnimationId = "1"
-				else
-					UniversalAnimation.AnimationId = id
-					local animationTrack = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):LoadAnimation(UniversalAnimation)
-					animationTrack:Play()
-				end
-			end
-
-			Mouse.KeyDown:Connect(function(Key)
-				if Key == "x" then
-					SpeedGlitch = not SpeedGlitch
-					if SpeedGlitch == true then
-						stopTracks()
-						loadAnimation("rbxassetid://3189777795")
-						wait(1.5)
-						Wallet.Parent = Player.Character
-						wait(0.15)
-						Player.Character:FindFirstChild("Wallet").Parent = Player.Backpack
-						wait(0.05)
-						repeat game:GetService("RunService").Heartbeat:wait()
-							keypress(0x49)
-							game:GetService("RunService").Heartbeat:wait()
-							keypress(0x4F)
-							game:GetService("RunService").Heartbeat:wait()
-							keyrelease(0x49)
-							game:GetService("RunService").Heartbeat:wait()
-							keyrelease(0x4F)
-							game:GetService("RunService").Heartbeat:wait()
-						until SpeedGlitch == false
-					end
-				end
-			end)
-    end)
-    
-   local button sector11:AddButton("Anti Christmas", function()
-game:GetService("Workspace").Ignored.WinterMAP:Destroy()
-game:GetService("Workspace").Ignored.SnowBlock:Destroy()
-end)
-    
-    local button = sector12:AddButton("Flyish Speed [Q]", function()
-  
-     plr = game:GetService('Players').LocalPlayer
-     down = true
-     
-     function onButton1Down(mouse)
-         down = true
-         while down do
-             if not down then break end
-             local char = plr.Character
-             char.HumanoidRootPart.Velocity = char.HumanoidRootPart.CFrame.lookVector * 190
-             wait()
-         end
-     end
-     
-     function onButton1Up(mouse)
-         down = false
-     end
-     
-     function onSelected(mouse)
-         mouse.KeyDown:connect(function(q) if q:lower()=="q"then onButton1Down(mouse)end end)
-         mouse.KeyUp:connect(function(q) if q:lower()=="q"then onButton1Up(mouse)end end)
-     end
-     onSelected(game.Players.LocalPlayer:GetMouse())
-         
- end)
-    
-     sector12:AddButton("Unbag Function", function(L_178_arg0)
-    game.Players.LocalPlayer.Character["Christmas_Sock"]:Destroy()	
-     end)
-
- sector12:AddButton("Force Reset", function(L_178_arg0)
-for L_170_forvar0, L_171_forvar1 in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-		if L_171_forvar1:IsA("BasePart") then
-			L_171_forvar1:Destroy()
-		end
-	end
-end)
-
-
-sector12:AddButton("Anti Slow", function(L_178_arg0)
-antislow = L_175_arg0
-	repeat
-		wait(0.1)
-		local L_176_ = game.Players.LocalPlayer
-		local L_177_ = L_176_.Character.BodyEffects.Movement:FindFirstChild('NoJumping') or L_176_.Character.BodyEffects.Movement:FindFirstChild('ReduceWalk') or L_176_.Character.BodyEffects.Movement:FindFirstChild('NoWalkSpeed')
-		if L_177_ then
-			L_177_:Destroy()
-		end
-		if L_176_.Character.BodyEffects.Reload.Value == true then
-			L_176_.Character.BodyEffects.Reload.Value = false
-		end
-	until antislow == false
-end)
-
-sector12:AddButton("Trashtalk (J)", function(L_178_arg0)
-   local plr = game.Players.LocalPlayer
-                repeat wait() until plr.Character
-                local char = plr.Character
-
-                local garbage = {
-                "ur bad";
-                "nice try bud";
-                "ez";
-                "my grandma has more skill than you";
-                "gun user";
-                "bunny hopper";
-                "trash";
-                "LOL";
-                "LMAO";
-                "imagine being you right now";
-                "xd";
-                "you smell";
-                "ur bad";
-                "why do you even try";
-                "I didn't think being this bad was possible";
-                "leave";
-                "no skill";
-                "you thought";
-                "bad";
-                "you're nothing";
-                "lol";
-                "so trash";
-                "dog water";
-                "ur salty";
-                "salty";
-                "ur mad son";
-                "cry more";
-                "keep crying";
-                "cry baby";
-                "hahaha I won";
-                "no one likes u";
-                "darn";
-                "thank you for your time";
-                "you were so close!";
-                "better luck next time!";
-                "rodent";
-                "ur so bad ur my seed";
-                "/e dab";
-                "/e dab";
-                "time to take out the trash";
-                "did you get worse?";
-                "I'm surprised you haven't quit yet";
-                "sonned";
-                 "lightwork";
-            }
-                function TrashTalk(inputObject, gameProcessedEvent)
-                 if inputObject.KeyCode == Enum.KeyCode.J and gameProcessedEvent == false then
-                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
-                garbage[math.random(1,#garbage)],
-                "All"
-                )
-                     end
-                end
-                game:GetService("UserInputService").InputBegan:connect(TrashTalk)
-                end)
-
-
-sector12:AddButton("Infinite Zoom",false,function()
-game:GetService("Players").LocalPlayer.CameraMaxZoomDistance = math.huge
-end)
-
- local button =  sector12:AddButton("Dot Cursor (Auto)", function()
-     game:GetService("Players").LocalPlayer.PlayerGui.MainScreenGui.Aim.Top.Visible = false
-     game:GetService("Players").LocalPlayer.PlayerGui.MainScreenGui.Aim.Right.Visible = false
-     game:GetService("Players").LocalPlayer.PlayerGui.MainScreenGui.Aim.Left.Visible = false
-     game:GetService("Players").LocalPlayer.PlayerGui.MainScreenGui.Aim.Bottom.Visible = false 
- end)
-
-
-
-    local button =  sector13:AddButton("CFrame Speed (N)", function()
-	repeat
-		wait()
-	until game:IsLoaded()
-	local L_134_ = game:service('Players')
-	local L_135_ = L_134_.LocalPlayer
-	repeat
-		wait()
-	until L_135_.Character
-	local L_136_ = game:service('UserInputService')
-	local L_137_ = game:service('RunService')
-	getgenv().Multiplier = 0.5
-	local L_138_ = true
-	local L_139_
-	L_136_.InputBegan:connect(function(L_140_arg0)
-		if L_140_arg0.KeyCode == Enum.KeyCode.LeftBracket then
-			Multiplier = Multiplier + 0.01
-			print(Multiplier)
-			wait(0.2)
-			while L_136_:IsKeyDown(Enum.KeyCode.LeftBracket) do
-				wait()
-				Multiplier = Multiplier + 0.01
-				print(Multiplier)
-			end
-		end
-		if L_140_arg0.KeyCode == Enum.KeyCode.RightBracket then
-			Multiplier = Multiplier - 0.01
-			print(Multiplier)
-			wait(0.2)
-			while L_136_:IsKeyDown(Enum.KeyCode.RightBracket) do
-				wait()
-				Multiplier = Multiplier - 0.01
-				print(Multiplier)
-			end
-		end
-		if L_140_arg0.KeyCode == Enum.KeyCode.N then
-			L_138_ = not L_138_
-			if L_138_ == true then
-				repeat
-					game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame + game.Players.LocalPlayer.Character.Humanoid.MoveDirection * Multiplier
-					game:GetService("RunService").Stepped:wait()
-				until L_138_ == false
-			end
-		end
-	end)
-end)   
-
-sector13:AddButton("Anti-Lock (Z)", function()
-	repeat
-		wait()
-	until game:IsLoaded()
-	getgenv().Fix = false
-	getgenv().TeclasWS = {
-		["tecla1"] = "nil", -- speed +5
-		["tecla2"] = "nil", -- speed -5
-		["tecla3"] = "H" -- toggle
-	}
-
-
-
--- // servicios
-	local L_183_ = game:GetService("Players")
-	local L_184_ = game:GetService("StarterGui") or "son una mierda"
-
--- // objetos
-	local L_185_ = L_183_.LocalPlayer
-	local L_186_ = L_185_:GetMouse()
-
--- // variables
-	local L_187_ = getrenv()._G
-	local L_188_ = getrawmetatable(game)
-	local L_189_ = L_188_.__newindex
-	local L_190_ = L_188_.__index
-	local L_191_ = 22
-	local L_192_ = true
-
--- // funciones para acortar codigo :]
-	function anunciar_atentado_terrorista(L_199_arg0)
-		L_184_:SetCore("SendNotification", {
-			Title = "How to Fix?",
-			Text = L_199_arg0
-		})
-	end
-	getgenv().TECHWAREWALKSPEED_LOADED = true
-	wait(1.5)
-	anunciar_atentado_terrorista("Press  " .. TeclasWS.tecla3 .. " To Turn On/Off Anti-Lock Fix")
-
--- // conexión
-	L_186_.KeyDown:Connect(function(L_200_arg0)
-		if L_200_arg0:lower() == TeclasWS.tecla1:lower() then
-			L_191_ = L_191_ + 1
-			anunciar_atentado_terrorista("播放器速度已提高 (speed = " .. tostring(L_191_) .. ")")
-		elseif L_200_arg0:lower() == TeclasWS.tecla2:lower() then
-			L_191_ = L_191_ - 1
-			anunciar_atentado_terrorista("玩家的速度已降低 (speed = " .. tostring(L_191_) .. ")")
-		elseif L_200_arg0:lower() == TeclasWS.tecla3:lower() then
-			if L_192_ then
-				L_192_ = false
-				anunciar_atentado_terrorista("AntiLock Fix Off")
-			else
-				L_192_ = true
-				anunciar_atentado_terrorista("Antilock fix Off")
-			end
-		end
-	end)
-
--- // mi parte favorita: metametodos
-	setreadonly(L_188_, false)
-	L_188_.__index = newcclosure(function(L_201_arg0, L_202_arg1)
-		local L_203_ = checkcaller()
-		if L_202_arg1 == "WalkSpeed" and not L_203_ then
-			return L_187_.CurrentWS
-		end
-		return L_190_(L_201_arg0, L_202_arg1)
-	end)
-	L_188_.__newindex = newcclosure(function(L_204_arg0, L_205_arg1, L_206_arg2)
-		local L_207_ = checkcaller()
-		if L_192_ then
-			if L_205_arg1 == "WalkSpeed" and L_206_arg2 ~= 0 and not L_207_ then
-				return L_189_(L_204_arg0, L_205_arg1, L_191_)
-			end
-		end
-		return L_189_(L_204_arg0, L_205_arg1, L_206_arg2)
-	end)
-	setreadonly(L_188_, true)
-	repeat
-		wait()
-	until game:IsLoaded()
-	local L_193_ = game:service('Players')
-	local L_194_ = L_193_.LocalPlayer
-	repeat
-		wait()
-	until L_194_.Character
-	local L_195_ = game:service('UserInputService')
-	local L_196_ = game:service('RunService')
-	getgenv().Multiplier = 0.27
-	local L_197_ = false
-	local L_198_
-	L_195_.InputBegan:connect(function(L_208_arg0)
-		if L_208_arg0.KeyCode == Enum.KeyCode.LeftBracket then
-			Multiplier = Multiplier + 0.01
-			print(Multiplier)
-			wait(0.2)
-			while L_195_:IsKeyDown(Enum.KeyCode.LeftBracket) do
-				wait()
-				Multiplier = Multiplier + 0.01
-				print(Multiplier)
-			end
-		end
-		if L_208_arg0.KeyCode == Enum.KeyCode.RightBracket then
-			Multiplier = Multiplier - 0.01
-			print(Multiplier)
-			wait(0.2)
-			while L_195_:IsKeyDown(Enum.KeyCode.RightBracket) do
-				wait()
-				Multiplier = Multiplier - 0.01
-				print(Multiplier)
-			end
-		end
-		if L_208_arg0.KeyCode == Enum.KeyCode.Z then
-			L_197_ = not L_197_
-			if L_197_ == true then
-				repeat
-					game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame + -game.Players.LocalPlayer.Character.Humanoid.MoveDirection * Multiplier
-					game:GetService("RunService").Stepped:wait()
-				until L_197_ == false
-			end
-		end
-	end)
-	if Fix == true then
-   -- This file was generated using Luraph Obfuscator v12.2 by memcorrupt.
-		local L_209_ = assert
-		local L_210_ = select
-		local L_211_ = tonumber
-		local L_212_ = unpack
-		local L_213_ = pcall
-		local L_214_ = setfenv
-		local L_215_ = setmetatable
-		local L_216_ = type
-		local L_217_ = getfenv
-		local L_218_ = tostring
-		local L_219_ = error
-		local L_220_ = string.sub
-		local L_221_ = string.byte
-		local L_222_ = string.char
-		local L_223_ = string.rep
-		local L_224_ = string.gsub
-		local L_225_ = string.match
-		local L_226_ = L_221_("c", 1)
-		local L_227_, L_228_ = #{
-			3852
-		}, #{
-			1542,
-			4736,
-			4007,
-			4631,
-			3665,
-			5388,
-			3846,
-			6707,
-			6297,
-			3491,
-			6638,
-			322,
-			1151,
-			2603,
-			563,
-			2191,
-			1745,
-			3784,
-			3605,
-			549,
-			3440
-		} + L_226_ + 130951
-		local L_229_ = {}
-		local L_230_ = 1
-		local function L_231_func(L_232_arg0, L_233_arg1)
-			local L_234_
-			L_232_arg0 = L_224_(L_220_(L_232_arg0, 5), "..", function(L_246_arg0)
-				if L_221_(L_246_arg0, 2) == 72 then
-					L_234_ = L_211_(L_220_(L_246_arg0, 1, 1))
-					return ""
-				else
-					local L_247_ = L_222_(L_211_(L_246_arg0, 16))
-					if L_234_ then
-						local L_248_ = L_223_(L_247_, L_234_)
-						L_234_ = nil
-						return L_248_
-					else
-						return L_247_
-					end
-				end
-			end)
-			local function L_235_func()
-				local L_249_ = L_221_(L_232_arg0, L_230_, L_230_)
-				L_230_ = L_230_ + 1
-				return L_249_
-			end
-			local function L_236_func()
-				local L_250_, L_251_, L_252_, L_253_ = L_221_(L_232_arg0, L_230_, L_230_ + 3)
-				L_230_ = L_230_ + 4
-				return L_253_ * 16777216 + L_252_ * 65536 + L_251_ * 256 + L_250_
-			end
-			local function L_237_func(L_254_arg0, L_255_arg1, L_256_arg2)
-				if L_256_arg2 then
-					local L_257_, L_258_ = 0, 0
-					for L_259_forvar0 = L_255_arg1, L_256_arg2 do
-						L_257_ = L_257_ + 2 ^ L_258_ * L_237_func(L_254_arg0, L_259_forvar0)
-						L_258_ = L_258_ + 1
-					end
-					return L_257_
-				else
-					local L_260_ = 2 ^ (L_255_arg1 - 1)
-					return L_260_ <= L_254_arg0 % (L_260_ + L_260_) and 1 or 0
-				end
-			end
-			local function L_238_func()
-				local L_261_, L_262_ = L_236_func(), L_236_func()
-				if L_261_ == 0 and L_262_ == 0 then
-					return 0
-				end
-				return (-2 * L_237_func(L_262_, 32) + 1) * 2 ^ (L_237_func(L_262_, 21, 31) - 1023) * ((L_237_func(L_262_, 1, 20) * 4294967296 + L_261_) / 4503599627370496 + 1)
-			end
-			local function L_239_func(L_263_arg0)
-				local L_264_ = {
-					L_221_(L_232_arg0, L_230_, L_230_ + 3)
-				}
-				L_230_ = L_230_ + 4
-				local L_265_ = {
-					nil,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil
-				}
-				for L_271_forvar0 = 1, 8 do
-					L_265_[L_271_forvar0] = L_237_func(L_263_arg0, L_271_forvar0)
-				end
-				local L_266_ = ""
-				for L_272_forvar0 = 1, 4 do
-					local L_273_, L_274_ = 0, 0
-					for L_275_forvar0 = 1, 8 do
-						local L_276_ = L_237_func(L_264_[L_272_forvar0], L_275_forvar0)
-						if L_265_[L_275_forvar0] == 1 then
-							L_276_ = L_276_ == 1 and 0 or 1
-						end
-						L_273_ = L_273_ + 2 ^ L_274_ * L_276_
-						L_274_ = L_274_ + 1
-					end
-					L_266_ = L_266_ .. L_222_(L_273_)
-				end
-				local L_267_, L_268_, L_269_, L_270_ = L_221_(L_266_, 1, 4)
-				return L_270_ * 16777216 + L_269_ * 65536 + L_268_ * 256 + L_267_
-			end
-			local function L_240_func(L_277_arg0)
-				local L_278_ = L_236_func()
-				L_230_ = L_230_ + L_278_
-				local L_279_ = {
-					nil,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil,
-					nil
-				}
-				for L_281_forvar0 = 1, 8 do
-					L_279_[L_281_forvar0] = L_237_func(L_277_arg0, L_281_forvar0)
-				end
-				local L_280_ = ""
-				for L_282_forvar0 = 1, L_278_ do
-					local L_283_, L_284_ = 0, 0
-					for L_285_forvar0 = 1, 8 do
-						local L_286_ = L_237_func(L_221_(L_232_arg0, L_230_ - L_278_ + L_282_forvar0 - 1), L_285_forvar0)
-						if L_279_[L_285_forvar0] == 1 then
-							L_286_ = L_286_ == 1 and 0 or 1
-						end
-						L_283_ = L_283_ + 2 ^ L_284_ * L_286_
-						L_284_ = L_284_ + 1
-					end
-					L_280_ = L_280_ .. L_222_(L_283_)
-				end
-				return L_280_
-			end
-			local L_241_ = L_235_func()
-			local L_242_ = L_235_func()
-			local function L_243_func()
-				local L_287_ = {
-					[103667] = {},
-					[38060] = {},
-					[45149] = {},
-					[9417] = {}
-				}
-				L_236_func()
-				L_235_func()
-				L_236_func()
-				local L_288_ = L_236_func()
-				for L_292_forvar0 = L_227_, L_288_ do
-					L_287_[45149][L_292_forvar0] = L_236_func()
-				end
-				L_235_func()
-				L_236_func()
-				L_235_func()
-				L_236_func()
-				L_236_func()
-				L_235_func()
-				L_236_func()
-				L_235_func()
-				local L_289_ = L_236_func() - (#{
-					1370,
-					1209,
-					4744,
-					2762,
-					2762,
-					4496,
-					746,
-					2097,
-					868,
-					675,
-					5896,
-					5905,
-					1264,
-					1377,
-					2324,
-					2535,
-					2455,
-					2024,
-					4200,
-					819,
-					2174
-				} + L_226_ + 133651)
-				for L_293_forvar0 = L_227_, L_289_ do
-					local L_294_ = {}
-					local L_295_ = L_239_func(L_242_)
-					L_294_[45656] = L_237_func(L_295_, #{
-						5814
-					}, #{
-						3157,
-						742,
-						1730,
-						4905,
-						389,
-						6452,
-						849,
-						5686,
-						6065
-					})
-					L_294_[61862] = L_237_func(L_295_, #{
-						2964
-					}, #{
-						56,
-						3876,
-						5543,
-						6838,
-						3598,
-						6818,
-						5391,
-						6122,
-						925,
-						4757,
-						859,
-						1878,
-						4590,
-						67,
-						4836,
-						2634,
-						4282,
-						4271
-					})
-					L_294_[18579] = L_237_func(L_295_, #{
-						570,
-						2790,
-						6499,
-						5,
-						4155,
-						3345,
-						5596,
-						6074,
-						6955,
-						3140,
-						615,
-						479,
-						1033,
-						3672,
-						6567,
-						1655,
-						659,
-						5115,
-						4899
-					}, #{
-						4263,
-						540,
-						5996,
-						1550,
-						1109,
-						1963,
-						6238,
-						6961,
-						1601,
-						5125,
-						3322,
-						365,
-						4954,
-						3184,
-						3351,
-						6810,
-						5650,
-						1673,
-						6936,
-						2988,
-						3398
-					} + L_226_ + -94)
-					L_294_[130194] = L_237_func(L_295_, #{
-						1771
-					}, #{
-						2731,
-						6825,
-						2697,
-						6338,
-						6780,
-						5662,
-						3663,
-						3474,
-						3520,
-						1857,
-						696,
-						4324,
-						2551,
-						4854,
-						798,
-						2400,
-						2686,
-						456
-					})
-					L_294_[38582] = L_237_func(L_295_, #{
-						5493,
-						4999,
-						5858,
-						2245,
-						644,
-						4538,
-						5372,
-						5497,
-						5274,
-						1576,
-						4080,
-						6763,
-						929,
-						471,
-						165,
-						6493,
-						3877,
-						5587,
-						4223,
-						6203
-					} + L_226_ + -92, #{
-						1746,
-						5174,
-						1303,
-						2907,
-						2470,
-						5017,
-						1137,
-						3995,
-						6202,
-						3939,
-						4308,
-						5391,
-						6640,
-						292,
-						4747,
-						1302,
-						3306,
-						3916,
-						6595,
-						1005,
-						5661,
-						6400
-					} + L_226_ + -89)
-					L_294_[34201] = L_237_func(L_295_, #{
-						6706
-					}, #{
-						5101,
-						1298,
-						5093,
-						3944,
-						3662,
-						6753,
-						1063,
-						1882,
-						3440
-					})
-					L_294_[40637] = L_237_func(L_295_, #{
-						5506,
-						6555,
-						4666,
-						4578,
-						6077,
-						952,
-						6770,
-						5796,
-						3294,
-						5346
-					}, #{
-						6870,
-						6346,
-						5674,
-						6256,
-						6409,
-						5479,
-						1114,
-						5034,
-						5823,
-						1774,
-						6060,
-						4946,
-						3493,
-						2373,
-						5582,
-						1197,
-						3453,
-						6819
-					})
-					L_287_[9417][L_293_forvar0] = L_294_
-				end
-				L_236_func()
-				local L_290_ = L_236_func() - (#{
-					5231,
-					5804,
-					280,
-					395,
-					1977,
-					2152,
-					3882,
-					1570,
-					6890,
-					2773,
-					6453,
-					61,
-					4978,
-					5415,
-					2109,
-					4646,
-					5734,
-					2543,
-					735,
-					1902
-				} + L_226_ + 133595)
-				for L_296_forvar0 = L_227_, L_290_ do
-					local L_297_ = {}
-					local L_298_ = L_235_func()
-					if L_298_ == #{
-						108,
-						4617,
-						3576,
-						6894,
-						4139,
-						4666,
-						2352,
-						75,
-						1255,
-						5969,
-						3345,
-						1104,
-						1532,
-						3392,
-						225,
-						2333,
-						4490,
-						2696,
-						3563,
-						5893,
-						3214,
-						4110,
-						2036,
-						2051
-					} + L_226_ + -48 then
-						L_297_[40047] = #{
-							525,
-							1839,
-							5610,
-							5800,
-							6176,
-							90,
-							2670,
-							2561,
-							5045,
-							6632,
-							1175,
-							5433,
-							2096,
-							1694,
-							1814,
-							1208,
-							1354,
-							3623,
-							5192,
-							2153,
-							4668,
-							5292
-						} + L_226_ + 119803 == #{
-							898,
-							3630,
-							2514,
-							4590,
-							1193,
-							3510,
-							3317,
-							4205,
-							671,
-							5088,
-							4806,
-							3913,
-							1136,
-							2006,
-							398,
-							6116,
-							3816,
-							1286,
-							1711,
-							3508
-						} + L_226_ + 83106
-					end
-					if L_298_ == #{
-						4386,
-						1957,
-						3410,
-						2655,
-						6185,
-						5613,
-						2254,
-						477,
-						4831,
-						3402,
-						1645,
-						5173,
-						6581,
-						4211,
-						6135,
-						1076,
-						2959,
-						2867,
-						3613,
-						2798,
-						4865,
-						6426
-					} + L_226_ + 18 then
-						L_297_[40047] = #{
-							6313,
-							1019,
-							5980,
-							2891,
-							2240,
-							2763,
-							376,
-							5761,
-							5080,
-							1635,
-							5877,
-							2213,
-							4677,
-							4379,
-							3286,
-							6010,
-							4068,
-							3610,
-							2714,
-							4903,
-							4487
-						} + L_226_ + 50596 == #{
-							6313,
-							1019,
-							5980,
-							2891,
-							2240,
-							2763,
-							376,
-							5761,
-							5080,
-							1635,
-							5877,
-							2213,
-							4677,
-							4379,
-							3286,
-							6010,
-							4068,
-							3610,
-							2714,
-							4903,
-							4487
-						} + L_226_ + 50596
-					end
-					if L_298_ == #{
-						1246,
-						3460,
-						6342,
-						3914,
-						1965,
-						904,
-						6334,
-						1519,
-						6740,
-						3996,
-						5434,
-						3542,
-						5842,
-						5538,
-						3650,
-						4334,
-						3874,
-						945,
-						2662,
-						4650,
-						3062
-					} + L_226_ + 126 then
-						L_297_[40047] = L_235_func()
-					end
-					if L_298_ == #{
-						2901,
-						1821,
-						1898,
-						727,
-						2060,
-						476,
-						2493,
-						358,
-						5714,
-						5857,
-						1010,
-						155,
-						254,
-						97,
-						4123,
-						2686,
-						2685,
-						1023,
-						3399,
-						2115,
-						1584,
-						4378,
-						5717
-					} + L_226_ + 3 then
-						L_297_[40047] = L_238_func()
-					end
-					if L_298_ == #{
-						1347,
-						2983,
-						3002,
-						1622,
-						360,
-						2907,
-						2483,
-						1118,
-						1989,
-						4939,
-						3445,
-						1953,
-						5448,
-						2553,
-						5362,
-						5669,
-						2991,
-						1043,
-						5159,
-						5207,
-						6229,
-						2710,
-						4023,
-						463
-					} + L_226_ + -59 then
-						L_297_[40047] = L_238_func()
-					end
-					if L_298_ == #{
-						3116,
-						2048,
-						527,
-						2371,
-						453,
-						2800,
-						3597,
-						3379,
-						2168,
-						4701,
-						4527,
-						3879,
-						1873,
-						2425,
-						3725,
-						4842,
-						5692,
-						2325,
-						1018,
-						509,
-						6167
-					} + L_226_ + -14 then
-						L_297_[40047] = L_240_func(L_241_)
-					end
-					if L_298_ == #{
-						306,
-						316,
-						1911,
-						3317,
-						3507,
-						2029,
-						5123,
-						1109,
-						5947,
-						3205,
-						5051,
-						1044
-					} then
-						L_297_[40047] = L_236_func()
-					end
-					if L_298_ == #{
-						2281,
-						304,
-						6440,
-						1774,
-						2079,
-						2727,
-						6406,
-						5495,
-						3407,
-						3228,
-						2319,
-						5038,
-						851,
-						6522,
-						4124,
-						1949,
-						3968,
-						1764,
-						3562,
-						3957,
-						5645,
-						2693
-					} + L_226_ + -89 then
-						L_297_[40047] = L_238_func()
-					end
-					if L_298_ == #{
-						750,
-						6689,
-						4224,
-						1238,
-						2689,
-						5895,
-						5547,
-						6342,
-						1389,
-						259,
-						5454,
-						4011,
-						665,
-						3348,
-						3479,
-						6888,
-						2058,
-						1148,
-						1369,
-						2284,
-						4997,
-						778
-					} + L_226_ + -77 then
-						L_297_[40047] = L_240_func(#{
-							3522,
-							193,
-							4686,
-							399,
-							5770,
-							707,
-							3352,
-							3015,
-							5996,
-							1704,
-							2303,
-							3375,
-							416,
-							545,
-							3598,
-							1523,
-							5512,
-							3519,
-							101,
-							1853,
-							3150,
-							4597,
-							5853,
-							4522
-						} + L_226_ + -3)
-					end
-					L_287_[103667][L_296_forvar0 - L_227_] = L_297_
-				end
-				L_287_[30793] = L_235_func()
-				L_235_func()
-				L_236_func()
-				L_236_func()
-				L_235_func()
-				L_235_func()
-				L_287_[13226] = L_235_func()
-				L_235_func()
-				L_287_[128277] = L_235_func()
-				local L_291_ = L_236_func()
-				for L_299_forvar0 = L_227_, L_291_ do
-					L_287_[38060][L_299_forvar0 - L_227_] = L_243_func()
-				end
-				return L_287_
-			end
-			local function L_244_func(L_300_arg0, L_301_arg1, L_302_arg2)
-				local L_303_, L_304_ = 32, 2
-				local L_305_ = L_300_arg0[9417]
-				local L_306_ = L_215_({}, {
-					__index = function(L_315_arg0, L_316_arg1)
-						local L_317_ = L_300_arg0[103667][L_316_arg1]
-						if L_220_(L_216_(L_317_[40047]), 1, 1) == "s" then
-							return {
-								[40047] = L_220_(L_317_[40047], 3)
-							}
-						end
-						return L_317_
-					end
-				})
-				local L_307_ = 30793
-				local L_308_ = L_300_arg0[38060]
-				local L_309_ = 40047
-				local L_310_ = L_300_arg0[128277]
-				local L_311_ = 38582
-				local L_312_ = L_300_arg0[45149]
-				local L_313_ = 34201
-				local function L_314_func(...)
-					local L_318_ = 0
-					local L_319_ = {
-						L_212_({}, 1, L_300_arg0[13226])
-					}
-					local L_320_ = 1
-					local L_321_ = {}
-					local L_322_ = {}
-					local L_323_ = 1
-					local L_324_ = L_217_()
-					local L_325_ = {
-						...
-					}
-					local L_326_ = #L_325_ - 1
-					for L_333_forvar0 = 0, L_326_ do
-						if L_333_forvar0 < L_310_ then
-							L_319_[L_333_forvar0] = L_325_[L_333_forvar0 + 1]
-						end
-					end
-					local function L_327_func(...)
-						local L_334_ = L_210_("#", ...)
-						local L_335_ = {
-							...
-						}
-						return L_334_, L_335_
-					end
-					local function L_328_func()
-						while true do
-							local L_336_ = L_305_[L_320_]
-							local L_337_ = L_336_[38582]
-							L_320_ = L_320_ + 1
-							local L_338_ = L_336_[18579]
-							local L_339_ = L_336_[130194]
-							local L_340_ = L_336_[130194] - L_228_
-							local L_341_ = L_336_[34201]
-							local L_342_ = L_336_[40637]
-							if L_337_ < 19 then
-								if L_337_ < 9 then
-									if L_337_ >= 4 then
-										if L_337_ >= 6 then
-											if L_337_ >= 7 then
-												if L_337_ ~= 8 then
-													L_324_[L_306_[L_339_][L_309_]] = L_319_[L_338_]
-												else
-													L_319_[L_338_] = L_306_[L_339_][L_309_]
-												end
-											else
-												local L_343_, L_344_, L_345_
-												if L_341_ ~= 1 then
-													if L_341_ ~= 0 then
-														L_344_ = L_338_ + L_341_ - 1
-													else
-														L_344_ = L_318_
-													end
-													L_344_, L_343_ = L_327_func(L_319_[L_338_](L_212_(L_319_, L_338_ + 1, L_344_)))
-												else
-													L_344_, L_343_ = L_327_func(L_319_[L_338_]())
-												end
-												if L_342_ ~= 1 then
-													if L_342_ ~= 0 then
-														L_344_ = L_338_ + L_342_ - 2
-													else
-														L_344_ = L_344_ + L_338_
-													end
-													L_345_ = 0
-													for L_346_forvar0 = L_338_, L_344_ do
-														L_345_ = L_345_ + 1
-														L_319_[L_346_forvar0] = L_343_[L_345_]
-													end
-												end
-												L_318_ = L_344_ - 1
-											end
-										elseif L_337_ ~= 5 then
-											if L_341_ > 255 then
-												L_341_ = L_306_[L_341_ - 256][L_309_]
-											else
-												L_341_ = L_319_[L_341_]
-											end
-											if L_342_ > 255 then
-												L_342_ = L_306_[L_342_ - 256][L_309_]
-											else
-												L_342_ = L_319_[L_342_]
-											end
-											L_319_[L_338_] = L_341_ / L_342_
-										else
-											L_319_[L_338_] = L_341_ ~= 0
-											if L_342_ ~= 0 then
-												L_320_ = L_320_ + 1
-											end
-										end
-									elseif L_337_ < 2 then
-										if L_337_ ~= 1 then
-											if L_341_ > 255 then
-												L_341_ = L_306_[L_341_ - 256][L_309_]
-											else
-												L_341_ = L_319_[L_341_]
-											end
-											if L_342_ > 255 then
-												L_342_ = L_306_[L_342_ - 256][L_309_]
-											else
-												L_342_ = L_319_[L_342_]
-											end
-											L_319_[L_338_] = L_341_ - L_342_
-										else
-											if L_341_ > 255 then
-												L_341_ = L_306_[L_341_ - 256][L_309_]
-											else
-												L_341_ = L_319_[L_341_]
-											end
-											if L_342_ > 255 then
-												L_342_ = L_306_[L_342_ - 256][L_309_]
-											else
-												L_342_ = L_319_[L_342_]
-											end
-											if L_341_ == L_342_ ~= (L_338_ ~= 0) then
-												L_320_ = L_320_ + 1
-											end
-										end
-									elseif L_337_ == 3 then
-										if not not L_319_[L_338_] == (L_342_ == 0) then
-											L_320_ = L_320_ + 1
-										end
-									else
-										L_319_[L_338_] = L_302_arg2[L_341_]
-									end
-								elseif L_337_ >= 14 then
-									if L_337_ < 16 then
-										if L_337_ ~= 15 then
-											if L_342_ > 255 then
-												L_342_ = L_306_[L_342_ - 256][L_309_]
-											else
-												L_342_ = L_319_[L_342_]
-											end
-											L_319_[L_338_] = L_319_[L_341_][L_342_]
-										else
-											for L_347_forvar0 = L_338_, L_341_ do
-												L_319_[L_347_forvar0] = nil
-											end
-										end
-									elseif L_337_ >= 17 then
-										if L_337_ == 18 then
-											if L_341_ > 255 then
-												L_341_ = L_306_[L_341_ - 256][L_309_]
-											else
-												L_341_ = L_319_[L_341_]
-											end
-											if L_342_ > 255 then
-												L_342_ = L_306_[L_342_ - 256][L_309_]
-											else
-												L_342_ = L_319_[L_342_]
-											end
-											L_319_[L_338_] = L_341_ % L_342_
-										else
-											local L_348_ = (L_342_ - 1) * 50
-											if L_341_ == 0 then
-												L_341_ = L_318_ - L_338_
-											end
-											for L_349_forvar0 = 1, L_341_ do
-												L_319_[L_338_][L_348_ + L_349_forvar0] = L_319_[L_338_ + L_349_forvar0]
-											end
-										end
-									else
-										local L_350_ = L_319_[L_341_]
-										for L_351_forvar0 = L_341_ + 1, L_342_ do
-											L_350_ = L_350_ .. L_319_[L_351_forvar0]
-										end
-										L_319_[L_338_] = L_350_
-									end
-								elseif L_337_ >= 11 then
-									if L_337_ >= 12 then
-										if L_337_ ~= 13 then
-											L_319_[L_338_] = -L_319_[L_341_]
-										else
-											local L_352_ = L_308_[L_339_]
-											local L_353_ = {}
-											if L_352_[L_307_] > 0 then
-												do
-													local L_355_ = {}
-													L_353_ = L_215_({}, {
-														__index = function(L_356_arg0, L_357_arg1)
-															local L_358_ = L_355_[L_357_arg1]
-															return L_358_[1][L_358_[2]]
-														end,
-														__newindex = function(L_359_arg0, L_360_arg1, L_361_arg2)
-															local L_362_ = L_355_[L_360_arg1]
-															L_362_[1][L_362_[2]] = L_361_arg2
-														end
-													})
-													for L_363_forvar0 = 1, L_352_[L_307_] do
-														local L_364_ = L_305_[L_320_]
-														if L_364_[L_311_] == L_303_ then
-															L_355_[L_363_forvar0 - 1] = {
-																L_319_,
-																L_364_[L_313_]
-															}
-														elseif L_364_[L_311_] == L_304_ then
-															L_355_[L_363_forvar0 - 1] = {
-																L_302_arg2,
-																L_364_[L_313_]
-															}
-														end
-														L_320_ = L_320_ + 1
-													end
-													L_321_[#L_321_ + 1] = L_355_
-												end
-											end
-											local L_354_ = L_244_func(L_352_, L_324_, L_353_)
-											L_319_[L_338_] = L_354_
-										end
-									else
-										local L_365_ = L_319_[L_338_ + 2]
-										local L_366_ = L_319_[L_338_] + L_365_
-										L_319_[L_338_] = L_366_
-										if L_365_ > 0 then
-											if L_366_ <= L_319_[L_338_ + 1] then
-												L_320_ = L_320_ + L_340_
-												L_319_[L_338_ + 3] = L_366_
-											end
-										elseif L_366_ >= L_319_[L_338_ + 1] then
-											L_320_ = L_320_ + L_340_
-											L_319_[L_338_ + 3] = L_366_
-										end
-									end
-								elseif L_337_ ~= 10 then
-									if L_341_ > 255 then
-										L_341_ = L_306_[L_341_ - 256][L_309_]
-									else
-										L_341_ = L_319_[L_341_]
-									end
-									if L_342_ > 255 then
-										L_342_ = L_306_[L_342_ - 256][L_309_]
-									else
-										L_342_ = L_319_[L_342_]
-									end
-									if L_341_ < L_342_ ~= (L_338_ ~= 0) then
-										L_320_ = L_320_ + 1
-									end
-								else
-									local L_367_, L_368_
-									if L_341_ ~= 1 then
-										if L_341_ ~= 0 then
-											L_368_ = L_338_ + L_341_ - 1
-										else
-											L_368_ = L_318_
-										end
-										L_368_, L_367_ = L_327_func(L_319_[L_338_](L_212_(L_319_, L_338_ + 1, L_368_)))
-									else
-										L_368_, L_367_ = L_327_func(L_319_[L_338_]())
-									end
-									L_319_ = L_367_
-									return true, 1, L_368_
-								end
-							elseif L_337_ >= 28 then
-								if L_337_ >= 33 then
-									if L_337_ < 35 then
-										if L_337_ ~= 34 then
-											L_319_[L_338_] = {
-												L_212_(L_229_, 1, L_341_ == 0 and 895 or L_341_)
-											}
-										else
-											if L_341_ > 255 then
-												L_341_ = L_306_[L_341_ - 256][L_309_]
-											else
-												L_341_ = L_319_[L_341_]
-											end
-											if L_342_ > 255 then
-												L_342_ = L_306_[L_342_ - 256][L_309_]
-											else
-												L_342_ = L_319_[L_342_]
-											end
-											L_319_[L_338_] = L_341_ + L_342_
-										end
-									elseif L_337_ < 36 then
-										L_319_[L_338_] = not L_319_[L_341_]
-									elseif L_337_ ~= 37 then
-										if L_341_ > 255 then
-											L_341_ = L_306_[L_341_ - 256][L_309_]
-										else
-											L_341_ = L_319_[L_341_]
-										end
-										if L_342_ > 255 then
-											L_342_ = L_306_[L_342_ - 256][L_309_]
-										else
-											L_342_ = L_319_[L_342_]
-										end
-										if L_341_ <= L_342_ ~= (L_338_ ~= 0) then
-											L_320_ = L_320_ + 1
-										end
-									else
-										L_319_[L_338_] = #L_319_[L_341_]
-									end
-								elseif L_337_ < 30 then
-									if L_337_ == 29 then
-										L_341_ = L_319_[L_341_]
-										if L_342_ > 255 then
-											L_342_ = L_306_[L_342_ - 256][L_309_]
-										else
-											L_342_ = L_319_[L_342_]
-										end
-										L_319_[L_338_ + 1] = L_341_
-										L_319_[L_338_] = L_341_[L_342_]
-									else
-										local L_369_ = L_338_ + 2
-										local L_370_ = {
-											L_319_[L_338_](L_319_[L_338_ + 1], L_319_[L_338_ + 2])
-										}
-										for L_371_forvar0 = 1, L_342_ do
-											L_319_[L_369_ + L_371_forvar0] = L_370_[L_371_forvar0]
-										end
-										if L_319_[L_338_ + 3] ~= nil then
-											L_319_[L_338_ + 2] = L_319_[L_338_ + 3]
-										else
-											L_320_ = L_320_ + 1
-										end
-									end
-								elseif L_337_ < 31 then
-									local L_372_ = L_341_ > 0 and L_341_ - 1 or L_326_ - L_310_
-									if L_372_ < 0 then
-										L_372_ = -1
-									end
-									for L_373_forvar0 = L_338_, L_338_ + L_372_ do
-										L_319_[L_373_forvar0] = L_325_[L_310_ + (L_373_forvar0 - L_338_) + 1]
-									end
-									L_318_ = L_338_ + L_372_
-								elseif L_337_ ~= 32 then
-									if L_341_ == 1 then
-										return true
-									end
-									local L_374_ = L_338_ + L_341_ - 2
-									if L_341_ == 0 then
-										L_374_ = L_318_
-									end
-									return true, L_338_, L_374_
-								else
-									L_319_[L_338_] = L_319_[L_341_]
-								end
-							elseif L_337_ < 23 then
-								if L_337_ >= 21 then
-									if L_337_ ~= 22 then
-										L_320_ = L_320_ + L_340_
-									else
-										L_302_arg2[L_341_] = L_319_[L_338_]
-									end
-								elseif L_337_ == 20 then
-									if L_341_ > 255 then
-										L_341_ = L_306_[L_341_ - 256][L_309_]
-									else
-										L_341_ = L_319_[L_341_]
-									end
-									if L_342_ > 255 then
-										L_342_ = L_306_[L_342_ - 256][L_309_]
-									else
-										L_342_ = L_319_[L_342_]
-									end
-									L_319_[L_338_] = L_341_ * L_342_
-								else
-									for L_375_forvar0 = L_338_, #L_319_ do
-										local L_376_ = L_323_
-										for L_377_forvar0 = 1, #L_321_ do
-											local L_378_ = L_321_[L_377_forvar0]
-											for L_379_forvar0, L_380_forvar1 in next, L_378_, nil do
-												if L_319_ == L_380_forvar1[1] and L_380_forvar1[2] == L_375_forvar0 then
-													if not L_322_[L_376_] then
-														L_322_[L_376_] = L_319_[L_375_forvar0]
-														L_323_ = L_323_ + 1
-													end
-													L_378_[L_379_forvar0] = {
-														L_322_,
-														L_376_
-													}
-												end
-											end
-										end
-									end
-								end
-							elseif L_337_ < 25 then
-								if L_337_ == 24 then
-									L_319_[L_338_] = L_209_(L_211_(L_319_[L_338_]), "`for` initial value must be a number")
-									L_319_[L_338_ + 1] = L_209_(L_211_(L_319_[L_338_ + 1]), "`for` limit value must be a number")
-									L_319_[L_338_ + 2] = L_209_(L_211_(L_319_[L_338_ + 2]), "`for` step value must be a number")
-									L_319_[L_338_] = L_319_[L_338_] - L_319_[L_338_ + 2]
-									L_320_ = L_320_ + L_340_
-								else
-									if L_341_ > 255 then
-										L_341_ = L_306_[L_341_ - 256][L_309_]
-									else
-										L_341_ = L_319_[L_341_]
-									end
-									if L_342_ > 255 then
-										L_342_ = L_306_[L_342_ - 256][L_309_]
-									else
-										L_342_ = L_319_[L_342_]
-									end
-									L_319_[L_338_][L_341_] = L_342_
-								end
-							elseif L_337_ < 26 then
-								if not not L_319_[L_341_] == (L_342_ == 0) then
-									L_320_ = L_320_ + 1
-								else
-									L_319_[L_338_] = L_319_[L_341_]
-								end
-							elseif L_337_ ~= 27 then
-								if L_341_ > 255 then
-									L_341_ = L_306_[L_341_ - 256][L_309_]
-								else
-									L_341_ = L_319_[L_341_]
-								end
-								if L_342_ > 255 then
-									L_342_ = L_306_[L_342_ - 256][L_309_]
-								else
-									L_342_ = L_319_[L_342_]
-								end
-								L_319_[L_338_] = L_341_ ^ L_342_
-							else
-								L_319_[L_338_] = L_324_[L_306_[L_339_][L_309_]]
-							end
-						end
-					end
-					local L_329_, L_330_, L_331_, L_332_ = L_213_(L_328_func)
-					if L_329_ then
-						if L_331_ then
-							return L_212_(L_319_, L_331_, L_332_)
-						end
-					else
-						local L_381_ = L_224_("Luraph Script:" .. (L_312_[L_320_ - 1] or "") .. ": " .. L_218_(L_330_), "[^:]+:%d*: ", function(L_382_arg0)
-							if not L_225_(L_382_arg0, "Luraph Script:%d") then
-								return ""
-							end
-						end)
-						L_219_(L_381_, 0)
-					end
-				end
-				L_214_(L_314_func, L_301_arg1)
-				return L_314_func
-			end
-			local L_245_ = L_243_func()
-			return L_244_func(L_245_, L_233_arg1)()
-		end
-		L_231_func("LPH!CA35EEF85E2D6B89D6B9264H00C4A8472C2F3CF2591D3329B65D714E50127E270A920A02002H353761342H35013H35013H35293H3559342H352D3H354939B63061530A0200405H00E4944000BC1EB7C012F45BB5683051009600013H00412F6226C29BC9957D967H00013H00019H002H00019H002H00013H00013H00019H002H00013H00013H00013H00019H009H009H00017H00019H006H00019H002H00019H006H00013H00019H002H00013H00019H009H001H00019H002H00019H002H00019H006H00013H00019H009H005H00013H00019H002H00019H002H00013H00017H00019H002H00019H002H00013H00013H00019H006H00013H00019H002H00013H00019H002H00019H002H00019H009H001H00013H00019H002H00013H00019H006H00019H009H001H00013H00013H00019H002H00013H00019H009H001H00013H00013H00013H00013H00019H002H00013H00019H002H00013H00013H00019H006H00019H002H00013H00013H00017H0042F2CC985B982EDCE03BE502AD3A0418FBEC1855280B02004C353761362H312D342B330D2H35376130353159342F330D2H35376130353159343533412H3539013H35B51C3537614E353D0937333D2D43353761301B2F4133352H15243537613A3537612H353761303531592H35376187353109342H312D1A3537612335315914353761303531592A3537613F353D592H35376130353D5937233F41DFCA3461DDCA3461C3342D0936312H2D2H352D392H3537612H35376169353761303B2F416C353761623537612H3537614E3531093135312D2H353761FA2H35093531352D2H353761F53435093437352D133537612H3537616D3431093637312D3C353159D4CA346130353159EACA34612H35376150343109342H312D3417330D2H353761303531592H3531392H3537612H3537611335376123353159FCCA34613417330D2H35376130353159340737312H3537612H3537612H35376117353761203531591735376130353159153537612B3537612D2H35592H353761302H35593525374136353D153D35376133353761272H35592H353761302H355935293731C7CA3461C7CA3461C5CA3461A03435093631352H2D3531592H353761303531593425334139353915A1CA346118343109C9CA3461203531592H353761303531592H353761B93431093437312D3H3579342H35492H353761143531093437312DCCCA3461C7CA346134353761372H3501302H35593H3521272H3529252H3515312H3529372H35593D3537616B342D092H372H2D352H31452H3537612H353761B1CA34613435310120353129BECA34612H353761302H35592D3531592H35376130353159343733412635391534352521A0CA3461A7A2290F668C023CBC06B879BF3FB03D6F05896284908801842B6E23AE9677146C0A02006A093H002HCAA9A52HA4AFA9BE6A093H002HCA822HBEBA8DAFBE6A0C3H002HCAA6A5ABAEB9BEB8A3A4AD6A0D3H002HCA9CA3B8BEBFABA69FB9AFB86A093H002HCABCAFB8B9A3A5A4405H00E494406A063H002HCA99AFABBE6A093H002HCA8EAFB9BEB8A5B36A093H002HCAB9AFB8BCA3A9AF6A063H002HCAA4AFB2BE6A0B3H002HCABDA5B8A1B9BAABA9AF6A103H002HCA8DAFBE8EAFB9A9AFA4AEABA4BEB96A093H002HCA9AA6ABB3AFB8B96A073H002HCA83AEA6AFAE8B6A0D3H002HCA86A5A9ABA69AA6ABB3AFB86A053H002HCAF9E4FD6A093H002HCA9AA5B9BEA7ABA46A073H002HCABEB8A3ABA66A233H002HCAA22HBEBAB9F02HE5BAABB9BEAFA8A3A4E4A9A5A7E5B8ABBDE5BD8B99B28CA8928D6A023H002HCA6A083H002HCAB9A9B8A3BABE6A093H002HCAADAFBEB8AFA4BC6A053H002HCA83B98B6A063H002HCAADABA7AF6A0F3H002HCAA3A7EAA2AFB8AFEAA4A32HADAB00EBBDC9E14A9CED2H4EDE3B097C00023H0056C40C4FFAF3A33A33219H002H00013H00019H009H001H00019H002H00013H00019H009H005H00019H009H005H00019H002H00019H006H00013H00013H0078B67AC807436F55FC312D412512146696131007B20A020026353761A53435092H37352D3H353D30353761362H35593635376136353D5937353F0D3035376136353761353F374131353D59CCCA3461C2CA346136353D592H353761B2343D0934353D2D3F3537613D353761343537613H3501362H35593H353D2H353761362H355935313741D1CA3461D7CA3461792H35093537352D342H3549B73ECB73516F94279B24CF165112133B9C127903C0F50370B6FC8C3D580A02006A053H002HCAA4AFBD6A023H002HCA6A133H002HCA89ABBABEBFB8AF89A5A4BEB8A52HA6AFB8405H00E494406A093H002HCA9CAFA9BEA5B8F86A0E3H002HCA89A6A3A9A188BF2HBEA5A4F801FDEC70952B17F74E06EC1003BC5H00C2472E5A3FCE550653CB136H00013H00013H00013H00013H00013H00019H009H001H00019H002H00013H00019H006H00013H00013H00013H00017H00013H00019H002H00019H002H00019H006H00019H006H00019H002H00013H00019H006H00019H002H00013H00013H00017H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00019H002H00019H006H00019H002H00013H00019H009H005H00013H00013H00019H002H00019H009H001H00013H00013H00019H009H001H00013H00013H00013H00013H00019H006H00013H00013H00019H002H00017H00013H00013H00019H002H00013H00019H009H001H00013H00013H00013H00019H006H00013H00013H00019H002H00013H00019H006H00013H00013H00019H006H00013H00013H00019H002H00019H009H005H00013H00013H00019H006H00013H00013H00013H00013H00013H00019H006H00013H00013H00017H00013H00013H00019H002H00019H002H00017H00013H00019H002H00013H00019H006H00017H00013H00013H00013H00017H00019H002H00017H00013H00013H00017H00019H002H00019H002H00019H002H00013H00013H00013H00019H002H00013H00013H00013H00013H00019H009H001H00019H006H00019H002H00013H00019H002H00019H002H00013H00013H00019H006H00019H002H00013H00013H00019H002H00013H00013H00013H00013H00019H002H00019H002H00013H00019H002H00019H002H00013H00013H00019H002H00019H002H00013H00013H00013H00013H00019H002H00013H00017H00013H00019H002H00019H006H00013H00019H006H00019H002H00019H006H00013H00019H002H00019H002H00019H009H001H00013H00019H002H00019H006H00013H00013H00017H00013H00013H00019H002H00013H00013H00017H00019H002H00019H002H00013H00019H006H00013H00013H00013H00019H006H00019H002H00013H00013H00019H002H00019H009H001H00019H002H00019H002H00013H00019H002H00013H00019H002H00017H00013H00013H00019H009H001H00013H00013H00013H00013H00017H00019H002H00013H00013H00013H00019H009H005H00013H00013H00019H002H00019H002H00013H00013H00019H002H00013H00013H00013H00019H006H00013H00013H00019H002H00019H002H00013H00013H00013H00013H00019H002H00017H00019H009H005H00019H002H00017H00019H002H00013H00017H00019H002H00019H002H00019H002H00019H009H001H00013H00013H00013H00019H006H00013H00013H00019H002H00013H00013H00013H00019H002H00019H002H00019H002H00013H00017H00013H00019H002H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00019H006H00013H00013H00013H00013H00019H006H00019H009H001H00013H00013H00019H002H00013H00013H00019H002H00019H006H00013H00013H00019H006H00013H00013H00019H006H00013H00019H002H00019H002H00019H002H00019H009H001H00013H00013H00019H002H00013H00019H002H00019H002H00019H002H00019H002H00019H009H001H00013H00013H00019H006H00013H00013H00019H006H00019H002H00019H002H00013H00019H002H00019H002H00013H00017H00013H00013H00019H002H00019H006H00019H002H00017H00019H002H00013H00013H00017H00013H00013H00019H002H00019H009H005H00013H00013H00013H00013H00017H00013H00019H002H00019H006H00019H002H00013H00013H00019H002H00013H00019H002H00019H009H001H00019H002H00019H002H00019H006H00019H002H00017H00019H002H00019H002H00017H00019H002H00013H00013H00019H006H00013H00019H002H00013H00019H002H00013H00013H00013H00019H002H00017H00013H00019H002H00019H002H00013H00019H002H00013H00019H002H00013H00019H002H00019H002H00013H00013H00019H002H00013H00013H00019H006H00013H00013H00013H00013H00019H009H001H00019H002H00019H006H00019H006H00013H00013H00019H002H00019H006H00019H006H00019H002H00013H00013H00019H006H00013H00013H00019H002H00019H009H001H00013H00013H00019H002H00017H00013H00013H00019H002H00013H00013H00013H00019H006H00019H002H00019H009H001H00019H002H00019H009H001H00019H002H00019H002H00013H00019H002H00013H00013H00013H00013H00019H006H00019H006H00013H00013H00019H002H00013H00017H00019H002H00019H006H00013H00013H00013H00013H00019H006H00013H00013H00013H00019H002H00013H00013H00019H006H00019H002H00013H00013H00017H00013H00013H00019H006H00019H002H00019H006H00017H00013H00019H002H00013H00013H00019H006H00019H002H00017H00013H00019H002H00019H002H00019H006H00019H002H00013H00013H00013H00017H00013H00019H002H00019H002H00017H00019H002H00019H002H00013H00019H002H00017H00013H00013H00019H009H001H00013H00017H00013H00013H00013H00019H002H00017H00019H009H001H00013H00013H00019H006H00013H00013H00019H006H00013H00017H00013H00013H00013H00019H006H00013H00019H006H00013H00013H00013H00019H002H00013H00013H00013H00019H002H00019H002H00019H002H00019H006H00013H00019H002H00013H00013H00019H009H005H00013H00013H00019H006H00019H002H00019H002H00019H002H00013H00017H00013H00013H00013H00013H00017H00019H002H00017H00013H00013H00019H002H00013H00013H00013H00013H00019H009H001H00013H00017H00013H00019H009H001H00019H009H005H00019H002H00013H00013H00017H00019H002H00013H00013H00013H00019H006H00019H002H00019H002H00013H00013H00013H00017H00013H00019H002H00013H00013H00013H00013H00017H00019H002H00013H00017H00019H002H00013H00013H00019H002H00019H006H00019H002H00019H002H00019H009H005H00013H00013H00013H00013H00017H00013H00013H00013H00017H00019H002H00013H00013H00019H009H001H00013H00013H00019H002H00013H00013H00013H00013H00013H00019H006H00013H00013H00013H00013H00013H00013H00017H00013H00013H00013H00013H00019H002H00019H009H001H00013H00017H00013H00013H00013H00019H002H00013H00019H002H00013H00013H00013H00013H00019H002H00019H006H00013H00019H002H00013H00013H00019H006H00019H002H00013H00017H00019H006H00013H00013H00019H002H00019H002H00019H002H00019H002H00013H00013H00019H002H00019H002H00019H002H00013H00017H00019H002H00013H00013H00013H00013H00017H00019H002H00019H002H00019H009H005H00013H00013H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00013H00017H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00017H00013H00013H00013H00013H00017H00013H00013H00013H00013H00019H006H00013H00013H00019H002H00017H00013H00013H00019H002H00013H00013H00019H006H00013H00013H00013H00019H002H00013H00017H00013H00013H00019H002H00013H00017H00013H00019H002H00019H009H001H00013H00013H00013H00013H00013H00019H006H00013H00013H00019H002H00013H00013H00019H002H00013H00013H00013H00019H006H00013H00013H00013H00019H002H00013H00019H006H00019H002H00019H006H00013H00019H002H00013H00019H006H00019H002H00013H00013H00019H002H00019H002H00019H002H00013H00013H00019H006H00013H00019H002H00019H002H00019H006H00013H00013H00019H002H00013H00019H002H00013H00013H00019H002H00017H00019H002H00013H00013H00019H006H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00013H00019H002H00019H006H00019H002H00013H00019H009H001H00019H002H00013H00019H002H00013H00013H00019H002H00013H00013H00017H00013H00019H002H00013H00013H00019H002H00013H00019H002H00019H002H00013H00013H00019H006H00013H00013H00019H009H001H00019H002H00019H006H00013H00013H00013H00019H002H00019H006H00013H00017H00019H002H00017H00013H00013H00019H002H00013H00019H002H00019H006H00013H00019H002H00013H00013H00019H006H00019H002H00013H00013H00013H00017H00013H00019H002H00013H00013H00019H002H00013H00017H00013H00013H00019H006H00013H00013H00019H002H00019H002H00013H00013H00019H002H00019H002H00019H006H00013H00013H00019H002H00013H00013H00019H002H00013H00013H00019H002H00019H002H00013H00017H00013H00013H00013H00013H00019H006H00013H00013H00019H006H00013H00013H00013H00019H009H001H00019H002H00013H00013H00019H002H00019H002H00017H00019H002H00019H002H00019H006H00013H00013H00013H00013H00019H006H00013H00013H00019H002H00013H00019H002H00019H002H00017H00019H002H00017H00013H00013H00019H002H00019H006H00013H00013H00019H002H00019H009H005H00019H002H00013H00019H002H00019H002H00013H00013H00019H009H001H00013H00019H002H00019H009H001H00013H00013H00013H00019H002H00013H00019H002H00019H002H00019H006H00019H002H00013H00013H00017H00019H002H00013H00017H00019H002H00013H00013H00019H002H00019H009H001H00013H00017H00013H00013H00013H00013H00013H00019H002H00013H00019H002H00013H00013H00013H00013H00019H002H00019H002H00019H002H00019H002H00019H006H00019H006H00019H002H00013H00013H00019H002H00017H00013H00013H00019H002H00013H00019H002H00019H002H00019H006H00013H00013H00019H002H00013H00017H00013H00019H002H00019H009H001H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00019H002H00017H00019H002H00013H00013H00019H002H00019H009H005H00019H002H00019H002H00013H00013H00017H00013H00013H00013H00019H002H00019H002H00013H00019H002H00019H002H00013H00019H002H00017H00019H002H00019H002H00017H00019H002H00019H009H005H00019H002H00013H00013H00019H002H00013H00013H00019H002H00017H00019H002H00013H00013H00019H002H00017H00013H00013H00013H00013H00019H002H00017H00019H002H00019H006H00013H00013H00019H006H00019H002H00017H00019H002H00013H00013H00013H00019H006H00013H00013H00019H009H009H004H00013H00019H002H00019H002H00019H002H00019H002H00013H00019H002H00013H00013H00019H002H00013H00013H00019H002H00019H002H00013H00019H002H00019H002H00013H00013H00017H00013H00019H002H00019H002H00013H00019H002H00019H002H00013H00013H00019H009H001H00019H002H00013H00019H002H00019H002H00013H00019H006H00017H00019H002H00013H00013H00019H002H00017H00013H00013H00013H00013H00013H00019H002H00019H002H00019H002H00013H00019H006H00019H002H00017H00019H002H00017H00013H00019H002H00013H00013H00019H002H00019H002H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00017H00013H00019H002H00019H002H00019H002H00013H00019H002H00019H002H00013H00019H009H001H00017H00013H00019H002H00013H00013H00019H006H00013H00013H00013H00013H00019H006H00013H00013H00013H00013H00019H006H00013H00013H00019H002H00017H00013H00013H00013H00013H00019H009H001H00019H002H00019H006H00019H006H00019H009H005H00019H002H00017H00013H00019H002H00013H00013H00019H006H00019H002H00013H00013H00013H00017H00013H00013H00013H00019H002H00019H006H00013H00013H00019H006H00013H00013H00019H002H00019H009H001H00013H00017H00013H00019H002H00013H00019H006H00019H002H00013H00019H002H00013H00013H00019H006H00019H002H00019H002H00013H00013H00017H00013H00013H00013H00019H002H00013H00013H00017H00019H002H00013H00019H006H00019H002H00017H00019H002H00019H006H00013H00013H00013H00019H006H00013H00013H00019H002H00019H002H00017H00019H002H00017H00019H002H00019H002H00019H002H00019H002H00013H00017H00013H00019H009H005H00013H00013H00019H002H00013H00013H00019H002H00013H00019H009H005H00013H00013H00019H002H00013H00019H006H00019H006H00013H00013H00019H006H00013H00019H002H00019H002H00013H00019H006H00013H00017H00013H00019H002H00019H006H00013H00013H00013H00013H00013H00017H00013H00019H002H00019H006H00013H00013H00013H00019H002H00019H006H00013H00013H00013H00013H00019H009H005H00013H00013H00013H00019H009H005H00013H00013H00017H00019H002H00013H00013H00017H00013H00019H002H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00017H00013H00019H002H00017H00013H00019H002H00019H006H00013H00013H00013H00017H00019H002H00013H00013H00019H009H001H00013H00019H006H00013H00017H00019H006H00013H00013H00017H00019H002H00013H00013H00019H006H00013H00013H00019H006H00013H00013H00013H00013H00013H00013H00013H00013H00019H002H00019H002H00019H006H00019H002H00019H002H00019H002H00013H00013H00019H002H00013H00019H002H00013H00013H00019H002H00013H00019H006H00013H00013H00017H00019H002H00013H00013H00017H00013H00019H002H00013H00013H00013H00013H00013H00019H002H00013H00013H00019H009H001H00019H006H00019H002H00019H002H00017H00013H00013H00019H002H00019H006H00013H00013H00017H00013H00013H00019H002H00017H00013H00019H002H00019H002H00013H00017H00013H00013H00013H00019H006H00019H002H00019H002H00013H00013H00017H00013H00019H002H00013H00013H00019H002H00019H002H00019H002H00019H002H00013H00019H006H00013H00013H00019H006H00013H00019H002H00013H00013H00019H006H00013H00013H00013H00013H00019H002H00017H00013H00013H00019H002H00019H002H00013H00013H00019H002H00019H002H00019H002H00019H009H001H00013H00013H00013H00019H002H00017H00013H00013H00013H00013H00013H00019H002H00013H00013H00017H00013H00019H002H00019H002H00019H009H001H00019H002H00013H00013H00019H006H00013H00019H009H001H00013H00013H00017H00013H00013H00019H002H00013H00013H00019H006H00019H002H00013H00019H006H00013H00013H00019H009H001H00013H00013H00019H002H00013H00017H00019H002H00013H00013H00013H00019H009H005H00013H00019H002H00019H009H001H00013H00013H00019H002H00019H002H00019H002H00013H00013H00017H00019H006H00013H00013H00013H00013H00019H006H00013H00013H00013H00019H002H00019H006H00019H002H00013H00013H00013H00017H00013H00013H00019H002H00013H00017H00013H00013H00019H002H00013H00013H00019H002H00013H00013H00013H00013H00019H002H00013H00013H00013H00017H00013H00013H00019H002H00019H009H005H00017H00013H00019H002H00019H002H00019H002H00013H00013H00013H00013H00019H002H00019H002H00013H00019H002H00013H00013H00013H00019H006H00013H00019H002H00019H009H005H00017H00013H00019H002H00017H00013H00013H00013H00013H00019H009H001H00013H00013H00019H002H00017H00013H00019H009H005H00013H00013H00019H006H00013H00013H00013H00019H002H00019H002H00013H00017H00013H00013H00013H00013H00017H00019H002H00013H00013H00019H009H001H00019H002H00013H00013H00019H002H00019H002H00013H00013H00013H00013H00013H00017H00013H00019H009H001H00013H00013H00013H00019H002H00017H00019H002H00019H002H00013H00019H006H00013H00013H00019H006H00019H002H00019H002H00013H00019H002H00013H00013H00019H006H00013H00013H00013H00013H00019H002H00019H002H00013H00013H00013H00019H002H00013H00013H00017H00013H00013H00019H006H00019H006H00019H006H00013H00013H00017H00013H00019H002H00019H009H001H00013H00013H00019H002H00013H00019H002H00013H00013H00013H00019H006H00013H00013H00019H002H00013H00017H00013H00019H002H00017H00013H00019H002H00019H006H00013H00013H00019H002H00013H00013H00019H009H005H00019H006H00013H00019H009H005H00013H00013H00019H009H001H00013H00019H002H00017H00019H009H001H00013H00013H00019H002H00013H00019H002H00013H00017H00019H002H00013H00013H00013H00019H006H00013H00017H00013H00013H00013H00013H00019H006H00013H00019H002H00013H00019H002H00013H00013H00019H006H00013H00013H00013H00017H00013H00013H00013H00019H002H00017H00013H00013H00019H002H00019H002H00013H00013H00013H00013H00013H00017H00019H002H00019H002H00013H00013H00019H002H00019H002H00017H00013H00019H002H00019H006H00013H00013H00017H00013H00013H00019H002H00013H00017H00013H00013H00017H00013H00013H00019H009H001H00013H00013H00013H00017H00019H002H00019H009H001H00019H009H001H00019H002H00013H00013H00013H00017H00013H00019H002H00013H00013H00019H006H00013H00013H00017H00013H00013H00013H00013H00019H002H00013H00013H00019H002H00019H002H00019H006H00013H00013H00013H00017H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00019H009H001H00013H00019H002H00017H00013H00013H00019H009H001H00019H002H00017H00019H002H00019H006H00019H002H00013H00017H00013H00013H00013H00019H006H00013H00013H00013H00013H00019H002H00017H00013H00013H00019H002H00019H009H005H00013H00013H00013H00017H00019H002H00019H002H00019H002H00013H00013H00017H00019H002H00013H00013H00019H002H00017H00019H006H00019H009H001H00013H00013H00013H00019H006H00013H00013H00013H00019H002H00019H002H00013H00013H00013H00013H00019H009H001H00019H009H001H00013H00017H00019H002H00017H00019H002H00019H002H00019H002H00019H002H00013H00013H00019H006H00013H00013H00019H002H00013H00017H00013H00019H002H00019H002H00013H00013H00019H002H00013H00017H00019H002H00019H002H00013H00013H00017H00019H006H00019H009H001H00013H00019H006H00013H00013H00013H00013H00019H002H00013H00019H006H00019H002H00017H00013H00013H00017H00013H00019H006H00019H002H00013H00019H002H00019H002H00013H00013H00017H00013H00019H002H00019H002H00013H00013H00019H002H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00017H00019H002H00013H00019H002H00019H009H001H00019H002H00013H00019H009H001H00017H00013H00013H00019H006H00019H009H001H00019H002H00013H00017H00013H00013H00017H00013H00013H00013H00019H002H00013H00017H00013H00013H00019H006H00019H009H001H00019H002H00013H00013H00017H00013H00013H00019H002H00017H00013H00019H002H00017H00019H002H00019H009H001H00019H002H00013H00019H002H00013H00013H00019H006H00019H002H00019H002H00017H00019H002H00019H009H001H00019H006H00019H002H00019H006H00013H00013H00017H00019H002H00019H006H00013H00017H00019H002H00017H00013H00019H002H00013H00013H00019H009H001H00013H00013H00019H002H00013H00013H00017H00013H00019H006H00013H00013H00019H002H00019H002H00013H00019H006H00013H00013H00013H00013H00013H00019H002H00013H00013H00013H00017H00019H009H005H00019H002H00019H002H00019H006H00013H00013H00019H009H001H00013H00019H009H001H00013H00013H00019H006H00019H002H00019H002H00019H006H00017H00013H00013H00019H002H00019H002H00019H002H00013H00013H00019H009H001H00019H002H00019H006H00019H002H00013H00019H002H00013H00019H002H00019H009H001H00013H00013H00019H006H00013H00013H00013H00019H002H00019H009H005H00013H00013H00013H00019H006H00019H009H005H00019H002H00013H00017H00013H00013H00013H00013H00017H00013H00013H00013H00019H002H00019H002H00019H002H00019H002H00017H00013H00019H006H00013H00013H00017H00019H002H00013H00019H006H00019H002H00013H00019H009H001H00013H00013H00019H002H00017H00019H002H00019H002H00013H00019H002H00013H00017H00013H00019H002H00019H009H001H00013H00019H002H00013H00013H00019H009H005H00013H00019H002H00013H00019H002H00017H00013H00019H002H00013H00019H002H00013H00017H00019H002H00019H002H00013H00013H00013H00013H00019H009H001H00013H00013H00019H002H00017H00013H00019H002H00013H00013H00019H002H00013H00019H002H00019H002H00013H00019H002H00019H002H00017H00019H006H00019H002H00019H002H00019H002H00013H00013H00019H006H00019H002H00013H00017H00013H00013H00013H00013H00017H00013H00019H002H00013H00019H006H00017H00019H002H00019H002H00013H00019H002H00019H002H00017H00013H00019H002H00013H00013H00017H00013H00019H009H001H00019H002H00013H00013H00019H002H00019H002H00013H00013H00019H009H005H00013H00013H00017H00019H002H00019H002H00013H00013H00017H00013H00013H00019H002H00019H006H00013H00013H00013H00019H006H00013H00017H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00013H00019H009H001H00013H00013H00019H006H00013H00013H00019H002H00013H00019H002H00019H006H00013H00013H00019H002H00013H00017H00019H002H00013H00017H00013H00019H002H00017H00013H00019H002H00017H00019H002H00013H00019H002H00019H009H001H00017H00013H00019H002H00019H002H00017H00013H00013H00019H009H001H00019H002H00013H00013H00013H00019H002H00019H002H00013H00013H00019H009H005H00019H002H00019H009H001H00019H002H00017H00013H00019H002H00013H00013H00019H002H00013H00019H002H00019H006H00019H006H00013H00019H002H00019H002H00019H002H00019H009H001H00019H002H00017H00013H00013H00013H00019H006H00013H00013H00013H00019H002H00017H00013H00019H002H00013H00013H00019H006H00019H002H00013H00019H006H00019H002H00019H006H00013H00013H00019H002H00019H002H00013H00013H00019H002H00013H00013H00013H00013H00017H00019H002H00019H002H00017H00013H00019H002H00013H00013H00019H006H00013H00013H00013H00019H002H00017H00013H00019H002H00019H002H00019H002H00013H00017H00019H002H00019H002H00017H00013H00013H00013H00013H00013H00013H00013H00013H00019H002H00019H002H00019H002H00019H006H00019H002H00017H00019H002H00019H006H00019H002H00019H006H00013H00019H006H00019H002H00019H002H00013H00017H00019H002H00013H00013H00017H00013H00013H00019H009H005H00013H00017H00019H002H00019H002H00019H002H00019H002H00019H002H00019H002H00013H00013H00013H00013H00013H00017H00013H00019H002H00013H00013H00019H006H00019H002H00013H00013H00019H009H005H00013H00013H00013H00019H002H00017H00013H00013H00019H002H00019H002H00017H00013H00013H00019H002H00019H002H00013H00017H00013H00013H00019H002H00019H009H005H00013H00013H00019H009H005H00019H002H00013H00013H00019H002H00019H002H00019H006H00019H002H00017H00019H002H00019H002H00017H00013H00013H00013H00013H00013H00019H002H00013H00013H00019H002H00013H00013H00019H002H00013H00013H00019H009H001H00013H00013H00019H009H001H00013H00013H00017H00013H00013H00013H00019H002H00019H006H00019H002H00013H00013H00013H00019H002H0051DDDA144A9875B3B21909FFFC4346CFC1E94E5F601E0200423D376139357D1479907568BD357D14C9907168FFBA71684B357D589D3D3761933D37612H353761E535CD597235C9152H3537613735CD093731CD2DC735C959F13B3761E535C959F73B37612H317D2CE1909D69792C9F69C944E269BA3A3761FF7EE5694B357D582H353761E5357D5867FD7E0C2H353761E5357D5866357914A32537612H353761E5357D58671B7E0C013F37612H353761E5357D5867FD7E0C2H353761E5357D5864357914043565143C3137612H353761E5357D5867FD7E0C5B3F376104347D0830317D2C32903568D4357D588635376126346514679D7D4022356500052H35B5062H35B5072H35B5042H35B5132H35B5722H35B5792H35B5012H35B52H353761CC357D0836377D2C1F3F37612H353761E535715924FD720D2H353761E53571592B357D15F13579598A3B3761E5357959883B37612H353761E5357D5893901968ECFC1B684B357D582H353761E5357D5867FD7E0C483137614E3137612H353761B6347D0836377D2C61357D141D917D0C07323761E5357D5805323761EF357D082H317D2CE1901968792C1B68C90A0768FF7E05683C2H37612H353761E5357D5962357915273565153F3461152H35376128347D092H317D2D3F303761D73579143034651474356114963837619438376164356114BC356D1406263761042637612H35376153347D082H317D2CE1903168792C3368C91C3E68F32437612H353761E5357D5826346514679D7D40323565002H3537614C347D0836377D2C61357D14D33537612H353761BB347D0830317D2CFB90E96971357D58AF3F3761E5357D58AD3F376130317D2CFB90C96971357D582H353761E5357D5867FD7E0C00303761E5357D58063037612H353761CB357D0830317D2CFB90096871357D58EC333761E5357D58E2333761FA907568D3357D14C690756864357D144F90756871357D58B1343761B734376112357D0836377D2C61357D1412917D0C233D376130317D2CFB90896971357D582H353761E5357D5867FD7E0C2H353761E5357D58643579145B3E37612E34611464356D142H3537611D347D0830317D2CFB902968AD3637612H353761BD357D082H317D2C293537612H317D2CFA909D69C6469E694F969F69063B3761B03571592H353761E535715924FD720D33243761FA909169C694926971357D589427376122346D142H35376144347D0830317D2C64353761E5357D5867FD7E0C2H353761E5357D5864357914CF3565146435611422346D14F6273761F4273761E190D569792CD769C906D369FF5CD1694B357D5852333761503337612H353761E5357D5867797E0C4E3837614C383761E535B1592BD7BE412H353761C635BD093731BD2DC735B9592H353761E535B95916FDBA0DF83F3761E5357D589390DD69EC6ADF694B357D58D9313761E5357D58DF3137613C3565002H3537613B357D0836377D2C61357D140B917D0CE539376181357D082H317D2CFA90DD69C646DE694F96DF6971357D582H353761E5357D5867FD7E0C4F3A3761E5357D580735791467937D0CB9323761BF32376167FD7E0C2H353761E5357D58D735791430346514743561142H35376168357D082H317D2C653B3761E5357D5826346514679D7D4015356500312H35B5182H35B52H35376130357D0836377D2C61357D14B23A376132901568D4357D582H353761E5357D5867797E0C5E383761E5357D585C383761FF5C21684B357D58A63C3761A43C3761E5357D5867797E0C2H353761E5357D5867077E0CCD303761E5357D58C33037613C347D28F1357D582H353761E5357D5867ED7F0C2H353761E5357D5867717F0CFCCA3461F2CA34612H3537617734A9093731A92DC73595592H353761E53595591DFD960D5E3D3761E53595595C3D376118354D1531375D71343559217A25376126346514679D7D40333565002H35376130347D0836377D2C61357D140D917D0C15CA34614D3561142H35376140347D082H317D2C54363761E5357D58AE3579146435651464CA34612H353761E5357D5837347914643565148035611464356D14D43E376168347D08C9CA346103917D0C2H353761E5357D5826346514679D7D403D35650059383761E5357D5867FD7E0C3C3B3761E5357D58323B3761E5357D5867797E0C2H353761E5357D5867077E0C2H353761E5357D5893902168EC0A22682B3837613A3571092H31712DB0357D592H353761E5357D5927FD7E0DEDCB3461643579146435651464356114823837618E347D08C9CA346136357D082H317D2CFA900968D3357D14C690096864357D14BA38376167FD7E0C2H353761E5357D5864357914B735651464356114BC356D14E3253761CD357D08C9CA34612H353761E5357D589390ED69ECA8EF694B357D582H353761E5357D5867FD7E0C893537618F353761E5357914E5356514E53561142H3537617B347D082H317D2CE1902568792C2768C9F623684DCA34612H353761E5357D589390C569EC66C7694B357D582H353761E5357D5867FD7E0CF63F3761F43F37612H317D2CFA90E169C646E2694F96E36971357D582H353761E5357D5867FD7E0CFE3F376167FD7E0C673F3761E5357D58653F37612H353761E5357D5867797E0C2H353761E5357D5867077E0C173D376164356D142H353761D3357D0830317D2CFB909D69C73D3761C735D5592H353761E535D5590DFDD60D2H353761E535D5597235D115363F3761E5357D5927FD7E0DA0343761A63437612H353761E5357D58EF909169C9E89A69FF7899694B357D5867333761E5357D586533376196356514643561145C356D142H35376116347D0830317D2C32902968652E2A68C93017687A3F3761E5357D5867797E0C2H353761E5357D5867077E0C2H353761E5357D5893908969ECBE8A69FA3F372H61357D1407917D0C2H353761E5357D5826346514679D7D402F356500052H35B5042H35B5062H35B5072H35B5012H35B5722H35B5792H35B5132H35B5632437612H35376162357D082H317D2CFA90CD69C646CE694F96CF6971357D58403B3761E5357D58463B376167077E0C9C313761E5357D5892313761E5357D58D735791430346514743561142H353761FB347D082H317D2CFA902168C64622689F343761E5357D5867FD7E0C343537612HCA3461E5357D58283579146435651464356114F13C37612H353761E5357D589390C969EC28CB694B357D589C313761923137616F34C9093731C92DC72H35582H353761E52H355875FD360CEC353761E5357D5867797E0C2H353761E5357D5867077E0C553337616B3337612H353761F7357D0830317D2C32901D68D4357D58EC363761E236376132909969D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0C8D323761E535715987357D59B3CA3461B1CA346167797E0CCE253761E5357D58CC253761E5357D58E5357914E5356514E5356114CF3C3761CD3C3761E5357D58E5357914E5356514E5356114BD3D3761F7347D08C9CA34614B357D582H353761E5357D5867FD7E0C2H353761E5357D586635791439346514D8303761E5357D5867FD7E0C2H353761E5357D58D635791464356514AE303761C64626684F96276871357D582H353761E5357D5867FD7E0C1B243761E5357D581924376173FD2E0C2H353761E5352D58723529149D38376167FD7E0C2H353761E5357D58ED357914643565149D356114383D3761FA9099694F969B6971357D582H353761E5357D5867FD7E0C323E3761E5357D58303E37612H353761D6347D082H317D2CFA908169C64682694F96836971357D58BA3A376132909569D4357D582H353761E5357D5867797E0C47CA3461E5357D5845CA346164356D142H35376127357D0830317D2CFB90056871357D5832353761ED34A5093731A52DC735A1592H353761E535A15910FDA20D17333761153337612H353761E5357D5867FD7E0C072H3761E5358D591BFD8E0D2H353761E5358D5972358915403F3761C5348D09C9CA346171357D582H353761E5357D5867FD7E0C8D3E376171357D582H353761E5357D5867FD7E0C2H353761E5357D5864357914D231376167FD7E0C2H353761E5357D58E535791464356514643561148B31376187357D08C9CA34616435611419356D142H35376146357D0830317D2C32900568043F3761E5357D58643579141B3565146435611422346D142H35376146357D0830317D2CA93C37614F96AF6971357D582H353761E5357D5867FD7E0CCC3F3761C23F3761FF5CED694B357D58933537619135372H61357D147C917D0C2H353761E5357D5826346514679D7D40DA303761E5357D5867FD7E0C2H353761E5357D58E5357914E5356514E53561149F2H37619D2H37610D3579140F356514A63561142E3337612H353761F3347D082H317D2CFA90ED69C646EE694F96EF6971357D5854CB34616ACB34612H353761E5357D5867FD7E0C2H353761E5357D58E5357914363337612H353761E52H3558723531147F3B37617D3B3761E5357D5826346514679D7D40263565002H35376180347D0836377D2C483A37612H353761E5357D58263465141B3D37612H353761E5357D5867FD7E0C2H353761E5357D5866357914393465149B356114B13437612H353761DE347D0830317D2CFB901D6871357D582H353761E5357D5867FD7E0C653437617B3437612H353761CF357D0830317D2CFB90A56971357D582H353761E5357D5867FD7E0CE93F3761643579149635651464356114EA363761E5357D58ED357914643565140335611464356D146CC8346197347D08C9CA346171357D582H353761E5357D5867FD7E0CDBCA3461E5357D58D9CA3461E5357D5867797E0C2H353761E5357D5867077E0CF5353761E5357D588B353761E5357D5867797E0C2H353761E5357D5867077E0C2H353761E5357D589390C169EC5EC3696A363761E5357D5826346514679D7D402A356500362H35B5112H35B58D3937612H353761E5357D5867077E0C49C834614FC83461E5357D59F53579158C356515F53561152H3537611F357D092H317D2D3210716976C8346171357D582H353761E5357D5867FD7E0C2B3F3761E5357D58293F37612H317D2CFA908D69C6468E694F968F6971357D58CECB3461E5357D58CCCB346126346514679D7D402B3565007E2H35B52H353761DA357D0836377D2C61357D147A917D0CE7CA3461E5CA3461E5357D5867FD7E0C2H353761E5357D58D7357914303465147435611453CA3461792C1F68C9041A68FFBA1968402H37612H353761E535255871FD260C2H353761E535255872352114803C37612H353761E5357D58FF90B9691B333761B235611464356D142H353761F0347D0830317D2CFB90F16971357D58A83F3761AE3F3761E5357D5867077E0C2H353761E5357D58939071688D3F37613290D169D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0CFA3C3761F83C3761E5357D5867FD7E0C2H353761E5357D5817347914643565142F34611464356D14483237614F96236871357D582H353761E5357D5867FD7E0C2H353761E5357D586A357914FA3C3761C735ED592H353761E535ED5903FDEE0D9A313761983137614F96F36971357D582H353761E5357D5867FD7E0C15353761E5357914E5356514E53561141738372H61347D08C9CA346172357D0830317D2C32907568FC3E3761643579149635651464356114DF356D142H35376144357D0830317D2C79313761323435592H353761E52H35592H353761582H35093431352D403436693H3521EE3C37612H353761E5357D58DA3579146435651442356114783D37612H353761E5357D582A3479146435651497CA34613290A169C9C6AF69FF7EAD694B357D58553537612H35376189357D082H317D2CFA90D969B43E37612H353761E5357D58643579143335651464356114BC356D142F3937612D393761939009682D347D14EC9009684B357D582H353761E5357D5867FD7E0C943E3761E5354D592BA54A0D2H353761E53549592A5D4B0DD13B3761E5354959D73B37616435611422346D142H353761C7357D0830317D2C32901968D4357D588A3B3761E5357D58883B37612H35376167357D0830317D2C32903D68D4357D58E9363761E5357D58EF3637614B357D582H353761E5357D5867FD7E0CF0353761F6353761E53561142H35376104357D082H317D2CE1901D6866CA3461343525212H352H2134352D213435292134351521C939376171357D582H353761E5357D5867FD7E0C9C38376195357D2870357D141E917D0C2H353761E5357D5826346514679D7D40313565001E2H35B5212H35B5BE3F3761BC3F37612H353761E5357D58E5357914E5356514203A37613290F169D4357D589B3B3761E5357D58993B3761E5357D5867FD7E0C0E3B3761E5357D580C3B37612H353761E5357D5867FD7E0C2H353761E5357D5866357914393465149B3561143B3D376167FD7E0C2H353761E5357D5864357914A43565146435611422346D1481CA34612H353761E535D9590EFDDA0D2H353761E535D9597235C515E3323761E5357D5864357914413565146435611422346D1486C83461E5356514E53561142H353761B6347D082H317D2CE190096839357D1479900968A9357D145E3B376167FD7E0C2H353761E5357D580D3579140F3565140D30376172357D142H353761083471083731712CC9B2BB69F1357D582H353761E5357D5867C97E0C35CA34612H353761E5357D5867077E0C2H353761E5357D589390D9691E393761E535E15900FDE20D1E313761E535E1591C3137612H35376111347D082H317D2CFA902968C6DE2A684F962B6871357D587D3D3761FA90FD69C646FE694F96FF6971357D587A38376122346D142H3537615C357D0830317D2C32909D69D4357D5830393761E5357D5836393761E5357D58E5357914E5356514E5356114B2CE3461B0CE34612H317D2CE1909569792C9769C9989269FF7891694B357D5838303761E5357D583E3037612H317D2CFA9071688C357D14C690716864357D144F90716871357D58573E37612H317D2CFA903168C64632684F96336871357D582H353761E5357D5867FD7E0CDA303761D83037612H353761E5357D586435791496356514D0C8346136357914643565142F34611464356D142H353761DE357D0830317D2CFB90CD696B3C3761D6357D0830317D2C3290AD69C9D8AB69FF78A9694B357D582H353761E5357D5867FD7E0C3E3037612H35376120357D0836377D2C61357D14D72H3761E5357D586435791464356514643561142HCF346184347D08C9CA34617235F1152H3537618F35F5093731F52DC735F1593A38376167FD7E0C8E3D3761E5357D588C3D376130317D2C32903168D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0C3B2H3761E5357D5867FD7E0C2H353761E5357D58BA357914113565144D35611484303761E535115872351D14E82H3761EE2H376164356D142H3537611E347D0830317D2CFB90916973CB3461E53561142H35376167347D082H317D2CE190D969792CDB69C9DCC669FF5CC5693E3B3761F73571592H353761E535715987357D592H353761E5357D5927FD7E0D3D3B3761E5357D59333B37612H353761FF357D0830317D2CFB90996971357D582H353761E5357D5867FD7E0C1B33376119333761273559153F3445152H353761E13551092H31512D763E3761E5357558723571142H353761BA3575083731752CC7357158A43D37611EFD9A0D2H353761E5359959503585152H353761883499093731992DC7358559AD303761A330376171357D582H353761E5357D5867FD7E0C2H353761E5357D586435791474333761E5357915103565152H3561212H356D21143569158535376126346514679D7D40233565003F2H35B52A2H35B594393761EC347D08C9CA346130317D2CFB90C56971357D582H353761E5357D5867FD7E0C5D343761679D7D40283565007F2H35B52H353761AA357D0836377D2C61357D147E917D0CCEC83461E5357D58CCC834619A35791464356514F635611464356D142H3537615C357D0830317D2CFB901568842H376164356514B435611464356D142H353761E7347D0830317D2CFB90816917C834614F961B6871357D582H353761E5357D5867FD7E0CCA363761E5357D58C836376140357D082H317D2CE190FD69792CFF69C900FA69FF7EF9694B357D58EB363761E5357D58E936376126346514679D7D40273565002H35376132357D0836377D2C61357D1409917D0C68C834616EC834612H347914643565142434611464356D14913037611F357D08C9CA346164357914A03565146435611422346D142H3537613C347D0830317D2C3290C9695C3E37612H353761E535215872352D142H353761A43421083731212C563437612H353761E535715924FB7341083579152H353761213571093631712D2H35713985343761853437619B34376167FD7E0C2H353761E5357D58E5357914E5356514E53561142H353761BE357D082H317D2CBD333761E5357D5867FD7E0C2H353761E5357D58643579146435651464356114E8CB3461A3347D08C9CA34613731012CC7350D582H353761E5350D587BFD0E0C2H353761E5350D58F33509140135376107353761E5357D58D735791430346514743561142H35376160357D082H317D2CFA903968D63537613B347D0830317D2CFB900D6871357D582H353761E5357D5867FD7E0C31CB3461303565002H35376162347D0836377D2C61357D140F917D0C00CE3461E5357D5806CE34614B357D582H353761E5357D5867FD7E0C2H353761E5357D58D73579143034651409313761E5357D5867797E0C2H353761E5357D5867077E0C66363761643637612C345515B03551592H353761E53551592CFD520D2H353761E535515962355D2H15CA346115350D0837310D2CC73509582H353761E53509587AFD0A0CB63D37612H353761E5357D58E53579142H3537613A347D082H377D2CB1357D588D303761E5357D5883303761E535DD597235D9152H3537613D34DD093731DD2DC735D95902CB346111357D0836377D2C61357D1475917D0C2H353761E5357D5826346514679D7D40393565001A393761FB90256871357D5894323761AA3237616435791433346514643561147A343761E5357D589135791464356514383E3761E5357D5867077E0C2H353761E5357D5893909169EC4292694B357D58D9353761E5357D58DF353761A03565146435611422346D148CCC346182CC34612H353761E535E9597235D5152H3537615134E9093731E92D68CE34612H353761BF357D082H317D2CFA908569C694866971357D582H353761E5357D5867FD7E0C8E3937612H3537618C357D082H317D2CE190756844CC3461C73581592H353761E535815918FD820DDF3E3761D73579143034651474356114E4313761FA31376183E6A6694B357D582H353761E5357D5867FD7E0C59C93461E5357D585FC934618035611464356D142H3537615B357D0830317D2CFB90316871357D5803303761E5357D5801303761E53561142H35376153347D082H317D2CE1908569792C8769D4357D58B239376132903968D4357D58A5CE3461BBCE3461643565143A34611464356D142H353761D6357D0830317D2CFB90A169ACC9346164357914313465146435611425CF34612H353761D3357D0830317D2C32902568D4357D582H353761E5357D5867797E0C633D372H613D376193909569EC5C96694B357D5811CA346117CA34614B357D582H353761E5357D5867FD7E0CD7313761D5313761E5357D586435791464356514643561142H35376137357D082H317D2CE1908969792C8B69703D376176347D082H317D2CFA90E569C6DEE669393E3761E5357D5867FD7E0C2H353761E5357D58E5357914E53565142C393761E190C569792CC769C982C369FF5CC1694B357D58093D3761E5357D580F3D3761C6463A684F963B6871357D584D3537612H353761E5357D5864357914A73565146435611422346D144C313761D3357D08C9CA3461E5353D58723539143E3C37612H3C3761C9983768FF5C35684B357D582H353761E5357D5867FD7E0C2H353761E5357D58D7357914EB32376113FDAE0D2H353761E535AD595A35A9152H3537613134AD093731AD2D183C37612H35376147347D082H317D2CE190C169792CC369C954CE69FF5CCD698F3237612H353761E5357D58E5357914E5356514E5356114C0363761C6363761FB90956971357D582H353761E5357D5867FD7E0C2H353761E5357D58643579143B303761DE356D142H35376127357D0830317D2CEBC934619390D569EC22D6694B357D582H353761E5357D5867FD7E0C103637612H353761E5357D5893903168ECE233684B357D58C1323761C7323761C7352D5871CE3461E5352D5877CE34612H353761E5357D5867FD7E0C2H353761E5357D586B35791464356514C7363761E5357D5867FD7E0C2H353761E5357D58D7357914303465147435611452323761503237612H353761B535FD093731FD2DC735F9594B3E3761493E376167FD7E0C803F3761E5357D58863F3761E5357D58E235791464356514E635611464356D14EFCE34613935F1093731F12DC735FD592H353761E535FD5907FDFE0D2H353761E535FD597235F915D0CA34612H353761E5357D5867FD7E0C2H353761E5357D5825347914643565142D3561143F34376167FD7E0C2H353761E5357D5864357914DE356514C6CD346167FD7E0C2H353761E5357D580D3579140F356514A635611439CF34613FCF346192357D582H353761E5357D582H3537613B357D0834377D2CB3357D5885CB346126346514679D7D4010356500342H35B51D2H35B53C2H35B550343761563437610C3F3761B3357159063F3761043F37612H317D2CFA908969C6468A694F968B6971357D582H353761E5357D5867FD7E0C9FCE34619DCE3461D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0CC0CC34612H353761E5357D5867797E0C22343761E5357D582034376122346D142H3537616C357D0830317D2C32902D68D4357D582H353761E5357D5867797E0C213D3761CF3565146435611438346D142H35376157357D0830317D2C32908169343E3761E5357D5867FD7E0C2H353761E5357D58643579145A3437612H353761DD357D0836377D2C61357D1476917D0C2H353761E5357D5826346514679D7D40BE3537614F96976971357D582H353761E5357D5867FD7E0CED333761E33337612H353761E5357D5826346514679D7D401E356500282H35B51F2H35B5362H35B5152H35B53E2H35B52E2H35B52A2H35B5142H35B5272H35B52C2H35B52F2H35B52B2H35B5292H35B5222H35B52H353761B9357D0836377D2CCF3237610A917D0C2H353761E5357D5826346514679D7D403E35650062CB346160CB346116356D144A343761EC357D08C9CA34612H353761E5357D5867FD7E0C2H353761E5357D58D7357914122H3761E5357D5894357914643565142F346114053C376126346514679D7D402E3565007D2H35B52H35376191357D0836377D2CD0CF3461DB3411083731112CC7351D582H353761E5351D587FFD1E0C723D3761703D37618A35611464356D142H35376133357D0830317D2CD532376167797E0C2H353761E5357D5867077E0C2H353761E5357D5893903D685334376172FD2A0C2H353761E53529585A351514743D37615F342908C9CA34612H353761E5357D5867FD7E0C2H353761E5357D5864357914B735651464356114842H3761E5357D5829347914093565144E3561142H353761A3357D082H317D2C0434376167FD7E0C2H353761E5357D5866357914393465149B3561142H35376195357D082H317D2C7DCF34613290E569652EE669C9AA9F69FFBA9D694B357D582H353761E5357D5867FD7E0C2C35376171357D582H353761E5357D5867FD7E0C57CB3461E5357D5855CB3461643565148035611464356D1405CD346159347D08C9CA3461243565002H3537612H347D0836377D2C183437619B3561142H353761DF347D082H317D2CFA900568C6DE06684F9607681E3C37612H353761E5357D58E535791464356514643561147BCD3461AC357D08C9CA3461B3CE3461052H3501E52H3559B6CE34613731192CC73505582H353761E535055879FD060C2H353761E53505585A350114A2333761A033376164356D142H3537616B347D0830317D2CFB90396837333761EA357D0836377D2C61357D1477917D0C2H353761E5357D5826346514679D7D402535650003CA3461E535ED597235E9152H3537612734ED093731ED2DC735E9592H353761E535E95902FDEA0DE2C83461E5357D5826346514679D7D403C3465589536376167930D68D4357D582H353761E5357D5867817E0C41C23461E5357D5893903968EC623A680E3F3761E5357D5867FD7E0C2H353761E5357D58E535791464356514643561141EC934619D347D08C9CA3461E5357D5867FD7E0C2H353761E5357D58E5357914E5356514DCC83461E5357D5867FD7E0C2H353761E5357D5864357914A4356514433C37612H353761E5357D58263465145236376167077E0C2H353761E5357D589390F969EC36FB694B357D582H353761E5357D5867FD7E0C7B3137612H317D2CE1903968792C3B68C9182768FF5C25684B357D582H353761E5357D5867FD7E0C61313761E535A1595A35AD152H353761DE34A1093731A12DC735AD591CCB3461E535AD5912CB34617235ED152H353761C834E1093731E12DC1CF3461D4357D582H353761E5357D5867797E0CB0CF3461293565007C2H35B52H35376148357D0836377D2C61357D147F917D0C2H353761E5357D5826346514A7C93461F2347D0836377D2C13357D00392H35B53A2H35B5332H35B5302H35B52A2H35B53E2H35B558357D2812357D0099357D281030372H61357D1464917D0C283F37612E3F376176FD3A0C2H353761E5353958723525142H353761D63539083731392CC7352558A1CF3461E535E5595A35E1152H353761B534E5093731E52DC735E159AECE3461ACCE34612H353761E535715924F9730D8EC9346164356514643561142H3537618A357D082H317D2CFA909569C64696699ECB34612H3537610E357D082H317D2CFA90A569C6CCA7694F96A76971357D58553337616B33376112357D082H317D2CFA902D68C6462E684F962F6871357D58D2333761E5357D58D03337613F3565146435611422346D142H353761F0357D0830317D2C3B3C37612H317D2CFA90E969C646EA694F96EB6971357D5813313761E5357D5811313761E5357D5867817E0C2H353761E5357D5867017F0CA3CD34612H353761E5357D5867FD7E0C2CC23461E5357D5822C2346167FD7E0CA8CF3461E5357D58AECF34612H353761E5357D5867FD7E0C2H353761E5357D58E5357914263637616435611422346D142H3537613A347D0830317D2C3290D569D4357D58FEC23461FCC23461E5357D5867FD7E0C2H353761E5357D587835791464356514F635611464356D14F6CC3461FA90F569C646F6694F96F76971357D582H353761E5357D5867FD7E0C7FC93461E5357D587DC9346130317D2C32900168D4357D585B3C3761593C3761E5357D5893901D68EC7E1E684B357D582H353761E5357D5867FD7E0C753037610B3037612H353761E5357D58D7357914303465148B343761ECA63F684B357D58C73D3761C53D372H61357D140E917D0C11C93461E5357D5817C9346167FD7E0C2H353761E5357D58BA357914113565143D303761E5357D589390A969ECA6AB694B357D589F323761E5357D589D32376167797E0C2H353761E5357D5867077E0C2H353761E5357D589390CD69ECD6CF694B357D589CCA3461C3357914643565145535611464356D142H3537615E347D0830317D2CFB90196871357D5852C33461723591152H353761533495093731952DC735915911363761E535915917363761E53561142H3537614A357D082H317D2CE73D376171357D582H353761E5357D5867FD7E0C07363761E5357D580536376112357914643565146735611464356D14BB3C3761E7357D08C9CA346130317D2C3290E969D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0C0F323761A63561142H35376195357D082H317D2C89C33461D4357D582H353761E5357D5867357F0CB22H3761E5354D592B714F0D75CF34610BCF346167FD7E0C2H353761E5357D58E5357914E5356514EF313761EC900D684B357D5854333761E5357D586A3337612H353761E5357D589390FD69ECF0FF694B357D5837CC346135CC346130317D2CFB90116871357D58F7C83461F5C834616435651464356114B6CC34614E357D08C9CA34612H353761B9347D0836377D2C61357D1406917D0C2H353761E5357D5826346514679D7D40903537612H353761E5357D5893909969EA3237612H353761E5357D58E535791464356514643561145A363761D3357D08C9CA3461FB90E16971357D582H353761E5357D5867FD7E0C2H353761E5357D586435791428346514043637612H353761E5357D581434791464356514F833376130346514743561142H35376196347D082H317D2CDC3237612H353761DA347D082H317D2CE1902D68792C2F68C9A42B68FF7E29684B357D58C5CD34616435611473356D142H35376179347D0830317D2CA32H37612H353761E5357D58B9357914643565148035611464356D142H3537618D347D0830317D2C883237612H353761FE347D0830317D2C3290A569C98EA269FF7CA1694B357D58F2CF3461E5357D58F0CF34612H353761E5357D58EF900D68FE357D14C9900D686F357D5845363761E5357D585B3637612H353761E5357D58E5357914E5356514E53561146DC33461743561142H35376104357D082H317D2CFA901968C6461A6809CE342H61357D1405917D0C2H353761E5357D5826346514679D7D402D356500052H35B5042H35B5062H35B5072H35B5012H35B5722H35B5792H35B5132H35B5BECA3461FB90856971357D582H353761E5357D5867FD7E0CBB3D37614F96176871357D582H353761E5357D5867FD7E0C3ACE3461E5357D5838CE34612H350D212H350921E5357515F1357159B9CB346167FD7E0C2H353761E5357D58E5357914E5356514E53561144930376141347D08C9CA3461E9347D092H317D2DFB1071691D3337612H353761E5357D58EA35791464356514CC35376164356D1477363761C8347D08C9CA3461C646C6694F96C76971357D58F231376167FD7E0C2H353761E5357D586435791448356514643561147CC834612H353761E5357D58D735791430346514743561143CC23461F7347D08C9CA34612C356500052H35B5042H35B5062H35B5072H35B5012H35B5722H35B5792H35B5132H35B52H3537616F357D0836377D2C08C23461E5357D5867FD7E0C6CC2346162C23461E5353D5877FD3E0C06C9346104C9346171357D582H353761E5357D5867FD7E0C2H353761E5357D58643579142734651464356114C5CC3461E5357D582H357900782H35B52H353761AB357D082H377D2CFF7C0D684B357D58E5343761E5357D58D0357914643565148DCE34612H35376102347D082H317D2CFA90F169C646F269CFCD3461BC356D142H35376197357D0830317D2C3290FD69D4357D58EEC33461ECBAF2694B357D5887353761853537612H317D2CE190ED69792CEF69C956EA69FF5CE9694B357D58B8333761BE333761963565146435611477356D14CACC3461C8CC34612H353761E5357D5867FD7E0CB72H3761B52H3761E535855919FD860D2H353761E5358559F33581152H353761C83585093731852D4FCE346130317D2CFB90DD6971357D582H353761E5357D5867FD7E0CC3363761C136376173357D082H317D2CE190E969792CEB69F5343761B735651464356114BC356D142H35376120347D0830317D2C7DCC346164356114BC356D14FFCD3461FDCD346167FD7E0C2H353761E5357D586435791423346514F2323761F4357D14C9900968FF7C09684B357D587FC93461E5357D587DC934614B357D582H353761E5357D5867FD7E0C2H353761E5357D58E5357914E5356514E535611473CE34613534611464356D142H35376192347D0830317D2CFB90A96971357D58BBC03461B9C034614B357D582H353761E5357D5867FD7E0C7F3D37617D3D3761743561142H35376183347D082H317D2CFA90C56965CA34612H353761CB347D0830317D2CFB90C16971357D583F333761E5357D583D333761679D7D40383565002H35376128357D0836377D2C61357D1471917D0C94313761AA313761AB347D082H317D2CFA903D68C6463E684F963F6871357D582H353761E5357D5867FD7E0C2HC0346130317D2CFB90F56971357D582H353761E5357D5867FD7E0CA7303761A530376130317D2C3290C569D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0C01C33461E5357D5867FD7E0C12C33461E5357D5810C33461E5357D586435791420356514643561149C356D142H3537619F347D0830317D2CF5C3346126346514679D7D401F356500202H35B51A2H35B5372H35B52H3537615A347D0836377D2C61357D141F917D0C0AC934616435611464356D1445CF34615BCF34614B357D582H353761E5357D5867FD7E0C56343761E5357D5854343761E5357D5867FD7E0C2H353761E5357D58E5357914E5356514E5356114D432376174357D08C9CA3461F635611464356D147FCB346132357D08C9CA3461E5357D58E5357914E5356514E53561146FCE34613B3465146435611422346D142H35376103347D0830317D2C32907168D4357D58CD3237612H353761E535B9592B34A5152H3537612334B9093731B92DC735A55927313761E535A5592531376126346514679D7D402035650043303761413037612H353761E5357D58E5357914E5356514E53561142H3537615F347D082H317D2CE19099691A35376167FD7E0C2H353761E5357D5864357914A03565146435611422346D140ECC3461B5347D08C9CA34612H353761AF34D5093731D52DC735D1592H353761E535D1590CFDD20D38333761E535D1593E333761E5357D5893902D68EC462F684B357D582H353761E5357D5867FD7E0C4F3437614D34376164356D142H353761DD357D0830317D2CFB90756871357D5834CA34611A3579003B2H3761CB357D08C9CA3461E1908D69792C8F69C94A8B69FF7889694B357D58FCC33461E5357D58F2C33461792C9B69C9908669FF7885694B357D582H353761E5357D5867FD7E0CF0363761E5357D58F636376167FD7E0C2H353761E5357D581D357914643565146435611464356D144CC13461E5357914E5356514E53561142H353761A1357D082H317D2CE190216808333761CF3565146435611422346D142H3537610B347D0830317D2C32908969D4357D58FFC03461FDC03461679D7D40173565003H35B5122H35B53C2H35B52H3537619A347D0836377D2C16357D00232H35B5142H35B5CBC13461CF3565146435611422346D142H35376138347D0830317D2C55C334612H353761E53565582H353761C0347D0836377D2C88C93461FFBA15684B357D582H353761E5357D5867FD7E0C9D36376193363761743561142H353761F6347D082H317D2CFA90C169C646C2694F96C36971357D5841C2346147C2346164356D142H35376190347D0830317D2CFB9071683ACC3461C6357D082H317D2CE190E169792CE369C9D4EE69B8C334612H353761B935D9093731D92DC735C5592H353761E535C55909FDC60D7B313761E535C559793137612H353761E5357D5867157E0CA92H3761E5356514E53561142H35376175357D082H317D2CCD343761E190DD69792CDF69C914DB69FF5CD9694B357D58242H3761E5357D583A2H3761E5357D58E5357914E5356514E53561142H353761E3347D082H317D2C6ACF34613290CD69D4357D5822C83461E5357D5820C834612H35376124357D082H317D2CFA90AD69C6DEAE6962C334612H353761E5357D58CC357914643565149835611464356D142H35376159357D0830317D2C4BC83461E5357D5893909D69EC849F6994C23461E5357D14C6900D6864357D144F900D6871357D584AC6346167077E0C2H353761E5357D5893908569EC1C87694B357D5833C9346131C934612H353761E5357D5867FD7E0C2H353761E5357D58E5357914E5356514E5356114883537618E353761643561142H353761CD357D082H317D2CE190A969792CAB69C9869769FF7895694B357D587AC3346130346514743561145CC9346152C934612H353761E5357D58AE357914643565142E34611464356D142H35376183347D0830317D2C9D3137614B357D582H353761E5357D5867FD7E0CC9CC3461CFCC346132908569D4357D581D2H3761E5357D58132H3761C988D669FF5CD5694B357D581AC13461E5357D5818C134611CFD920D2H353761E5359159F3359D152H353761BA3491093731912DC7359D5903363761E5357D58E5357914E5356514E5356114EACE346178357D08C9CA34612H317D2CFA90F969C646FA694F96FB6971357D582H353761E5357D5867FD7E0CD22H3761D02H376120347914643565148A35611464356D142H353761BD357D0830317D2CFB90D56971357D58922H376166357914393465149B356114BAC034612H353761E5357D5867FD7E0C64C134617AC13461E535F55905FDF60D34CD3461E535F559CAC23461652E0668C9F20368FFAC0168E235376132909169D4357D582H353761E5357D5867797E0C73CC346171CC34612H353761E5357D58E5357914E5356514E5356114B1313761B7313761E5356514E53561142H3537614C357D082H317D2CE1903D68792C3F68C9D43B68B23037612H353761E5357D58D735791430346514743561142H353761B1347D082H317D2CFA90256877C0346137318D2DC73589592H353761E53589591AFD8A0D2B2H37613731092CC73575582H353761E535755865FD760C2DCD346123CD3461E5357D5826346514679D7D403A35650009CE34610FCE346130317D2CFB903D6871357D5818C23461E5357D581EC234612H353761E5357D5867797E0C52303761E5357D58503037616435611422346D14152H3761C9357D08C9CA34612H353761E5357D589390F569ECA0F7694B357D58CC313761C23137612H353761A93525083731252CC73521582H353761E535215870FD220C53CD346167FD7E0C9F2H3761E5357D589D2H3761E5357D58E5357914E5356514E53561148EC9346186347D082H317D2CFA900D6812CA3461E5357D58643579141B3565148E34376167FD7E0C2H353761E5357D58BF35791464356514CD35611464356D14C52H3761DB2H3761E5357D5864357914DE356514A2C834612H317D2CFA90A969C646AA694F96AB6971357D5884CC34612H353761E5357D58E5357914E535651429353761E5357D58863579146435651421CB3461E5357D589390D169EC62D3694B357D58DBC93461E5357D58D9C9346115347914643565147535611464356D1492C2346164357914CF3565146435611405356D142H3537611B357D0830317D2C5FCA3461643565142D35611464356D14BB343761B9343761E53561142H353761AD357D082H317D2CE1901568792C1768C99E1268FFBA11684B357D580ACF346167797E0C2H353761E5357D5867077E0CEECE3461ECCE3461C6DEA2694F96A36971357D582H353761E5357D5867FD7E0C2H353761E5357D5864357914D1CD3461343579007B2H35B52H3537614A347D082H377D2C6CC834612H353761E5357D5826346514679D7D403F3565001AC23461BA357914113565144D3561142H353761D9357D082H317D2CFA90A169D4CA34612H3531212H353D212H3539215FC3346130317D2CFB908D6971357D58CA363761E5357D58C8363761E5357D58AE35791464356514E535611464356D148B3637614B357D582H353761E5357D5867FD7E0CF43437618A3437612H353761E535715864FD720C9DC33461E535715893C33461E5357D5867FD7E0C2H353761E5357D5864357914233465146435611422346D1482CD3461B235611464356D142H353761FB347D0830317D2CFB90F96971357D58BDC63461E5357D58B3C634612H377D2C4DCC3461342H35495F347D082H317D2CFA901D68C6461E684F961F6871357D587BCE346179CE3461C646CA694F96CB6971357D582H353761E5357D5867FD7E0C2H353761E5357D580635791406CF34612H353761E5357D58643579149635651464356114DE356D142BC934611D357D00142H35B5222H35B53D347D281C357D00372H35B51B2H35B5202H35B51A2H35B5362H35B5152H35B5142H35B5272H35B52A2H35B53E2H35B53B2H35B5252H35B53A2H35B5302H35B5392H35B5332H35B5312H35B5322H35B52B2H35B5222H35B5CE357D2861357D141A917D0C71C83461E5357D5877C83461DA35C1093731C12DC735CD592H353761E535CD590BFDCE0D84C4346136377D2C61357D1402917D0C40C83461E5357D5846C83461E5357D5867FD7E0C2H353761E5357D586435791488C9346171357D582H353761E5357D5867FD7E0CB5C134614BC13461E5357D5867077E0C2H353761E5357D5893903568EC5C3668EEC934612H317D2CFA900168C694026871357D5838CA3461E5357D583ECA3461E190CD69792CCF69C9A2CB69FF5CC9694B357D582H353761E5357D5867FD7E0C5636376169357D14EC9071684B357D582H353761E5357D5867FD7E0C32C63461E5357D5830C634612H353761E5357D5864357914683565146435611422346D14692H376171357D582H353761E5357D5867FD7E0CDFCB3461DDCB346167FD7E0C2H353761E5357D58D7357914303465147435611449C0346167077E0C2H353761E5357D5893901568ECA616684B357D582H353761E5357D5867FD7E0CDBCB34614B357D5816C63461E5357D5814C634614D3561147FCB346104347D08C9CA346130347D082H317D2CE1909169792C9369D4357D58ADCF3461A3CF3461E5357D58EE357914643565143534611464356D142H353761EC357D0830317D2C5DCD346124357D082H317D2CFA90D169C646D2694F96D36971357D5880C6346186C634612H353761E5350958723575144CCB3461DC340908C9CA3461E5357D58E5357914E535651448C03461E53561142H3537610B347D082H317D2CCCC434610AFDCA0D2H353761E535C959722H351451C6346157C634614B357D582H353761E5357D5867FD7E0C2H353761E5357D58D7357914303465147435611405C634612H3537615A347D0836377D2C61357D1408917D0C2H353761E5357D5826346514679D7D403AC7346130346514743561142H353761D4347D082H317D2C4D363761F2347D0836377D2C61357D1400917D0C2H353761E5357D5826346514679D7D402FC2346171357D582H353761E5357D5867FD7E0C2H353761E5357D58CA3579146435651442356114FBC7346167797E0C94C83461E5357D58AAC8346126F97B0DF5343761E53579598B343761E5357D5864357914A73565147D2H37612H353761E5357D583590B969DD2EBA69C9DAA669FF72A56947E6A6694EC23461BE3505083731052CC73501586B31376169313761E5357D5867077E0C2H353761E5357D58939025687B363761C91AF769FF7EF5694B357D58083437614F90096871357D58DFC93461E5357D58DDC9346167FD7E0C2H353761E5357D58D73579143034651429C83461E5357D5867FD7E0C2H353761E5357D58E5357914E5356514E53561140FC434616435611422346D142H35376176357D0830317D2C58C2346190357D0830317D2CFB90216871357D5842CC346140CC34612H317D2CE190716839357D147990716837357D002B2H35B52A2H35B5152H35B5142H35B5172H35B55B357D2836357D003F2H35B52A2H35B530C03461723511142H353761933415083731152CC73511582H353761E53511587CFD120CE6C03461E4C034612H353761E53589597235F5152H353761023589093731892DC735F5599CC8346192C834612H353761E5357D5867797E0C74C03461FA90D569C646D6694F96D76961CF34612H353761E5357D5867FD7E0CA5CD3461BBCD34612H353761E5357D5867FD7E0C2H353761E5357D58BA35791411356514E8C4346130317D2C3290E169D4357D58E4C83461B6357914643565143135611464356D142H35376181347D0830317D2CFB90ED690EC6346130317D2C3290C169D4357D58E0C63461E6C63461E5357D5867FD7E0CF9C23461FFC234612H353761E5357D5867FD7E0C2H353761E5357D58643579146435651464356114F6343761C646DA694F96DB6971357D582H353761E5357D5867FD7E0CB6CF3461FF5CE1694B357D582H353761E5357D5867FD7E0C30CE34614B357D582H353761E5357D5867FD7E0C87C7346185C734612H353761E5357D5867FD7E0C2H353761E5357D58643579143A35651492CC3461E5357D58E5357914E5356514E53561149BCB3461D4347D08C9CA3461D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0CFE34376108FDC20D2H353761E535C1597235CD15B5CB34614BCB34612H353761E5357D58E5357914F6C134612H353761E5357D5867077E0C2EC934612CC93461C73519584B2H3761E5351958492H3761E5357914E5356514E5356114A8C3346111FDA60D2H353761E535A5595A35A115E5C73461FBC73461E5357D581F357914643565142BCB346167FD7E0C2H353761E5357D58D7357914E2C9342H61357D141B917D0C2H353761E5357D5826346514679D7D4019356500F53437619B357D08C9CA3461E5357D58D735791430346514743561142H35376178347D082H317D2CFA901568C6461668B5CF3461FB90D16971357D585BC1346159C13461E5357D5826346514679D7D403B3565002H353761AF357D0836377D2C6835376143343D0837313D2CC7353958CCCD3461E5353958C2CD34612H317D2CE190D169792CD369C94CDE69FF5CDD694B357D58432H3761412H37619F357914643565148A35611464356D1453C5346167FD7E0C9FCC3461E5357D589DCC34612H353761E5359D591FFD9E0D2H353761E5359D59723599152H353761EB359D0937319D2D282H37612H35376149347D0836377D2C61357D1418917D0CDDC53461D3C534612H353761C4342D0837312D2CC7352958D8C23461E5352958DEC234617C347D0830317D2C32900D68D4357D582EC73461E5357D582CC73461C735A9592H353761E535A95912FDAA0D2H353761E535A95972359515CCC534612H353761E5357D5867FD7E0C83C63461C9483368FF5C31684B357D582H353761E5357D5867FD7E0CAD353761A335376167FD7E0C2H353761E5357D58E5357914E5356514E53561145A2H376165347D08C9CA3461E5351D58723519142H353761AB351D0837311D2C5ACA34612H353761E5357D5867FD7E0CFBC23461F9C2342H61357D1470917D0CEFC93461EDC934613731292CC73515582H353761E53515587DFD160CD5CB3461E5351558EBCB346118347D0830317D2CFB90016871357D5819CF3461E5357D581FCF346193900168D8357D14EC9001684B357D582H353761E5357D5867FD7E0C51C63461E5357D5857C634612H353761E5357D5802357914643565148A35611464356D14B5CF346180357D08C9CA346167FD7E0C56C13461E5357D5854C134612H353761E5357D5867FD7E0C2H353761E5357D58E5357914E535651416CC3461E1901168792C1368C92E1F68FFBA1D684B357D589ECD346131355DB16035591597354515D535411593C53461E5357D5867797E0C2H353761E5357D5867077E0C3F3537613D35376165917D0C2H353761E5357D5826346514A22H3761393465149B35611412C3346110C33461E5357D5893908D69ECE48F694B357D58E3CB34617235C1152H353761E135C5093731C52DC735C15936CA3461E535C15934CA3461F73571592H353761E5357159BBE67269F7357159BBC43461B9C434612H353761463571093631712DF7357129F73571592H353761E5357159C94E73695AC1346167797E0C2H353761E5357D5867077E0CF0CE3461F6CE3461E5356514E53561142H3537611F347D082H317D2CE190F569EB2H3761ECAEDA694B357D582H353761E5357D5867FD7E0C2D2H3761232H37612H3537616A347D0830317D2C3290ED6980C33461E5357D58D73579143034651474356114C1C634616C357D08C9CA34612H3537610A343108372H312CC7353D58FACC3461F8CC34612F34611464356D142H35376194357D0830317D2C1C35376164356114BC356D142H3537617B347D0830317D2C3290F5694A2H3761E5357D586435791462356514C1CA3461C735E5592H353761E535E55901FDE60D36CD346134CD34612H317D2CE1900168D9357D14799001686F357D588ACC346188CC34612H353761E5357D589390E969EC78EB694B357D582H353761E5357D5867FD7E0CCFC034616435611422346D142H353761B4357D0830317D2C32908D69D4357D584BCA346149CA3461FB90D96971357D582H353761E5357D5867FD7E0C2H353761E5357D5864357914A7356514CC343761E5357D5867077E0C2H353761E5357D5893901168AB35376164356D147DC13461BE357D08C9CA3461D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0CD9C534614A347D0836377D2C61357D1473917D0C04C13461E5357D581AC1346167FD7E0C2H353761E5357D58643579146435651453CE34612H3511212H351D212H3519212H3505212H3501211ACC34616435611422346D142H35376190357D0830317D2C3290DD69BDC234612H353761FA347D082H317D2CABCF346167FD7E0C2H353761E5357D5864357914E4343761DF3435083731352CC73531582H353761E535315874FD320C2H353761E535315872353D14B5CA3461B235611464356D142H35376124357D0830317D2CFB90FD6971357D5887C33461FB90E56971357D58E0C23461E5357D58E6C23461E5357D58671B7E0C2H353761E5357D58EF908569C9428369FF78816920CF3461E5357D5867FD7E0C2H353761E5357D58D735791430346514743561149AC2346145357D08C9CA34612H353761E5357D589390756846357D14EC907568AECC346171357D582H353761E5357D5867FD7E0C2H353761E5357D58AE357914643565142E3461143DC434612H3545212H354121F1354D592H353761E5354D592BED4F0D0BCD346109CD346153347D082H317D2CE190F969792CFB69C90EE66957DB34612H353761C4357D0830317D2CFB90AD69DD35376136377D2C18357D00392H35B52A2H35B53E347D281B357D00152H35B5142H35B5272H35B52A2H35B5362H35B5342H35B53H35B53C2H35B53E2H35B5262H35B5192H35B5312H35B5212H35B5242H35B592357D288CC03461E53571592H353761FC3471093437712DC0DB3461C735715958DB34612H353761E5357159F9357D1530357915213465159EDA34619CDA3461EC0C13684B357D582H353761E5357D5867FD7E0CB2C734612H353761E5357D58D735791430346514743561142H35376162347D082H317D2CFA90C96904C9346167FD7E0C2H353761E5357D5864357914CF35651404CA34614F96E76971357D582H353761E5357D5867FD7E0CE7CF3461ECCE9A694B357D582H353761E5357D5867FD7E0CE0CC34617235DD152H353761FA35D1093731D12DC735DD592H353761E535DD590FFDDE0D71C1346177C134612H353761E5357D5864357914D1DA3461FB90356871357D582H353761E5357D5867FD7E0C2H353761E5357D586435791469C13461E5357914E5356514E5356114A1C93461A7C934612H353761E5357D5867FD7E0C73C1346171C13461FA901168C64612684F96136871357D582H353761E5357D5867FD7E0C47CE346145CE346136377D2C61357D1404917D0C32DB3461E5357D5830DB34612H353761E535F15904FDF20D2H353761E535F1597235FD1507C0346105C034612H353761E5357D5867FD7E0C2H353761E5357D58EE35791450C634616435611422346D142H353761C8347D0830317D2C32902168D4357D5802DA346100DA3461FF5C3D684B357D582H353761E5357D5867FD7E0C70C13461E5357D5876C13461C735995922C63461E535995920C6346132901168D4357D582H353761E5357D5867797E0CEACB3461E8CB34617EFD1A0C2H353761E53519587235051429C334617F341908C9CA3461E5357D5867FD7E0C2H353761E5357D58E535791443CB3461792C2368C95A2E68FF5C2D684B357D584BC83461E5357D5849C83461FA903568C64636684F96376871357D582H353761E5357D5867FD7E0CFBC23461EC9626684B357D583ECC34613CCC346130317D2C3290F969D4357D5805C034612H353761E535815972358D152H353761753481093731812DC7358D5909C534610FC53461E5357D5867FD7E0C2H353761E5357D58E5357914A8CF34612H3537617D347D0836377D2C61357D1474917D0CADC53461E5357D5867FD7E0C2H353761E5357D58D735791430346514743561145EDB34615CDB3461E1908169792C8369C9CA8F69FF788D694B357D587435376171357D582H353761E5357D5867FD7E0C2H353761E5357D586435791460CD342H61357D140C917D0C2H353761E5357D5826346514679D7D402135650096CE342H61357D08C9CA346164357914A73565146435611422346D142H353761F7357D0830317D2C3CC43461FF5C39684B357D582H353761E5357D5867FD7E0C73C6346171C6346167077E0C2H353761E5357D589390E169EC26E369D6C93461D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0CEA3537612H317D2CE1900D6826357D143435792067930D6839357D1479900D6824357D1434357920FCC03461E535F95906FDFA0D2H353761E535F9597235E5152H353761E235F9093731F92D1FCB34612H353761E5357D5867FD7E0C2H353761E5357D58E53579142FC234614B357D582H353761E5357D5867FD7E0C35CF3461CBCC3461E5357D5867797E0C2H353761E5357D5867077E0CBCC83461E5357D58B2C834616435611422346D14EFC334613E347D08C9CA346167797E0C2H353761E5357D5867077E0C7FD83461E5357D58E5357914E535651402C73461E53561142H35372H61347D082H317D2CE190C969792CCB69C2C63461C9907568FF7C75684B357D58BAC43461E5357D58B8C434612H353761E5357D58643579143D35651410C234612BA5B60D2H353761E535B559158DB60D2H353761E535B5592BA5B20DF8D83461FED8346167797E0C2H353761E5357D5867077E0C2H353761E5357D589390F169FCC23461E5357D5826346514679D7D4011356500232H35B5642H35B5142H35B510D834616435611422346D142H353761B3357D0830317D2C3290D969D4357D5804C934612H353761E5357D5867817E0C73CB346171CB3461363465146435611422346D147FC9346146347D08C9CA34612H353761E5357D583E357914643565148F35611464356D142H3537618B347D0830317D2C1AC23461679D7D4014356500102H35B56DD8346163D834614B357D582H353761E5357D5867FD7E0C06C33461623579155F3565153F3461150BC2346109C2346167077E0C2H353761E5357D5893900D6888357D14A5C3346130317D2CFB902D6871357D582H353761E5357D5867FD7E0CC0C73461E5357D58C6C734612H35376103357D0836377D2C61357D147D917D0CACC13461E5357D58A2C134612H353761E5357D5867FD7E0C2H353761E5357D58AB35791464356514753561148FC43461E535015878FD020C2H353761E5350158F3350D144CC7346163340108C9CA3461E53561142H35376108347D082H317D2C21C83461D4357D582H353761E5357D5867797E0C2H353761E5357D5867077E0CFBCC34612H317D2CE190F169792CF369C918FE69FF7EFD694B357D58EBCE3461E5357D58E5357914E5356514E53561142H353761D8347D082H317D2CE1903568792C376898C9346109357D0830317D2C3290A969D4357D5822CF3461E5357D5820CF3461C9357D0830317D2C32900968D4357D589ADA346198DA34612H353761E5357D5893908169EC4882694B357D58D5C9346115357914643565142D35611464356D142H353761CE347D0830317D2CA8C734612H353761E5357D5867797E0CC8DA3461CEDA3461792CF769C9FAF269FF7EF1694B357D5851C4346157C43461738DA92F3D858A44C59C41B16DF6E8A6B7A8D319139130BB7CF5A4BD56222E0D6A19D164A6DC1C043F6B9720750B02006A103H002HCA9083A4AEAFB288AFA2ABBCA3A5B86A093H002HCA89B8AFAEA3BEB96A053H002HCA839388401FC30F40FD36E53F40DF2A5A00A484A53F408FC2F5285CCF362H405H00C068406A063H002HCA99A3B0AF405H00E062406A163H002HCA9EB3B8A5A4AFB9EA8DBFA4EA99BEA5B8AFEAE9FB406H004B2H40C7882CE0CA03B23F406H002C406A053H002HCA9A2H886A083H002HCA88A5B2A3A4AD405H00C054406A063H002HCA9F8C85886A0D3H002HCA9EAFB2BE9DB8AB2HBAAFAE406H0059C06A0C3H002HCA9EAFB2BE99A9ABA6AFAE6A083H002HCA99A2A5AFB9F0406H0055406A083H002HCA99AFBDAFB8886A0C3H002HCA8BBFBEA58DB8A3A4AE8840A8D0D9FF895CE43F6A083H002HCA9CABBFA6BE886A073H002HCA98A3ADA2BE6A023H002HCA6A093H002HCA9BEABEA5EA9E9A4037733B409FF4E93F6A063H002HCA9AABB8BE6A0D3H002HCA89B8AFAEA3BEB988A5AEB3401218D47F22EBDC3F6A043H002HCAB0FB6A0D3H002HCA86A5A9ABA69AA6ABB3AFB8405H00804A2H40463F1A4E999BCB3F406H0024406A073H002HCA8BB8A7A5B840EE148740E95CD93F407C623A0024EBEC3F6A063H002HCA9EABA9A540985C34809109E83F6A073H002HCA9CABBFA6BE405H00804F406A093H002HCA918EA5A4BFBE97405H004054406A063H002HCA88ABA4A1406H00362H405H006064406A103H002HCA89A2ABB8ABA9BEAFB88B2HAEAFAE40C2022200D4A6A83F6A123H002HCA82BFA7ABA4A5A3AE982HA5BE9AABB8BE6A0C3H002HCA9AA6ABB3ADB8A5BFA4AE406FCC8A5FB387D53F40A336E67F36C5E83F4062855B3E2H92C23F6A093H002HCA86ABB9BE9AA5B940D1E979371614C43F6A0A3H002HCA9EA52HADA6AF9E9A40F75B3B512H12D23F6A0A3H002HCA99ABACAF99BAA5BE6A063H002HCA8DB3A7886A083H002HCA85BAAFA49C8840B8040B20AFD9D83F401D925A28999CCC3F405H00405D406A113H002HCA9AA5B9BEA7ABA4B98BBFBEA598A5A86A073H002HCA9F8EA3A7F86A0B3H002HCA8CA5A9BFB986A5B9BE406H0033406A0C3H002HCA9EAFB2BE88BF2HBEA5A46A0D3H002HCA99A9B8A3BABEB988A5AEB36A0C3H002HCA99A2A5AFEA99BEA5B8AF6A0B3H002HCA8BBFBEA58DB8A3A4AE6A093H002HCA88A5B2A3A4AD886A0A3H002HCA9EAFB2BE99A3B0AF4068CF2DC0B397E03F6A163H002HCA9EB3B8A5A4AFB9EA8DBFA4EA99BEA5B8AFEAE9F86A063H002HCA8FABBE886A093H002HCA9CA3B9A3A8A6AF408H0040F074DA5FE50CEA3F404EB51666A19DCD3F6A133H002HCA87A5BFB9AF88BF2HBEA5A4FB89A6A3A9A16A093H002HCA919AA32HB0AB976A0D3H002HCA82A5B9BAA3BEABA69E9A88405H004051406A0A3H002HCA8BBFBEA5EA8FABBE6A0B3H002HCA82A5B9BAA3BEABA6886A073H002HCAB9BAABBDA46A073H002HCA9AA6ABB3886A0B3H002HCA9DABA6A199BA2HAFAE405H00405B2H40BE7DCD2HFF2E7A3F40287B1B00499FE43F40041DF43FD5F5D73F6A093H002HCA99BFA8BDABB3886A093H002HCA99A9B8A3BABEB96A093H002HCA98A3BA99BAB3FB6A1F3H002HCA89A6A3A9A1EA8EAFA6EABDA3BEA2EABFA4AEA5EAE2A9BEB8A6EAE1B0E36A093H002HCA9EAFB2BE88A5B26A0B3H002HCA9DA5B8A1B9BAABA9AF6A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A073H002HCA87A5A4AFB3405H00C05C2H405H00C059C06A053H002HCA8DB3A76A093H002HCA9AA6ABB3AFB8B96A0A3H002HCAADAFBEA7A5A4AFB36A063H002HCA9AA62HB36A073H002HCA8CB8ABA7AF6A093H002HCA9AA5A6A3A9AF886A0D3H002HCA9AA2A5A4AFEA99BEA5B8AF6A083H002HCA8BA9BEA3BCAF6A033H002HCA95406H0056406A093H002HCA9AA5B9BEA7ABA46A0C3H002HCA99A2A5AF99BEA5B8AF88401707F5FF3A3FE63F4025085740A19ECE3F6A073H002HCA88A5AEB38C6A113H002HCA88A5B8AEAFB899A3B0AF9AA3B2AFA640D1E979371614D43F40AF2HFF9F2H99C93F405H008069406A083H002HCA89A5A6A5B8F96A083H002HCA87A5A4AFB3886A0F3H002HCAA3A7EAA2AFB8AFEAA4A32HADAB40DB39E69F8D6AE73F405H00C0502H406543F7DF5C79E03F6A073H002HCABAA9AB2HA66A083H002HCA898CB8ABA7AF6A063H002HCABDABA3BE405C693A2H004E703F6A073H002HCA9DABA6A188406H00382H40E0862221EDA6BE3F6A113H002HCA86ABBCABEA86ABA3B8EA99BEA5B8AF40073DD3FFFDFFDF3F4B6A0A3H002HCA8BA4A9A2A5B8AFAE409A5H99C93F6A093H002HCA99A3A8A6A3A4AD406H004E2H406H00452H407E8FFAEB1516C63F6A093H002HCA99A2A5AF9E9A88405H00804B406A0A3H002HCA99A9B8A3BABEB9886A063H002HCA86AFACBE6A063H002HCA8EAFA6886A0C3H002HCA99A5BFB8A9AF99ABA4B96A0A3H002HCA89B8AFAEA3BEB988404703EC1F90EC533F6A063H002HCA87A3A4886A093H002HCA9E9A88A5AEB38C40808540C03A576E3F6A083H002HCA99BFA8BDABB36A043H002HCA2HB0408447CAFFAC05CB3F6A083H002HCA919EABA9A597405H00E0702H403E330F001F23E03F6A123H002HCA9AB8A5A0AFA9BEEA88BF2HA6B9A2A3BE6A063H002HCA8CA5A4BE6A0A3H002HCAB9BEABB8BEB8A5A8409164F29F904AB23F406H00352H40636D27E0CB03B23F6A103H002HCA9AA5A6A3A9AFEA99BEABBEA3A5A46A083H002HCAA9A2ABB8ADAF4052BD4500A884A53F408B321B649291D13F4069F36FFFE06FC33F6A083H002HCA9AA2A5A4AF886A083H002HCA8BB8A7A5B8886A093H002HCA9CAFA9BEA5B8F940FEB21B8084F6D23F6A0A3H002HCA82A5B9BAA3BEABA640A59AF41F1B46DF3F6A0B3H002HCA8EB8AB2HADABA8A6AF6A073H002HCA86ABB9BE886A053H002HCA9E8588406H00E03F40581A1960F66DE23F6A103H002HCA99AF2HA6EA99A2A5AFB9EAABBEF06A073H002HCA88ABA4A1886A203H002HCA9AA5B9BEA7ABA4EA9AABBEE9F8FA2HFBEDB9EA8EABEA822HA5AEEA8D9F836A0E3H002HCA9E9AEABEA5EA99ABACAFBEB3400F8D17A0A7A0C83F406H0059406A083H002HCA89A6A5B9AF886A0A3H002HCA99ABACAF9AA6ABBE405026E6FF6BFEB43F6A063H002HCAADABA7AF6A0D3H002HCA85BAAFA4EA9CABBFA6BEB96A0B3H002HCA9EAFB2BE86ABA8AFA66A0B3H002HCA9EAFA6AFBAA5B8BEB96A0B3H002HCA89A2ABB8ABA9BEAFB86A043H002HCA83936A083H002HCA9AABB8AFA4BE6A093H002HCA98A3BA99BAB3F8409CC420B072B85E406A053H002HCA9F8C856A0A3H002HCA9AA5B9A3BEA3A5A46A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F9406H00F03F6A073H002HCA99AFBDAFB86A083H002HCA99A2A5AFB98640425152C073F8C33F6A0C3H002HCA9EAFB2BE89A5A6A5B8F96A063H002HCA9B9E9A886A0C3H002HCA99AF2HA699A2A5AFB98640E78B44BF72189D3F4050A22D00F09CE53F6A063H002HCA9EAFB2BE6A103H002HCA9EAFB2BE928BA6A3ADA4A7AFA4BE40E7AA83003CC9D53F6A0A3H002HCA82BFA7ABA4A5A3AE6A073H002HCA9EABA8B98C6A073H002HCA86ABBCAB8840808FE8BF3A579E3F6A0B3H002HCA9189A2A3A9A1AFA4976A063H002HCA8FA4BFA7402B357BA01518C83F408C2BE2FF84F6E23F6A053H002HCAA4AFBD40287C3F006C8AD13F40E42HFF7F14AEEF3F6A0C3H002HCA9EAFA6AFBAA5B8BEB9886A0E3H002HCA98AFB9AFBE85A499BAABBDA48B405H00206C2H406H00392H406H002E406A683H002HCA8BBFBEA5E59EAFA6AFBAA5B8BEB9F0EA9AA5B9BEA7ABA4EA9AABBEE9F8FA2HFBC08BA4BEA3E789A2AFABBEEA88B3BAAB2HB9F0EA8BB2AFA4E58EBFA9A1E9F3FCFBFFC0899E9886EAE1EA89A6A3A9A1EA8EAFA6EA9DA3BEA2EA9FA4AEA5F0EA87B8EA85A5ACB96A083H002HCA99A2A5AF9E884067563D00ACC5CE3F6A053H002HCA2H9E886A0A3H002HCA8DAFBE87A5BFB9AF6A0A3H002HCA83A4B9BEABA4A9AF6A183H002HCA88ABA9A1ADB8A5BFA4AE9EB8ABA4B9BAABB8AFA4A9B36A073H002HCA9EABA9A588405F2HFF3F2H33C33F407675E0FF3B20C93F6A093H002HCA82AFABAEAFB88C408CA3EFFF35B1B23F408C2BE2FF84F6B23F405H004055406A0D3H002HCAA7A5A4AFB388BF2HBEA5A46A063H002HCA84ABA7AF6A043H002HCAFBFA6A093H002HCA89A5B8AF8DBFA340D1F23900AD2CE13F402E49ED9F914AB23F409D33DC5FC126743F40496120001F59E73F406H00512H405H00803H4032AB77B81D1ACA3F406H004C406A093H002HCAADAFBEB8AFA4BC6A0C3H002HCAADAFBE85A6AE9E2HA5A66A083H002HCAA8B39AAB2HB9405H00407A406A093H002HCAA5A6AEBAA52HB0401CCEFC6A0E10D03F406H00372H405H0080522H403D49152065DFEF3F40BE85B7FFAF97C03F40E7A85580144E703F405H00804D406A093H002HCA89A52HA4AFA9BE405H33EB7DC0407AC1770063D4D03F406H00472H406H003B406A033H002HCA92405H0080512H40CCFF887F08CCD53F40A0AF0FA12H00F03F4054008C673HD03F406H005C406A0B3H002HCA99A9B82HAFA48DBFA34081FABAFFD487D03F40861730C0BFFAD53F40351CDCFF0311A13F401D47B37F8CE3D83F00D6767D69292C3D0842675157B600303H00D35A70083EE0E47673177H00013H00019H002H00013H00019H006H00013H00013H00019H006H00019H002H00019H006H003653FE60387100EAFF343ED1902F6FE702B53F33AB0A02003E3537613731352D3H35392H3537612H353761303537613H353D34353761362H35592HCA34613736376936353761342H3549343537613H3501362H3559312H35592H353761362H355936353115DECA34617B343509C9CA34619F53D848B488B04F856613A040314A21BADF4E292BCDA57321F79166244F50648C309C70C7FD0809570A02006A023H002HCA6A683H002HCA8BBFBEA5E59EAFA6AFBAA5B8BEB9F0EA9AA5B9BEA7ABA4EA9AABBEE9F8FA2HFBC08BA4BEA3E789A2AFABBEEA88B3BAAB2HB9F0EA8BB2AFA4E58EBFA9A1E9F3FCFBFFC0899E9886EAE1EA89A6A3A9A1EA8EAFA6EA9DA3BEA2EA9FA4AEA5F0EA87B8EA85A5ACB96A063H002HCA9EAFB2BE406H00F03F6A063H002HCABDABA3BE01245F1D32758575116DC53602A95H004470AF14E10321153E189H002H00013H00019H002H00013H00019H009H001H00019H009H005H00019H002H00013H00013H00013H004AC03F0C4C7EF7DA17792A23F53FC3ADB8EF4678AC0A0200383537615F3435093731352D3H35392H3537612H3537613A3537613H353D3E353761372H35593C353761372H355937353115C6CA3461C4CA3461343537613H3501372H35593H3559C2CA3461C0CA346131323769CFCA3461342H354977CC6D7B78AE6616745A8D5F9903212H5FEA853DA79739457FC25538D9B761A0C4F8381DE111536D570A02006A063H002HCABDABA3BE6A023H002HCA406H00F03F6A203H002HCA9AA5B9BEA7ABA4EA9AABBEE9F8FA2HFBEDB9EA8EABEA822HA5AEEA8D9F836A063H002HCA9EAFB2BE01C1D78FA2188E987B5D2A2502885H0014E3A0610D8964DD3A7C9H002H00013H00019H002H00013H00019H006H00019H002H00019H006H00019H002H00013H00013H00019H002H00019H006H00013H00019H006H00019H009H001H00019H002H00013H00013H00019H002H00019H006H00019H002H00019H002H00013H00017H00013H00019H002H00019H002H00019H002H00019H002H00013H00013H00013H00019H002H00019H002H00017H00019H002H00019H006H00017H00013H00019H009H005H00013H00019H006H00019H009H005H00019H002H00013H00019H002H00013H00019H006H00DBE49F7657C4A97FAF126069E417126C04A404B8100B020016353761BA2H35093631352D353735392H3537612H353761703537613H352H3D353761332H3559333537613H353D2H353761332H35592H3537410C353761762H3509C9CA34613521370D2H353761332H3559352537413C353D15333539152H3537615A3435093137352D053537612H353761332H35593H356D3H353D2HCA34612H353761332H35593521370D39353761343537613H3501332H35593H353D0A353761083537613137352D2A3537613H353D2H353761332H35593521370D053537612H353761332H3559352H370D2H353761332H3559342H356D32353761332H3559372H356D3H353D29353761353D374134353D1507353761053537613H353D2H353761332H35593521370D2H353761332H35593527370DC5CA3461DBCA34613731352D312H356D342H3549362H35592H353761332H35593531370D2H353761332H3559353F370DF3CA34613521370D2H353761332H355935253741363537612H353761332H35593521370D3A35376134353D1533353915FCCA346197343509C9CA34612H353761332H3559353D37413C353D15ACCA3461A2CA3461332H35593521370DE5CA3461332H3559FBCA34612H353761332H3559362H356DADCA34617C2H35093631352D353735392H3537612H35376181CA34613H353DEFCA3461332H3559EDCA3461F5FA242068D7CD0EE49BC15E17DA5C547105D961ABAC162E7F1C8BA45C53643930A52924673F7D045D0A02006A0A3H002HCA8DAFBE87A5BFB9AF6A123H002HCA82BFA7ABA4A5A3AE982HA5BE9AABB8BE6A093H002HCA9AA6ABB3AFB8B96A063H002HCAADABA7AF6A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A0D3H002HCA86A5A9ABA69AA6ABB3AFB8406H0014406A023H002HCA6A0E3H002HCA9DABA3BE8CA5B889A2A3A6AE6A0A3H002HCA82BFA7ABA4A5A3AE6A0B3H002HCA89A2ABB8ABA9BEAFB80573A91469280DBF3772E81504FD5H00D2F0A72D37D67B943A2B9H002H00013H00013H00019H002H00019H002H00017H00013H00013H00019H009H009H004H00019H009H001H00019H006H00019H002H00019H006H00019H002H00017H0057D15C1D6C126109BC70E4E8022D9B7944814406BE0A020024353761F03531093437312D342H35493435313D2H353761303531593431330D2H353761303531592H35316D2C35376137313D2D37303169343531592H35376130353159DACA3461D8CA3461343537613H3501302H3559363531592H353761303531592H353761AB3531093437312DD3CA34612H35376130353D59373D3F0D2H35376130353D592H3539B5D2CA3461B4343D09C9CA34613435313D2H3537613035315937353D59C4CA3461CF9B322CE0618CB444C8B756CB2B622CD99E3F235BD20C482H01FD39938413B7E4733908580A02006A023H002HCA6A063H002HCABDABA3BE6A083H002HCA898CB8ABA7AF6A063H002HCA9AA62HB36A053H002HCAA4AFBD405H00E49440024B72F7E75594EA3351426604B1014H00056ECC1D248348E700489H009H009H00019H002H00019H006H00013H00013H00019H002H00013H00019H006H00013H00013H00013H00019H009H009H004H00019H002H00019H002H00019H002H00013H00019H002H00017H00019H002H00013H00019H002H00019H002H00017H00019H009H001H00013H00019H002H00017H001824F2AD111533FA7103378A43277770C8481D7EDC0A0200293537612H35376131353D591335376162343109C9CA3461363531592H353761313531592H352H3D0435376131353D591A35376135303369363537612H35313D2H35376131353159353E3369342H354931353D592H3537617F343109372H312D3435316DCDCA34612H35313DC5CA346131353159DBCA3461243537613H3501312H35593B353761363531592H353761313531592H352H3D2H35376131353D5937353F0DDFCA3461DDCA3461372H312D2H3531392H353761E3CA3461EBCA3461E1CA34613H35392H3537612H353761E8CA3461363531592H353761313531592H352H3D2H35376131353D5937353F0DF6CA346137353F0D2H35376131353D592H353761CB353109372H312D313635112H353761EECA3461E7CA3461ECCA34617F0EC6200BB5A6561AD22A7CBBE0984AB7052E3DC819E66A5712BC054B6E442BDF96A221632D1A7D580A02006A063H002HCA9EAFB2BE6A023H002HCA6A073H002HCAE9EAF6EAFB6A0A3H002HCABEA5A4BFA7A8AFB8406H00F03F6A103H002HCA83A4BCABA6A3AEEAA4BFA7A8AFB8029E7B00692FFD890B1F5A520352015H00F58E55D20CBCF318199H009H001H00019H002H00019H009H005H00013H00013H00019H002H00013H00013H00019H002H00017H0089569BA7667B138D3A595A5CE8519E0132D755C4AA0A02002HCA3461343537613H3501342H3559362H35592H353761342H3559373531593035376134353159363537612H353761F62H35093537352D342H35493439330D2H3537613435315934353D152H353915303525152H3537613C3531093135312DC4CA3461F4D190184D1B105011B320A0AECEBB4F82071D0FC3DEE3261E73036C590A020040A8F9CF3F6678482H401EC6A4BF973E7E406A093H002HCA9CAFA9BEA5B8F96A043H002HCA2HB06A023H002HCA405F9A22C0E95F83C06A053H002HCAA4AFBD009D7903066D28ADF45CC3C105935H002AE174466F811A501C1B9H009H001H00019H006H00019H002H00019H002H00013H00019H002H00019H009H001H00013H00013H00017H00FBB2F6C50A725E7D1967622F817CA9B3472F0F03AC0A02002HCA3461343537613H3501302H3559332H35592HCA34612H353761302H3559363531592H35376130353159343D330D3C353761323537613537352D342H35492H3537619C3431093135312DCCCA3461522H3509C9CA34613035315930353D153735391534352515C1CA34617DBDA95909282B37EDDC9074185158731A417640EC3790B6DB2F8414590A02006A023H002HCA401FD8F15F60B871C040BA545BA093D637406A093H002HCA9CAFA9BEA5B8F96A053H002HCAA4AFBD4089B48D3F51177BC06A043H002HCA2HB000DDA2626C09D8A09B641E5A055F5H008E5C167AFBB3D4E86A1A7H00019H002H00013H00013H00019H006H00019H002H00013H00013H00019H009H009H00019H006H0006F1227F0FC658460D33B30FD22359F62F272532AB0A0200243537613135312D2H353761A72H35093537352D342H35493135315934353761373531592HCA34613439330D2H3537613735315937353D152H35391534352515DACA346144353109C9CA3461343537613H3501372H3559302H3559D8CA3461372H3559DECA346174B10B7D14AC37002A42467E921CA14DF37E5F388CE66C2F7DC28E5C590A0200400D2E6700B96343C040545227A0E92B8DC04052431B800D9B88C06A023H002HCA6A093H002HCA9CAFA9BEA5B8F96A043H002HCA2HB06A053H002HCAA4AFBD00AFC2B2012A266DDB7A70E1058B5H00F3262E7B51A499C55B1A7H00019H002H00013H00013H00019H002H00013H00013H00019H009H009H004H00019H002H00019H006H006F7F19E360B6822C07224FCFD3307458B2CE23F0AF0A0200383537613135312D2H3537615E2H35093537352D342H3549343D330D2H3537613735315937353D153435391536352515C6CA346158343109C9CA3461373537613H3501372H35592HCA3461302H35592H353761372H35592H353159D8CA346137353159DECA3461C32B3D7BDE63E605CC43A0132H221F36ED45445F50B9A171DCAFF5A0B176DC0FE9AB3DB6D6201F2A84DA0726590A02006A093H002HCA9CAFA9BEA5B8F940799707C0AA5E223H40C23060890C82C040CB85CABFB60987C06A053H002HCAA4AFBD6A043H002HCA2HB06A023H002HCA0023ECB1295D2F637243B6CD05815H0011A1D272F32C9049351A9H006H00019H002H00019H009H001H00019H006H00019H002H00013H00019H002H00013H00013H00017H00DE0937C2799B07E6BF3A4407840E663084BE3193AE0A0200333537612H353761332H3559313531592H35376133353159342H330D3E353761343537613H3501332H35593H3559C6CA34612H353761473431093135312D2H3537616A2H35093537352D342H35492H3537613335315933353D153435391530352515C7CA346153A2B324C79A64BF7632855FD173D537293AA7B72FB7B050AFB078301224F222792FEF638F145663590A02006A043H002HCA2HB04086D7E4DF1D0537406A023H002HCA6A053H002HCAA4AFBD6A093H002HCA9CAFA9BEA5B8F9404A0A2C80C95887C04024F0879F7FC96CC00091409A886BE8B42E6C66D105155H00F21F9C331E820A140A1A9H009H001H00017H00013H00013H00019H002H00019H006H00013H00019H002H00019H002H00019H006H00F84B5D4A5F8DE3B0FE653A859D48A0BB42DF21ECAC0A02002HCA3461343537613H3501312H3559342H35593F35376131353D1536353915303525152H353761383531093135312D343537612HCA34610A3435093537352D342H35492H353761312H3559333531592H353761313531593435330DD8CA346131353159DECA3461F4C0B97D660FE06B5F8AAA1CCDBFD928901DEB67EC7DF9168BCBB726BF89793A590A02006A053H002HCAA4AFBD6A043H002HCA2HB06A023H002HCA408B074AC09EC5362H40C9ACDEE176DF5DC040D1B2EE1FAB328BC06A093H002HCA9CAFA9BEA5B8F9005B8E770C1AD753057C4BAE05865H00C0B893286D4AB5414D1A9H006H00019H002H00019H002H00017H00013H00019H009H009H00017H00019H002H00013H00013H00A24C3C4245053676013048676A5BDEE3C2262486AC0A02003B3537612H353761342H35592H3531592H35376134353159343F330D2H3537613435315934353D152HCA3461333539153635251533353761F3343109C9CA3461343537613H3501342H3559372H3559DECA34613135312D2H353761663435093537352D342H3549AFE1CB638F99C150617BD36924100A653790BD3439F1A462C14A7FB2FB08B068590A02006A093H002HCA9CAFA9BEA5B8F9405F7F129FBB016DC06A043H002HCA2HB0404H00E07B91C06A023H002HCA6A053H002HCAA4AFBD408F2221808AED36400037A33B7D1C7112976FC7C205015H0013C92A4625B4092C2F1A9H009H001H00017H00013H00019H009H005H00019H002H00019H002H00017H00019H002H00013H00013H00AD19F890372FBA0F872BD973FE730FCC0D6A638AAC0A02002HCA3461343537613H3501302H35593H35593135376134353915333525153E35376100343109C9CA34612H353761302H3559313531592H353761303531593431330D2H3537613035315930353D15C5CA34613135312D2H353761D02H35093537352D342H3549A6607BBD2HFCF03A74315B254F4E6C132E2BCB50C808321501CEB8269226F736590A02006A043H002HCA2HB040BDB266BF49CC36406A053H002HCAA4AFBD6A023H002HCA6A093H002HCA9CAFA9BEA5B8F940FAB7CB7EDDC2592H40F3AE7AC0BC557EC00026BC6A1178FBDB0873DE2H05BD5H0085AD7D1753762521271A9H009H001H00019H006H00019H002H00019H002H00013H00017H00019H002H00019H006H00013H00013H00469FF1CE7B7814F9C40B6F0A052040F5A8F56E50AD0A02002HCA3461343537613H3501302H3559362H3559343537612HCA3461302H3559333531592H353761303531593437330D2H3537613035315930353D15373539152HCA3461313525152H3537614A3531093135312D34353761BC343509C9CA34613537352D342H35497CABFF26D767EC418278C44A9664106462149C09117AF15EF596CF452A2F876C41822730590A02006A023H002HCA6A053H002HCAA4AFBD403271AB20069237406A043H002HCA2HB0407C60C77F41F583C040F33EE99F3B4F53C06A093H002HCA9CAFA9BEA5B8F900A4D5F42A1E5D96794A082B05945H007F77FF50F9C8643B281A7H00019H006H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00019H002H00017H00ACE410201592E4178A2BA436AA2EB91C27845E16AA0A02002H353761342H3549343537613H3501332H35593H35592H353761332H3559313531593F3537613D35376137353915363525152H353761793531093135312D2H353761073435093537352DD9CA3461333531593437330D2H3537613335315933353D15C5CA3461B70F23B1E508205E235747078DDAA8324F62B17E66CD166D590A02006A043H002HCA2HB06A053H002HCAA4AFBD40D8405F1F42E139C040336B2920AD2B71C06A093H002HCA9CAFA9BEA5B8F96A023H002HCA40C77F812040C8594000740780A2709E2FA0716EE3056D5H00B99B5F3B247072BF4B1A9H006H00019H009H005H00019H002H00019H006H00013H00017H00013H00013H00019H002H00017H003792D6153A90A1230A4F8F482E7D42901A983F09AE0A0200313537612H3537612H353159342H330D383537613E353761343537613H35013H3559302H35592H3537613H355937353159C7CA34612H3537617D3435093537352D342H35492H3531592H353D1533353915343525152H353761BF3531093135312DC6CA34616853E6A67B816745140D7A2HBAFDD033B6147D1BFB4E04242E7D1B64E27FF1763240B9677563D74A590A02004029266F8099CF7AC04029B6DD5F986F46406A093H002HCA9CAFA9BEA5B8F96A053H002HCAA4AFBD6A023H002HCA6A043H002HCA2HB04033C0AA1F406134C000F2DBC9772D3DA75E5F9149054A5H00AF97F363CB9278B72A1B9H006H00013H00013H00019H009H009H00019H002H00019H006H00017H00013H00013H00019H006H008BD69D9137B9F0390209E74B2E1723819338469DAE0A0200323537612H3537613035315930353D152H353915333525153A353761A9343109C9CA3461343537613H3501302H3559372H35592H353761302H3559343531592HCA34612H35376130353159342H330DDECA34613537352D342H35493135312DCECA3461212H3509C9CA346196EF5DB389D3A54F197A7E41784580705585BB51D299940C6E9CAB27D9470652621E392E590A0200401C21A8BF03D835406A093H002HCA9CAFA9BEA5B8F96A043H002HCA2HB06A053H002HCAA4AFBD6A023H002HCA403A92CB7F48E969C0408FE1B19F45A879C000E4E1ABC0319A842751508305735H002C666D7954DFC48C31197H00019H002H00013H00013H00019H002H00019H009H001H00019H002H00019H009H005H00013H00013H00119456590C4D8328C37B04AF27738794488C7550AB0A02003C3537613431330D2H3537613335315933353D15363539152H3525152H3537614B3431093135312D3C353761343537613H3501332H3559312H35592H353761332H355930353159D8CA346133353159DECA34612H3537617D3435093537352D342H35494C67DB45486B0EA23399911B36AC05701C540673A9BF512EFB6B714731B9ED0F590A02004014B4C9E1930C5CC06A023H002HCA6A053H002HCAA4AFBD4019F2BEE089AB36406A043H002HCA2HB06A093H002HCA9CAFA9BEA5B8F940DBFD2AC0B76570C000E46771110E86DC1A368F2H05155H00B74399026E2H81E11E1A9H006H00013H00019H006H00019H006H00019H006H00019H002H00013H00013H00019H002H00017H00D6E8BC7C119EDD29A24F171F47791DBE68EE7610AD0A0200363537612H353761F33435093537352D342H3549343537613H3501302H3559362H355934353761302H35592HCA34613135315934353761303531592HCA34613437330D2H3537613035315930353D152H353915373525152H353761E13431093135312DD3CA3461002C734B7E27BF12FA459E43341E2DBA9C278A06861688B4FD4DAA153531C7079A86FF4E590A020040B6F292FF499463406A053H002HCAA4AFBD402F4D11E0B47B85C06A043H002HCA2HB06A093H002HCA9CAFA9BEA5B8F940C111EEDF06AC51406A023H002HCA00E380422431744A9E30622205A35H00C17B414C382A950C41199H006H00013H00013H00019H002H00013H00013H00019H002H00019H009H001H00019H002H00019H006H00251EC34F3E7FEB28552F1963640C3F85F26072F9AB0A0200383537612H353761843435093537352D342H35493435330D2H3537613635315936353D1530353915333525152H353761833531093135312DC4CA3461343537613H3501362H3559312H35592H353761362H355934353159D8CA346136353159DECA3461C6E18D2D048C18155C24A5BBF057471FB2EE393F271CA802C6D37FA5FEE8BC48590A02006A053H002HCAA4AFBD6A093H002HCA9CAFA9BEA5B8F96A023H002HCA40596ABDDFE8AB81406A043H002HCA2HB040FF2E22403CF7492H405B7C0A8031037EC0001D4989723B495D2E60F0CF05885H00DBA7EB7B8C4237A64A1B9H009H001H00019H002H00013H00019H002H00013H00017H00019H009H001H00019H002H00019H002H00017H001486965803EC62470A16717B8664B9276DB460ABAE0A02002HCA3461343537613H3501362H3559342H3559393537613F353761313539153735251536353761343537613537352D342H3549A23531093135312DCFCA3461EE343509C9CA3461362H3559303531592H353761363531593435330D2H3537613635315936353D15DECA346113AB5B7E16BA2F286878EEA46E075D7493560FB5E9700F79806640673D56870F611C2534590A02006A053H002HCAA4AFBD6A043H002HCA2HB04090F63FC01AED71C040A374E95F929C7FC040BF052340970838406A093H002HCA9CAFA9BEA5B8F96A023H002HCA005A9F1B83785BDB0F52FEDA05705H00FA052F50624DF01E331A9H006H00013H00019H002H00013H00013H00019H002H00019H009H001H00019H006H00019H002H00017H0098150DF21CE442FCBD37E1D3FD0188B3364420B7AB0A0200393537612H353761F03435093537352D342H35492H3537613035315930353D152H353915313525152H353761F63431093135312DC7CA3461343537613H3501302H3559372H3559343537612HCA3461302H3559363531592H353761303531593437330DDFCA34612744E10BDCAACC34D5418274F3B874218371325F043057590FE42C75590A0200404750A15F00B224406A053H002HCAA4AFBD6A043H002HCA2HB06A093H002HCA9CAFA9BEA5B8F940D7DCD1FF52A388C0409B3BFA5FCEE482C06A023H002HCA005B90BDAF2DE04FD96EBCC205125H00B7330761BE67AD4F0D1D7H00019H002H00019H002H00019H002H00019H002H00013H00019H002H00013H00019H009H001H00013H00019H009H001H00A3F061B066746C809E7E09E20C432E6FB4304FD6AE0A020022353761342H353D2H353761362H35592H35313D3F3537613D3537613H353D2H353761362H3559352H37312H3537612H353761C7CA34613D353761C5CA34613635315935363569312H35592H353761362H35592H3537616E3435093437352D342H3549D9CA34613H3501362H3559DCCA346171118D6B5C66BCBE9C4BBFA6271A52184BF3577E47610077136D2A17570A02006A083H002HCA898CB8ABA7AF4B6A023H002HCA405H00E494406A063H002HCABDABA3BE0276781E3A3409380D3403ED02A75H0095FCF75260FB0DB05C637H00013H00019H002H00017H00013H00019H002H00013H00013H00019H009H001H00013H00019H009H005H00019H002H00019H006H00019H006H00019H002H00017H00013H00019H002H00013H00019H006H00019H002H00013H00013H00019H002H00013H00019H002H00019H006H00013H00013H00019H006H00019H002H00019H002H00017H00013H00017H00013H00013H00019H002H00013H00013H00019H009H009H00017H00BE53195C6A6C4E52AB0BC5EC045BD0890F817B6EF70A020069353761303539153D3525152H353761073431093H312D07353761303539153D3525152H353761573531093H312D37363569372H353D0D353761033537612H353761392H355932343769322H353D0F353761392H35590D3537612H353761392H3559343531592H353761393531593439330D2HCA34612H3537613935315939353D15D1CA34612H353761392H3559343531592H353761393531593439330D2335376132343769302H353D2H353761392H355932343769332H353DEACA34612H353761393531593439330D2H3537613935315931353D15363539153F3525152B3537612935376137363569362H353D2H353761392H355934353159DACA34612H3537613935315939353D15303539153D352515393537613F353761392H3559343531592H353761393531593439330D2H3537613935315939353D1585CA346132263769342H3549E23531093H312D37363569342H353D8ACA34615B3531093H312D37363569312H353DF9CA3461392H3559FFCA3461343537613H3501392H35593H353D8BCA3461FF6C3E051FC72CA2B81A664411F72D4CA39F0637BA3AAC1D360D5F2E17D70C1A48EC7C6ECD0B14515F0A02004B6A083H002HCA89A5A6A5B8F96A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F940F75B3B512H12D23F4054008C673HD03F40463F1A4E999BCB3F6A053H002HCAA4AFBD6A093H002HCA9CA3B9A3A8A6AF4025085740A19ECE3F8B40D1E979371614D43F6A023H002HCA409A5H99C93F0851A436D5455AF560295C2E059A5H003BDF34592220E4C018637H00013H00019H009H001H00019H006H00013H00013H00019H009H001H00013H00013H00019H002H00019H006H00019H002H00013H00013H00019H009H005H00019H009H001H00013H00019H002H00013H00019H002H00019H002H00019H002H00019H002H00019H002H00017H00013H00019H002H00019H002H00019H002H00013H00019H002H00013H00017H00013H00013H00019H006H00019H002H00013H00019H002H00013H00013H00017H000B8BFB8904FB0B2A8D1312188C0FCE79CF3F3DB7F40A0200143537613435391536352515383537613E3537612H3537613335315932353D15C2CA34612H353761E63531093H312D3E363569342H353D00353761332H3559063537612H3531093H312D3E363569362H353D2H353761332H35593D3531592HCA34612H35376133353159343D330D2H3537613335315932353D1534353915363525151A35376118353761343537613H3501332H35593H353D3F353761332H35593D353761332H355939343769332H353D2H353761332H355939343769322H353D293537612F3537613D3531592H35376133353159343D330D1335376111353761372H353D2H353761332H35593D3531592H35376133353159343D330DF6CA346139343769302H353DD3CA3461D1CA34613D3531592H35376133353159343D330D2H3537613335315932353D15343539153C353761332H3559393E3769342H3549753431093H312D3E363569312H353DDFCA3461332H3559DDCA3461363525152H353761263431093H312D3E363569EFCA34613335315933353D153C3539153F35251590CA34616614317DDA895B01C520AE6938BC881F3C04DD1C016528A0FAEA714B5F0A02004B40463F1A4E999BCB3F6A023H002HCA40032670EB6E9ECE3F6A053H002HCAA4AFBD8B4054008C673HD03F409A5H99C93F6A083H002HCA89A5A6A5B8F940F75B3B512H12D23F40D1E979371614D43F6A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F96A093H002HCA9CA3B9A3A8A6AF0869B0F0904F9076B738D77405805H001D20C046F9A13AB921617H00019H002H00013H00017H00013H00019H002H00013H00019H002H00013H00019H002H00013H00017H00013H00013H00019H002H00013H00019H009H001H00019H002H00017H00019H002H00019H002H00019H009H001H00013H00013H00019H002H00013H00019H006H00019H006H00019H002H00019H002H00017H00019H002H00017H00013H00019H002H00013H00013H00019H006H00019H002H00019H006H00013H00019H002H00CA71FB8517516CC2F0668B34863B93A087992F2DF60A020029353761312H353D2H353761342H355935303769302H353D663537613F3539153D3525152H3537612D3431093H312D3E363569C7CA3461342H355935323769322H353D2H353761342H355935303769342H35493435315934353D153F3539153D3525152H353761B33431093H312D3E3635691D353761343537613H3501342H35593H353D2H353761342H35593135315927353761342H353D2H353761342H3559313531592H353761343531593427330DD2CA3461D0CA34612H3537613435315934353D153F3539153D3525152H3537617F3431093H312D3E363569D9CA34612H353761343531593427330DC4CA34612H353761342H3559313531592H353761343531593427330D2H3537613435315934353D158ACA3461372H353D2H353761342H3559313531593235376132353915333525152H353761B33431093H312D3E363569362H353DDDCA34612H353761343531593427330D2H3537613435315930353D15C5CA34612H353761342H355935303769332H353D9BCA346199CA3461534EBE3EA9A28F695938A9A425F87608F2E06B3CAC714B4C45C8E24585FBE47AED56DE6EB4CE737C562974465F0A02006A093H002HCA9CA3B9A3A8A6AF409A5H99C93F4B8B6A083H002HCA89A5A6A5B8F94054008C673HD03F40D1E979371614D43F40F75B3B512H12D23F40032670EB6E9ECE3F6A053H002HCAA4AFBD40463F1A4E999BCB3F6A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F96A023H002HCA08E81DA230716ECE190A04EB05765H00D3689D681CA166CD44647H00013H00019H002H00013H00013H00013H00019H009H001H00017H00013H00019H009H005H00019H002H00017H00013H00013H00019H002H00019H009H009H004H00019H002H00019H009H001H00013H00013H00019H002H00017H00019H002H00013H00013H00019H002H00019H002H00013H00019H006H00013H00013H00019H009H001H00013H00013H00019H002H00019H006H00013H00019H002H00019H002H00017H00013H00019H002H0093D80BA521D8D6684D78658A462F7642782H15C4F50A0200173537613F3C3769322H353D2H3537613C2H35593F3C3769342H35493E363569312H353D02353761003537612H3537613C2H355937353159313537613F2C3769332H353DDBCA34613C2H3559D9CA34612H3537613C353159343B330D2H3537613C3531593C353D15713537613H312D3E363569342H353DDECA34613C353159343B330D113537613C35315917353761373537613H35013C2H35592HCA34613H353D2H3537613C2H355937353159C7CA3461C5CA34612H3537613C35315936353D1530353915333525152H3537615B3531093H312DFACA3461343B330D2H3537613C3531593C353D153D3539152H3525152H3537616F3431093H312D203537613C2H35593F3C3769302H353DFCCA34613C2H3559F2CA34613C353D153D3539152H352515FACA3461AE353109C9CA3461F53531093H312D3E363569372H353D2H3537613C2H355937353159D4CA34613C353159EACA34613E363569362H353D2H3537613C2H3559373531592H3537613C353159343B330DF8CA34613D3539152H352515DFCA3461DDCA34614C58316E239FC167FDAAA27589DF11B6EB45CA4F483C027F1A41AE285F0A020040032670EB6E9ECE3F6A023H002HCA6A083H002HCA89A5A6A5B8F94054008C673HD03F4B40F75B3B512H12D23F40D1E979371614D43F6A053H002HCAA4AFBD40463F1A4E999BCB3F409A5H99C93F6A093H002HCA9CA3B9A3A8A6AF6A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F98B08EA16BC143EBAFEA94FC09A05E95H0014E35934DE7F3B7453347H00019H002H00013H00013H00019H002H00019H002H00019H002H00013H00017H00019H009H001H00013H00019H009H005H00019H002H00019H009H005H00013H00013H00019H009H005H00019H002H00013H00013H00657E82E66758908EBB18CC94D00CC66713A21197C60A02002C353761323531592H35376131353159342H334130353915343525212H353761D43431093135312D14353761312H3559353735392H3537612H35376117353761332H355925353761332H35592H353761312H35592H3537615D2H35093431352D3527370DC4CA3461DACA3461343537613H3501312H35593H353D2H353761312H355935303769DBCA34612H353761312H35592H353761B32H35093431352D3C3637693D2H3559E0CA3461312H3559E6CA34612H353761272H35093531352D2H3537619E2H35093437352D342H35497AC867B4618648B3E620A87B28EF1054C214F530C80EE53C017966728D97E7375D0A02006A093H002HCA9CA3B9A3A8A6AF8B4B6A093H002HCA822HBEBA8DAFBE405H00E494406A463H002HCAA22HBEBAB9F02HE5B8ABBDE4ADA3BEA2BFA8BFB9AFB8A9A5A4BEAFA4BEE4A9A5A7E58FAEADAF8393E5A3A4ACA3A4A3BEAFB3A3AFA6AEE5A7ABB9BEAFB8E5B9A5BFB8A9AF6A093H002HCAADAFBEB8AFA4BC6A063H002HCAADABA7AF6A0C3H002HCAA6A5ABAEB9BEB8A3A4AD6A043H002HCA83936A023H002HCA0125E85F8E542A425812DD62055C5H002HDC5C5EC9565A0F22477H00013H00019H002H00013H00019H002H00013H00019H002H00017H00019H002H00019H006H00013H00013H00019H002H00013H00013H00017H00013H00019H009H001H00013H00019H009H005H00019H002H00013H00019H009H001H00019H009H001H00019H002H00019H002H00019H002H00013H00013H00017H00137620FE37256EB1EA3ED129F540F31030DE33FED90A022H0035376133353929373D3B0D243537613A3537613E2637693H35592H353761342H35593525374138353D152H353761483435093631352D2HCA34612H3531592H35376134353159343F330D1D353761133537613435395936213B4134352101372H35B52H353761263439093637392D3H3579342H35493B3435093431352D3523370D3C353761323537612H353761342H3559392A3769372H35592H353761342H3559C1CA3461C7CA3461342H3559353735392H3537612H353761D9CA3461372H35592H353761342H35592H353761C72H35093431352DF8CA346134353761372H3501342H35593H353DD3CA346134353159342H330D2H3537613435315934293F412H35376116343D0937313D2D2H353901342H35B58CCA34615CDC6D21DCE698738BDCE83C81F56345A2C17D5D6EC4350D89A04219F9622H2E620A02006A063H002HCAADABA7AF405H00E494406A093H002HCAADAFBEB8AFA4BC6A0D3H002HCA86A5A9ABA69AA6ABB3AFB86A093H002HCA81AFB38EA5BDA46A093H002HCA9AA6ABB3AFB8B96A043H002HCA9EA56A023H002HCA6A0C3H002HCA8DAFBE99AFB8BCA3A9AF8B6A093H002HCAA9A52HA4AFA9BE6A053H002HCA9B9E9A6A093H002HCA9CA3B9A3A8A6AF6A123H002HCA9FB9AFB883A4BABFBE99AFB8BCA3A9AF6A0A3H002HCA8DAFBE87A5BFB9AF4B0170842184787C404565F7B7065500023H00E9456C3209B4C0842E179H009H001H00019H006H00019H006H00019H002H00019H002H00013H00013H00017H00013H00936E74C5368281097054A761265655D8E61F2F61A80A02002HCA3461343537613H3501362H35592H35313D363537612H353761CE343D0936373D2D3E3537612H35376136353159343D330D2H35376136353159343533312H3537612H3537613735376134313F412H3525B5DACA3461342H3549977DF4432555F92294BE7C3DD47A373053D5EABAC12F4B74D5B65743570A0200C86A023H002HCA6A083H002HCA87A5BCAF9EA5405H00E494406A0B3H002HCA89A2ABB8ABA9BEAFB8011B081725046A61D24A11DF0508014H003B97403CDBF22HDF381A9H006H00019H002H00019H009H009H004H00019H002H00013H00019H002H00019H002H00013H00013H00F9766B4F306CF3EE425F66266B3278DFC1437E9AAA0A02003C3537612H35376134353D5937333F0D2H35376134353D5937353F0D2H35376134353D59383537613E353761343537613H3501342H3559353137312H3537612H35376133353761313531592H353761343531592H352H3DDCCA3461EE3531092H37312D342H35491E21A0BA0C30FE7F15A5020E5706342H4D60596F2B3F641B580A02006A033H002HCABA405H00E494406A033H002HCABB6A053H002HCA82A3BE6A043H002HCA9EA56A023H002HCA013442261C105A7EBB64710F036C014H00C706326E68FD75B043379H006H00019H002H00019H006H00013H00017H00013H00013H00019H002H00019H009H005H00019H002H00013H00013H00019H002H00019H002H00019H009H009H008H00019H002H00013H00019H002H00013H00019H002H00DA2H5D506D65A1928F1B0357F022DBEA0F451649CA0A0200123537612H353761683431093135312D2H3537613E2H35093531352D2HCA34612H353761CF2H35093437352D342H3549623435093431352D35203769362H35593335376131353761342H35592H3537613D2H3559C3CA3461C1CA34613D2H3559313531592H3537613D353159343933413735391534352521D4CA34613D2H3559353735392H353761DBCA3461D3CA3461D9CA34612H3537613D2H35593F3537613D353761343537613H35013D2H35593H353D2H3537613D2H355932263769342H3559C7CA34617A3435093431352D2H35370DDCCA3461D2CA34615807F55AD5F4951BAA70DE59061D9E1F84708B295C9FB2BC1015E6791D188B1BB78018085D0A02006A043H002HCA9A886A093H002HCAADAFBEB8AFA4BC6A233H002HCAA22HBEBAB9F02HE5BAABB9BEAFA8A3A4E4A9A5A7E5B8ABBDE592A88884BB9089986A0C3H002HCAA6A5ABAEB9BEB8A3A4AD6A063H002HCAADABA7AF6A023H002HCA6A093H002HCA822HBEBA8DAFBE6A093H002HCA9CA3B9A3A8A6AF405H00E494404B8B01A3D6AD3A6F75E0EB716FEF059C5H00D435AF217D492F0769AA9H006H00019H002H00013H00013H00013H00019H006H00019H002H00019H006H00019H002H00017H00013H00013H00019H002H00019H006H00013H00019H002H00019H002H00013H00019H002H00019H002H00013H00013H00017H00019H002H00013H00013H00019H002H00019H009H001H00019H002H00013H00013H00017H00013H00013H00019H002H00019H002H00019H002H00013H00013H00013H00013H00019H002H00013H00019H009H005H00013H00013H00013H00017H00019H002H00013H00013H00013H00019H009H005H00019H002H00019H006H00019H002H00013H00013H00019H002H00013H00019H006H00013H00019H002H00013H00019H002H00013H00013H00019H009H005H00017H00013H00019H002H00019H002H00019H002H00019H002H00019H002H00017H007721000457F57A75C94F28DE88794667EA7455423F0B0200093537612H3537613335215929352D152H3537614D3521092H37212D4C353761342H354922352115B9353761AB352509C9CA34613029230D2H353761333521593033230D34353761333521592HCA3461302B23412H353761B33521093731212D7935376137313D2D36353909243525592H35376133352559313F270DDDCA346133352559D3CA34613637212D2C3521592H353761333521593029230D4C353761423537610D353761372F230D2H35376133352159302733312H3537612H353761043537613D2C2769372F230D1F353761303F230D2H353761333521592E352D152935291529352H152H353761113521092H31212D7235376134353761362H3501332H35593H353D2H353761332H35593D2037693H35B12C3531597E35376137102769313827692F3521592H35376133352159303F230D2H353761333521592E352D150235376133352159300523412H352901362H35B5372H35B53H35B52H353761713521093637212D2C3521599ACA34613335215998CA34612H35376133352159353E25692H3537613D2027693E352159AFCA34613013230D2H353761333521593005234134352901362H35B53H35B586CA346100342109C9CA34612H35376133353159342H330D2H35376133353159342B3F4194CA3461F7353D09C9CA3461301D230D2H353761333521593005234137352901362H35B52H353761FF3521093637212D2H352H3991CA346191CA346197CA3461253E25692H37230DFCCA3461F2CA34612935291529352H152H353761033421092H31212D2F3E25692F35215994CA346133352159AACA34612H353761333531593429330DE2CA34613731252D203521592H35376133352159300F230D2H35376133352159233E256993CA3461333521593033230D2H35376133352159302B23412H3537612H3421093731212DFBCA34613CF3856CFF0EE5BB2HE82E0DC3EA3FBAF15C732999D7B0B6EA698341217F497D2DDF55046CE2F348F5BD7A1E700A02006A093H002HCA8BAEA5B8A42HAF6A0D3H002HCA88BF2HBEA5A4FB8EA5BDA46A063H002HCA84ABA7AF6A0D3H002HCA86A5A9ABA69AA6ABB3AFB86A153H002HCA99BFB8ACABA9AF9EB8ABA4B9BAABB8AFA4A9B36A053H002HCAA4AFBD406H00E03F6A023H002HCA6A093H002HCA9CA3B9A3A8A6AFC84B6A063H002HCABDABA3BE8B6A083H002HCA9EABB8ADAFBE6A093H002HCA9AA6ABB3AFB8B96A0A3H002HCA8DAFBE87A5BFB9AF6A0F3H002HCA99BFB8ACABA9AF89A5A6A5B8F96A0A3H002HCA83A4B9BEABA4A9AF6A043H002HCAA9AE6A093H002HCA81AFB38EA5BDA46A073H002HCA81AFB39FBA6A0B3H002HCABDA5B8A1B9BAABA9AF6A083H002HCA9AABB8AFA4BE6A0E3H002HCA99AFA6AFA9BEA3A5A488A5B26A093H002HCAA9A52HA4AFA9BE6A063H002HCAADABA7AF6A083H002HCA89A5A6A5B8F9406H00F03F408H006A0F3H002HCA89BF2HB8AFA4BE89ABA7AFB8AB01A57F18955D140A4C461D5009D900033H007B160918EF979CD8583D7H00013H00019H002H00019H002H00019H006H00019H002H00019H002H00013H00019H006H00013H00013H00019H002H00013H00013H00019H009H001H00019H002H00019H006H00013H00019H009H001H00019H002H00019H002H00019H002H00019H006H00B835201F2137E5E26563545A9214A7875BED2E48CD0A02002B35376120353761342H353D2H353761322H35593531370D2H353761322H3559352533312A3537612A3537612835376135332F0D2H35376132352D592H3725712H353761403531093137312D313531592F3537612D353761323531592H363569342H354937352H3D2H35376132353D5932353915373525B12H3521B5DECA3461343537613H3501322H35593H353D2H353761322H35593H3539EDCA3461EDCA3461E3CA3461D9CA3461342H353D30353761322H35593635376132353159343F330DD1CA3461D7CA34613531370D2H353761322H3559343531592H353761323531593435330DE8CA346132353159EECA3461E353D568A4A328165E876F08EAFF7BA6762430BAE91408265B0A02006A083H002HCAA3A4B9AFB8BE6A073H002HCABEABA8A6AF6A083H002HCA9EABB8ADAFBE6A083H002HCA9AABB8AFA4BE6A063H002HCAADABA7AF6A0A3H002HCA86A3ADA2BEA3A4AD6A023H002HCA406H00F03FC80363A49B332CCA1791311FBB07475H00BD91426D189848411E3F7H00019H002H00019H006H00013H00019H002H00019H006H00019H006H00013H00013H00019H002H00013H00017H00019H002H00019H009H001H00019H009H001H00019H006H00019H002H00019H009H009H00019H002H00013H00013H00013H00017H00B02FD2332731DBE8514069F06D155E76585278C1D50A02000735376134352H3D2H35376133353D5937393F0D3A35376133353D59383537613E353761353B37312H3537613A35376132353761383537612H353761333531592H353139C0CA3461C0CA3461C6CA34613637312D342H354937333F0D2H35376133353D593130316930353159303537613435313D2H353761333531593439330D32353761303537612H353761333531593437330D333537613335315931353761333531593439330DE0CA346133353159E6CA346134352H3D2H35376133353D5933353915D4CA346182353109C9CA3461343537613H3501332H3559353137312H3537612H35376134353761343531212H35316D2H35313DFBCA34612A3H471BE95F4069C98E7B736CDD5EC82CDDB42086D8B898E5FE241386C460C25F9652BF9B321AE6106C34DE4A651C5A0A02006A023H002HCA6A083H002HCAB8AFA7A5BCAF6A033H002HCAF8407H00406A083H002HCA9AABB8AFA4BE6A073H002HCABEABA8A6AF406H00F03F6A033H002HCAB002E820987638A6300C421DB30486014H00F71DBB241B2B1106270B9H009H001H00019H002H00013H00013H00013H00013H0074617B9A1CB3FB4B2120D1CF1B04AF88845D1E789D0A02002HCA3461343537613H3501372H3559352H37312H3537612H353761343537612H3531212H35316D342H35492B68CC54A54B6B4A1A64F20019270A762147214CB235AB0536702D76D031EE0C550A02006A023H002HCA6A033H002HCAF8405H00E494400130EE33E164A8A040511FCD02B0014H00689B1230ECE1EE3C5C179H009H001H00013H00013H00019H006H00013H00013H00019H006H00019H002H00013H00019H002H00086EACDB50889D89C81F21CA54583CCBEA9B1D78A80A0200303537613H35592H353761EC2H35093431352D363E3769342H3549343537613H35013H3559342H35213H356D342H353D343537612HCA34613H3559353D37412H3537613F2H35092H37352D372H3559DECA3461DCCA3461B16DA07DDEE4D2092AB265513AF8342C38A6E22859AE454A25CD2001580A0200405H00E494406A023H002HCA6A093H002HCAADAFBEB8AFA4BC6A093H002HCA9AA5B9BEA7ABA46A093H002HCA8EAFB9BEB8A5B34B02AB9970A65A385FDF30415102335H00FED6282E53D7ED83371C7H00017H00013H00013H00013H00013H00019H002H00019H009H001H00019H002H00019H006H00013H00013H00013H00019H002H0074F16E9D622BE6B4981BABC7590DAE6B72291D75AD0A02003F353761342H3549362H3559373C3769CECA3461342H35213H356D342H353D2H353761362H3559373E3769C1CA3461343537613H3501362H35593H353D2H353761362H35592H35373134353761343537612HCA3461D8CA34613H35213H356D342H353DD2CA3461D0CA34610D32CF3BE4E5A2B10C5CF51DA7F0F83CFC751705A5357BBB3DD89475580A02008B6A023H002HCA6A063H002HCA9EAFB2BE405H00E494406A0E3H002HCA9E9AEABEA5EA85A6AE9AA5B96A0E3H002HCA9E9AEABEA5EA99ABACAFBEB302ACCAB2BC674EC27C242D39021F5H00EBADB55183A1F931611A7H00019H002H00013H00019H006H00019H002H00019H006H00019H002H00013H00019H002H00013H00018H00BFE64D75B29B986F52A091864FA0DFCAC3312HAB0A0200313537613H353D2H353761362H355937343769342H3549343537613H3501362H35593H353D2H353761362H35593531370D2HCA34612H353761362H35592H3537312H3537612H353761D9CA34613H353D2H353761362H355937363769DECA3461D3CA3461C596E0B4D648621BD790AEA309AC4E504BA5F4559159125761A2B54A570A02008B4B6A093H002HCA9CA3B9A3A8A6AF405H00E494406A023H002HCA01FC23B9CF2839EB11061C60020F5H00ADB23D63D5819792324A9H009H005H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00017H00013H00019H002H00013H00019H002H00019H002H00013H00017H00013H00019H006H00013H00019H002H00019H002H00013H00013H00019H006H00013H00013H00019H002H00013H00019H009H005H00013H00013H00013H00013H00019H002H00A4E2C0FC5A2CC532565C08F01201312BC88D0127DF0A02002HCA3461373537613H3501372H35592HCA34613H353D2H353761372H3559353937312H3537612H3537610D353761342H352123353761372H3559303531592H353761373531593435330D2H3537613735315932353D152HCA346137353915373525152H353761A73431093H312D343635693E353761372H3559353D37312H3537612H353761333537613H3521233537613H356D342H353D37353761372H35592H353761342H3549303531592H353761373531593435330D2H3537613735315937353D1532353915373525152HCA34612H353761533531093H312D34363569372H353DD6CA3461D4CA3461372H356D3D2H355934353761372H35592HCA34612H353761102H35093437352DD1CA34613H35213H356D342H353DF0CA3461F6CA34612C0D656E7B3C7D5CD68D191CE980DE79EB9F7F2H263B911EC5D5BB18F9F5BF10C29BF86778D1B904B06BC4315B0A02006A053H002HCAA4AFBD6A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F9408H006A023H002HCA8B6A083H002HCA89A5A6A5B8F94B406H00F03F6A0A3H002HCAB9BEABB8BEB8A5A803AA900C5C0BD20B13708930057F5H00EC1D434BF84FEFA361337H00013H00019H009H009H00019H002H00019H002H00019H002H00017H00019H009H001H00013H00013H00013H00019H002H00019H009H009H004H00019H002H00013H00019H002H00019H002H00017H00253740F9113B1AAD9B409EC9F70162D546B82071C30A0200313537613437352D322H355917353761302H355915353761343537613H3501302H35593C2H35592D353761233537613F2H35592H353761302H35593523370D2H353761302H3559373531153235376137333F0D2H35376130353D592H3537615A3435093631352D353C3769342H354934352H3D2H35376130353D5937393F0DC7CA346130353D59C5CA3461302H3559EECA34613D2H3509C9CA3461303531152H353761A83435092H37352D3H353D2H353761302H3559352537312H353761EFCA3461DDCA3461EDCA34616B389355EFFBD04B10B7305DF22F3C05B552166FF386BF085E0A02006A063H002HCA84ABA7AF6A023H002HCA6A0A3H002HCA83A4BE9CABA6BFAF6A0A3H002HCA87A5BCAFA7AFA4BE6A0C3H002HCA99BFBAAFB899BA2HAFAE406H00F03F6A0D3H002HCA88A5AEB38F2HACAFA9BEB96A063H002HCABDABA3BE8B6A063H002HCA9AA62HB36A0A3H002HCA83A4B9BEABA4A9AF6A053H002HCAA4AFBD020D6623FE022H3A8D15ED3A033F5H00ADF8EF58F2C14FEB4020019H001H00019H002H00019H002H00013H00019H006H00013H00019H006H00013H00019H002H00017H00013H00019H002H00019H002H00019H009H001H00013H00019H002H00017H00019H002H00013H00019H002H00019H009H005H00017H00013H00019H002H00017H00019H002H00019H002H00013H00013H00013H00013H00013H00019H002H00013H00019H002H00013H00019H002H00013H00013H00019H006H00019H002H00013H00013H00019H002H00013H00013H00013H00019H009H005H00013H00019H002H00019H002H00019H002H00013H00019H002H00019H009H001H00019H002H00019H002H00013H00019H006H00013H00019H002H00013H00019H009H001H00019H009H005H00019H006H00019H002H00019H006H00019H006H00013H00019H002H00019H006H00013H00019H002H00013H00019H009H001H00013H00019H002H00019H002H00019H002H00013H00017H00019H002H00017H00019H002H00013H00019H006H00013H00013H00013H00013H00019H002H00013H00019H002H00013H00019H002H00019H002H00019H006H00017H00013H00019H002H00019H002H00019H006H00013H00019H002H00013H00019H006H00019H009H005H00019H009H001H00019H009H005H00013H00019H006H00019H002H00019H002H00013H00017H00A17A330C69533654AD73EA9C1C45291097ED6084B20B02004F3537613D2H35593539370D2H3537613D2H35593533370D2H3537613D2H35593529374138353D15DF3537612H3537613D3531593D353D15373539157F3537612H3537613D2H3559352937413A353D152H353761A02H35093631352D0435376101353761372H353D2H3537613D2H35593539370D2H3537613D2H35593533370DDBCA34613D2H35592H353761993435093437352D262H35592H3537613D2H35592H35370D493537613H35392H3537612H35376102353761372H353D2H3537613D2H35593539370DA13537613D2H3559A73537612H3537613D2H35593539370DF03537611E353761372H353D2H3537613D2H35593539370D6D353761372H353D2H3537613D2H35593539370D6B353761E72H35092H37352D2B3537612H35376129353761342H3549351137412H353761BE3435092H37352D372H353D84CA34619ACA34613D3539153D3525152H353761C43531093H312D39363569312H35596A3537613D2H3559683537613D3525152H353761F43431093H312D393635693F2H35598ACA346188CA3461C7CA34612H353761C5CA3461312H35592H3537613D2H35596F3537616D3537617B2H35092H37352D372H353D2H3537613D2H35593539370D793537617F35376134353D152H353761463435093631352D351137412H3537611A3435092H37352DD3CA3461343537613H35013D2H35593H353D2H3537613D2H3559353B37312H3537612H35376165353761342H3521513537612H3537613D2H3559352937413A353D152H3537614B2H35093631352D3H3539B3CA3461B3CA3461B1CA34613D2H355930353159783537613D3531597E3537612H3537613D2H35593533370D273537612H3537613D2H3559352337312H353761A8CA346193CA3461AECA34612H3537613D2H35593533370DD5CA34612H3537613D2H35593C35311537352H3D2H3537613D353D5937393F0D603537612H3537613D2H35593529374125353D152H3537610D3435093631352D35113741B9CA3461BFCA34612H3537619F3435093437352D3F2H35597A3537613D2H35593533370D2H3537613D2H3559352937413D353761FA3435093437352D3H353DE6CA34613533370D2H3537613D2H35593529374190CA346125353D152H353761FF2H35093631352D3H353950CA346150CA346156CA346124363769BBCA34613H35213H356D342H353D8DCA346183CA34613529374138353D152H3537618B3435093631352D35113741BDCA3461B3CA34613435330D2H3537613D35315937353D1552CA34612H353761512H35093631352D09CA34613H356D342H353D2H3537613D2H3559303531592H3537613D3531593435330D21CA34612H3537610E3435093631352D3H35392H3537612H3537615ACA3461372H353D00CA34612H3537613D2H35593533370DEDCA34613D2H3559E3CA34612H3537613D353D5937333F0D2H3537613D353D592H353761BF2H35093631352DF3CA34612H3537613D2H35592H353761832H35093437352D372H353D343537613D2H35592HCA34613539370D2H3537613D2H35593533370D2H3537613D2H35593529374134353D15FDCA34618FAAB845408C91619E86563C17CC940E75AE766E0325696AEDDE9F247CF8B234670A02006A053H002HCAA4AFBD6A0C3H002HCA99BFBAAFB899BA2HAFAE406H00F03F6A0A3H002HCA87A5BCAFA7AFA4BE6A063H002HCABDABA3BE6A083H002HCA89A5A6A5B8F96A0D3H002HCA88A5AEB38F2HACAFA9BEB94B408H006A0A3H002HCA83A4BE9CABA6BFAF6A063H002HCA9AA62HB38B6A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F96A0C3H002HCA98AFAEBFA9AF9DABA6A16A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A0D3H002HCA84A59DABA6A199BA2HAFAE6A0B3H002HCA84A580BFA7BAA3A4AD6A063H002HCA84ABA7AF6A093H002HCA8EAFB9BEB8A5B36A0A3H002HCA83A4B9BEABA4A9AF6A023H002HCA0316DAAF1556E0676C36D57D05A85H00148C7506ECA2CE3D37527H00013H00013H00019H009H005H00019H002H00019H009H001H00013H00017H00013H00013H00019H002H00013H00017H00019H002H00019H006H00019H002H00019H002H00019H009H001H00019H009H001H00019H002H00013H00013H00019H002H00017H00013H00013H00019H009H005H00019H002H00013H00013H00013H00017H00013H00013H00019H002H0011F6B52D58B65D9C6E73C0FA053D39A28E8B6FC4E20A02001B3537612H353D15363539152H3525153B35376102353109C9CA34612H3537613H35593C3531592H3537612H353159343D330DC7CA34612H353159C5CA34617B2H35093437352D333537610D3537613H312D37363569322H3559263537612435376137363569342H35493H35593C3531592H3537612H353159343D330D213537612H35315927353761372H353D2H3537613H3559353F37312H35376126353761DACA3461243537613H35592H3537619E2H35093437352DC7CA3461343537613H35013H35593H353D3A3537613835376136353D152H3539152H3525152H353761273531093H312DEECA34613H3521372H356D3D2H35592H3537613H3559F8CA3461FECA34613H3559353937312H3537612H35376136353761342H35213H356D342H353D8CCA34613H35213H356D342H353DFFCA3461FDCA3461BD9140054C4B4F6A2D491C144865B4480032BC678DC203745C0A0200408H006A023H002HCA6A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F9406H00F03F6A053H002HCAA4AFBD8B4B6A063H002HCABDABA3BE6A0A3H002HCAB9BEABB8BEB8A5A86A083H002HCA89A5A6A5B8F903713B86EE55B675DF141B5C05B55H008E5813271BDDF11176167H00017H00013H00013H00013H00013H00013H00019H006H00013H00013H00019H009H001H00019H002H008917115B048727F3A1291CE10345F5280FD61CBAAA0A02003B353761342H3549342H35592H3531013H353D342H353D372H353D362H353D312H353D343537612HCA3461303435092H37352D3H3521302H356DC5CA346134353761342H3501342H35593H3559D8CA3461DECA3461D6CEA71A35E133686C372D47CA47F9A7D9036B27F693462B6F2A3E415F501B5B399102428E58FC4C550A02006A073H002HCABAA9AB2HA6405H00E494406A023H002HCA06F6403E316AA3610D48178C027200013H00A749347A91C0D91E1F709H009H001H00013H00013H00017H00013H00013H00013H00019H002H00019H009H001H00013H00019H006H00013H00019H002H00019H002H00017H00019H002H00019H006H00013H00019H009H001H00019H002H00013H00019H002H00019H002H00019H009H001H00019H002H00019H009H009H00019H002H00013H00019H002H00019H002H00013H00019H009H001H00017H00013H00013H00013H00013H00019H006H00019H002H00019H002H00013H00019H002H00019H002H00013H00013H002D6909166207556BF63D85A6431A0BE53E340BB8010B02002HCA3461343537613H3501372H3559342H35213H356D3C2H35590C3537613437352D342H3521342H356D3F2H35592H353761372H35592H35370D25353761372H35593B353761373531593F3635693A2H355905353761372H35591B353761332H3529372H353D2H353761372H3559352537312H3537610C3537612135376102353761303531592H353761373531593415330D32353761303537613735315934233341363539150E353761A1353109C9CA346137353159342D330D2H353761373531593423334136353915293537612F353761312H353D2H353761372H355933353159EDCA3461E3CA34612H353761372H35593521370D2H353761372H3559342H3529C7CA34612H353761372H3559F7CA34615A2H3509C9CA3461373531152H353761D32H35092H37352D3B2H35592H353761372H3559303531593B3537612B343109362H312D343D330D2H353761373531592H3537616F2H35093731352D8BCA34613H3521372H356D342H3521362H356D312H353DEECA34612H353761373531593415330D2H35376137353159342D330DF4CA34618ACA3461362H312D342F330D2H3537613735315924353D152H3537616E3435093637352D342H35495A0500B0E3BDAFB987C1F776F9C46317B4C4065AB7603F021D65B26C640A02006A053H002HCAA4AFBD6A083H002HCAA5A6AEBAA5B9409A5H99C93F6A0B3H002HCA87A5A4AFB38EB8A5BA6A0A3H002HCA9AA5B9A3BEA3A5A46A0B3H002HCABDA5B8A1B9BAABA9AF6A0A3H002HCAA7A5A4AFB3BAA5B96A023H002HCA8B6A063H002HCA9AA62HB36A083H002HCA898CB8ABA7AF6A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A063H002HCA8EB8A5BA6A0F3H002HCA89A6A3A9A18EAFBEAFA9BEA5B86A133H002HCAACA3B8AFA9A6A3A9A1AEAFBEAFA9BEA5B86A063H002HCABDABA3BE6A093H002HCA83ADA4A5B8AFAE406H00F03F0542B137676EBD3F2B26165C04985H0058A46D03CDCE08CF52199H009H001H00019H002H00013H00013H00019H002H00017H00013H00019H002H00019H002H00019H006H00DE65E5956D181B09C65E1A46860A3F64D4CE45C1AD0A02002HCA3461343537613H3501372H3559362H35593B35376139353761342H3549352H374131353D152H353761B32H35093631352D2HCA34612H353341333539152H3537617C3431093637312DC7CA3461372H3559353F370DC5CA3461372H3559DBCA3461486E7E23262HFDBA466DBCB73AFCDD34280D706978349D175A82C67062E226449FF10B4A27581F2H5A0A02006A0C3H002HCA8CA3B8AF99AFB8BCAFB86A0E3H002HCA9DABA3BE8CA5B889A2A3A6AE405H00E494406A063H002HCAADABA7AF6A0B3H002HCA87ABA3A48FBCAFA4BE6A133H002HCA98AFBAA6A3A9ABBEAFAE99BEA5B8ABADAF6A0E3H002HCA89A2ABB8ADAF88BF2HBEA5A46A023H002HCA0003A21215094E710D686D6004155H00ABE18D74CD61520A4C2E9H009H001H00019H009H001H00017H00017H00019H002H00019H002H00017H00019H002H00019H002H00013H00019H002H00019H002H00017H00019H002H00013H00013H00019H002H00017H0036C89BD93904EE53BE4F382AAB058C9BB8483693C10A02002HCA3461343537613H3501342H3559332H35592H353761342H35592H353761E93435093437352D3C353761342H354934353159342H33412H353761263531093735312D2H3537611D2H3509353D352D303537613H35592H353761342H35592H35313DC7CA3461C5CA346139353761313B230D2H35376134352159303F37312H35376134353761303537612HCA3461313D230D2H353761343521593435216DD4CA3461353135452H353761EBCA3461DBCA3461E9CA3461C97188B38DEBF64358B32B5DB672B576AC31E06656B383A77A0BD37AA2CEA213A41BA6145A0A02006A073H002HCABAABA3B8B9405H00E494406A023H002HCA6A0D3H002HCA8DAFBE89A2A3A6AEB8AFA46A063H002HCA84ABA7AF6A063H002HCA9E2HA5A66A063H002HCA9AA62HB36A0B3H002HCA89A6AB2HB984ABA7AF020BC139A412951374095CE8069D5H00A66A8D163CEBCF834FA0099H009H00013H00013H00013H00019H009H001H00013H00019H009H005H00019H002H00019H002H00019H009H001H00013H00019H009H001H00019H002H00013H00019H006H00013H00013H00013H00019H002H00019H009H001H00013H00017H00013H00019H002H00019H002H00017H00013H00019H009H009H00019H002H00013H00019H002H00019H006H00019H002H00013H00019H009H001H00013H00013H00013H00019H006H00019H009H005H00019H006H00019H009H001H00019H006H00019H002H00013H00019H002H00019H002H00013H00013H00013H00013H00013H00019H006H00019H002H00019H002H00013H00019H009H005H00019H009H001H00019H002H00013H00017H00019H002H00019H002H00019H006H00019H002H00019H002H00013H00019H006H00013H00013H00019H002H00019H006H00013H00019H002H00019H002H00013H00019H002H00019H006H00019H002H00013H00019H009H005H00013H00019H006H00019H002H00013H00019H006H00013H00013H00019H006H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00019H006H00019H002H00019H009H005H00019H006H00019H009H001H00019H002H00013H00019H002H00019H002H00019H006H00019H002H00019H002H00017H00019H002H00019H002H00019H002H00017H00019H002H00019H002H00013H00019H009H009H00013H00019H002H00019H002H00019H002H00017H00019H002H00013H00019H002H00019H006H00013H00019H002H00019H002H00013H00017H00019H002H00013H00019H002H00019H002H00013H00019H002H00013H00013H00013H00019H002H00019H002H00013H00019H006H00019H002H00013H00019H002H00019H002H00019H006H00017H00019H002H00019H002H00019H009H009H009H003H00019H006H00019H002H00019H002H00013H00019H002H00019H006H00019H002H00013H00017H00019H009H001H00019H002H00019H002H00019H002H00019H002H00019H006H00019H002H00013H00013H00013H00013H00019H006H00019H002H00019H009H001H00019H002H00013H00019H002H00019H006H00013H00019H002H00019H009H001H00013H00019H002H00013H00019H002H00013H00013H00013H00019H002H00019H002H00019H006H00019H002H00019H002H00013H00019H006H00013H00013H00013H00019H002H00013H00019H006H00019H006H00019H002H00013H00019H002H00019H002H00019H002H00013H00019H006H00019H006H00013H00019H009H005H00013H00019H002H00019H009H001H00019H002H00019H002H00019H002H00019H006H00019H002H00013H00019H009H001H00019H002H00019H002H00017H00019H002H00013H00019H009H001H00019H002H00019H002H00013H00019H002H00013H00017H00013H00019H009H005H00017H00013H00019H002H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00019H002H00013H00019H009H009H004H00013H00019H002H00019H006H00019H002H00013H00019H002H00019H006H00019H002H00019H002H00019H002H00019H002H00019H002H00017H00019H002H00013H00019H002H00019H002H00019H002H00019H002H00019H002H00019H009H009H004H00019H002H00019H009H005H00019H006H00013H00013H00019H009H001H00013H00013H00013H00019H002H00019H002H00017H00013H00019H009H005H00019H002H00019H002H00013H00019H002H00013H00019H002H00019H002H00019H002H00019H002H00019H002H00013H00019H002H00019H002H00017H00013H00019H009H005H00019H002H00013H00019H009H005H00019H002H00019H002H00013H00019H002H00017H00019H009H001H00013H00019H002H00013H00019H002H00013H00019H006H00019H002H00019H002H00019H002H00013H00013H00013H00017H00013H00019H002H00019H002H00017H00019H002H00013H00013H00013H00019H009H005H00013H00019H002H00019H002H00013H00013H00013H00013H00017H00019H002H00017H00013H00019H002H00013H00019H002H00017H00013H00013H00013H00019H002H00019H002H00013H00019H002H00019H009H005H00019H002H00019H002H00013H00019H002H00019H002H00013H00019H009H009H00019H002H00019H002H00013H00017H00013H00019H002H00019H002H00019H002H00019H002H00013H00019H006H00019H002H00013H00019H002H00019H002H00019H002H00019H002H00013H00019H002H00017H00019H002H00013H00019H002H00019H002H00017H00019H002H00019H002H00019H002H00019H002H00013H00019H009H001H00019H002H00019H002H00019H002H00019H009H001H00019H002H00013H00019H006H00019H002H00019H002H00013H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00019H009H001H00019H002H00013H00019H006H00019H002H00013H00013H00013H00019H006H00013H00013H00013H00019H006H00019H002H00019H002H00019H006H00013H00013H00019H009H001H00019H002H00019H002H00013H00019H006H00019H002H00013H00019H002H00017H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00013H00019H002H00013H00019H002H00019H009H005H00019H002H00013H00019H002H00019H006H00019H002H00019H006H00013H00013H00017H00013H00013H00019H002H00019H009H005H00019H002H00013H00019H006H00019H009H001H00019H002H00019H002H00013H00019H006H00019H002H00019H002H00019H002H00019H002H00017H00013H00019H002H00019H002H00017H00019H002H00013H00019H002H00019H002H00019H002H00013H00017H00019H002H00019H002H00013H00019H002H00019H006H00019H002H00019H002H00019H006H00019H002H00017H00019H002H00019H002H00013H00019H009H001H00013H00019H002H00019H002H00019H002H00019H002H00019H002H00019H009H001H00019H009H001H00019H002H00013H00019H006H00019H002H00013H00019H009H001H00019H002H00013H00019H002H00019H002H00013H00013H00019H002H00019H002H00017H00019H002H00017H00019H002H00019H006H00019H002H00019H002H00013H00019H006H00013H00019H002H00019H006H00019H002H00013H00019H006H00019H002H00013H00019H009H001H00019H002H00013H00019H002H00019H006H00019H002H00013H00019H002H00019H002H00017H00013H00013H00013H00019H006H00019H002H00017H00019H002H00019H002H00013H00019H002H00019H002H00019H009H001H00019H002H00013H00013H00013H00013H00019H006H00019H002H00019H002H00013H00019H002H00013H00013H00013H00019H002H00019H002H00019H006H00019H002H00019H002H00013H00017H00019H009H009H004H00019H002H00019H002H00017H00013H00019H002H00019H002H00019H009H001H00019H009H001H00013H00013H00013H00019H009H005H00019H002H00019H009H001H00019H002H00019H002H00013H00019H009H009H00013H00019H006H00019H009H001H00019H002H00019H002H00013H00019H009H001H00019H002H00019H002H00019H006H00019H002H00013H00019H002H00019H009H005H00013H00013H00013H00019H006H00019H002H00013H00019H009H001H00013H00019H006H00013H00019H002H00017H00019H006H00013H00013H00017H00019H002H00017H00019H002H00013H00019H002H00013H00019H006H00019H002H00019H002H00019H006H00019H002H00013H00019H006H00019H009H005H00019H002H00019H002H00013H00019H002H00013H00019H009H001H00019H002H00013H00019H002H00019H009H001H00019H002H00019H009H001H00013H00013H00019H002H00013H00013H00019H002H00019H002H00013H00017H00013H00019H002H00013H00019H006H00019H002H00019H002H00019H002H00013H00019H002H00017H00019H002H00019H002H00013H00019H006H00013H00019H009H009H00019H002H00013H00019H002H00019H006H00013H00019H006H00019H002H00019H002H00013H00019H009H009H008H00019H006H00019H002H00013H00019H009H009H004H00013H00017H00013H00013H00013H00013H00013H00013H00017H00019H002H00019H006H00013H00013H00013H00019H002H00019H002H00019H002H00013H00019H002H00019H002H00013H00019H006H00019H009H001H00019H002H00019H009H001H00019H002H00013H00019H006H00019H002H00013H00019H006H00019H002H00019H002H00019H002H00013H00017H00013H00019H006H00019H002H00019H006H00013H00013H00013H00013H00019H006H00019H002H00013H00019H002H00019H002H00013H00019H009H001H00013H00019H006H00019H002H00013H00019H002H00019H006H00019H002H00013H00019H002H00019H006H00019H009H001H00017H00019H009H005H00013H00019H006H00019H009H005H00019H002H00019H002H00019H006H00019H009H005H00019H002H00013H00019H002H00017H00019H002H00019H002H00013H00019H002H00019H006H00019H002H00019H002H00013H00019H006H00019H002H00019H002H00013H00019H006H00019H002H00013H00019H002H00019H002H00019H002H00013H00019H009H005H00013H00019H006H00019H002H00013H00017H00013H00013H00013H00019H009H001H00019H006H00019H002H00019H002H00013H00019H002H00019H002H00013H00019H002H00019H002H00017H00019H002H00013H00019H006H00013H00013H00019H002H00019H006H00013H00019H009H001H00019H002H00019H002H00013H00019H002H00019H002H00019H006H00019H002H00019H002H00019H002H00019H002H00019H009H005H00013H00017H00013H00013H00013H00019H002H00019H006H00019H002H00019H002H00019H002H00019H002H00019H002H00019H002H00019H002H00019H002H00019H002H00019H009H005H00013H00013H00019H009H005H00013H00013H00019H002H00019H009H005H00013H00019H006H00013H00019H002H00019H009H005H00019H002H00019H002H00017H00019H002H00019H002H00019H002H00017H00019H002H00013H00019H009H001H00019H002H00019H006H00013H00019H002H00019H006H00013H00019H002H00013H00013H00017H00019H006H00013H00013H00019H009H001H00019H002H00013H00019H009H009H00019H002H00013H00019H009H001H00019H002H00019H002H00019H002H00019H002H00013H00017H00019H009H009H00019H002H00019H002H00019H006H00019H002H00017H00019H002H00019H002H00019H002H00019H002H00013H00019H002H00019H009H001H00019H002H00013H00017H00019H009H001H00017H00019H002H00013H00019H002H00019H002H00013H00017H00019H002H00013H00019H002H000C95B9A37CE10EE672410349F905CF054DD233C836140200633C37616D2H35592H353761652H35093437352D202H35153E2H356D3E2H353D1C3137616D2H355912313761A93435093437352D712H3559923537616D2H3559903537612H3537616D2H355935F3370D2H3537616D2H35592H35370D2H3537616D2H3559352D37117A3637617A363761783637616D3531590C363569052H35594D3D3761433D37612H3537616D2H355935AD37412H353761572H35092H37352D3C2H353DFF3637616D2H3559FD363761342H3521242H356D21323761712H35593E3237616D353159340B334167343761653437612H353761B03435093437352D722H3515EE3D3761372H356D362H353D2H3537616D2H3559633531592H3537616D35315934D1330D683D37613567374126352H3D2H3537616D353D5932363761303637612H3537616D2H355935C937312H3537612H353761103437613F2H353D2H3537616D2H355935F3370D9F3037612H3537616D2H355935D937312H3537612H353761F73037613F2H353D9B313761993137612H353761F12H35092H37352D3H35213C2H356DFECA34619F3D37612H3537616D2H355935CF37310232376102323761003237612H3537616D2H35592H35370DE13637612H3537616D2H355935C1370D093237616D2H35590F3237616D2H35592H35370D253037613B3037616D2H35592D3435112H3537612H353761DE3037613F2H353D2H3537616D2H355935F3370DE7303761E53037613B2H356D3B2H35153E2H356D342H35213A2H356D682H3559693D37616D2H35596F3D376135C1370D2H3537616D2H355935DB37112H3537612H353761673037613F2H353DD83637616D2H3559DE3637612H3537616D2H355935F3370D483637614E3637612H3537616D2H3559303435112H3537612H353761883337617E2H3559073537613F2H353D2H3537616D2H355935F3370D2H3537616D2H35592H35370D3F2H37612H3537616D2H35592H35370D2H3537616D2H3559354F37112H3537612H353761C83137613F2H353D153137612H353761373435093437352D453D3761682H3559B6353761B435376135F3370D483037616D2H35594E303761333537613E2H353D2H3537616D2H355935AB37312H3537612H353761DD3137613F2H353DD52H37616D2H355935F3370D673537616D2H355965353761352933312H3537612H3537614CCA34613E2H353D44CA34612H3537616D2H35592H353761BB2H35093437352D3C2H3515B53337612H3537616D2H355935F937112H3537612H353761073D37613F2H353D243537616D2H35593A3537612H3537613F8C276935313545BB303761BB303761B93037613E2H353D2H3537616D2H3559352933312H3537612H353761B43D37613E2H353D4E3D37614C3D376135F3370D2H3537616D2H355935C1370D2H3537616D2H35591334351140303761403037614630376135C1370D2H3537616D2H355935DD3711132H3761132H3761112H37612H3537616D2H355935F3370D69CA34612H3537616D2H3559663435115B3137615B313761593137616D2H3559613435112H3537612H353761DB2H37617E2H35598F3237616D2H35592H35370D2H3537616D2H3559354D37112D3437612D343761233437612H35370D2H3537616D2H3559503435112H353761882H3761E8CB34618E2H376135F3370D2H3537616D2H35592H35370D2H3537616D2H3559354137112H353761993637618CCA34619F36376135F3370D2H3537616D2H355935C1370D4634376144343761C7CB34613C2H353DC33037616D2H3559C13037616D2H35592H353761EA3435093437352D262H353D67313761653137613E2H353D2H3537616D2H3559353D37312H3537615C3137613E36376152313761355B33312H3537612H3537614F2H37613D2H353D2H3537616D2H35591D353159412H37616D353159472H37613E2H356D3E2H353D2H3537616D2H3559352933312H3537612H353761773637613E2H353D0F363761352933312H3537612H353761EA3637613E2H353DE23637616D2H3559073435112H3537612H3537610C3237617E2H35598E3037618C3037613437352D4B2H35153E2H356D3E2H353D2H3537616D2H3559352933312H3537612H353761E8CB34613E2H353DE0CB34612H3537616D2H3559359137312H3537612H353761783537613H352186CB3461643431093735312D2H35376158343509353D352DBD3437612H3537616D2H355935F3370DAD3137613453330D2H3537616D353159340B33412H353761473531093735312D2B363761482H3509C9CA34612H3537616D2H3559533437619D343509C9CA34616D2H355935F3370D343537616D2H35592HCA346135C1370D2H3537616D2H3559350D37112H3537612H3537619B2H37613F2H353D2H3537616D2H355935F3370D88CB34612H3537616D2H3559253435112H3537612H35376102CA34613F2H353D5D3137613E2H353D033637616D2H3559013637616D2H355935F3370D2H3537616D2H355935C1370DECCB34616D2H355935F3370D2H3537616D2H35592H35370D2H3537616D2H35592434351108313761083137610E3137616D3525152H353761FF3431093H312D1E3635693H35213H356D342H353D0D363761033637616D2H35593573370DC12H3761C72H37613F2H353D79CA34616D2H35597FCA34616D2H3559350D37112H3537612H35376117CB34613F2H353D2H3537616D2H355935F3370D1D3337616D2H35591333376162303761302H353D2H3537616D2H3559356B370D403537616D2H3559463537616D2H35593567374169353D152H353761012H35093631352D3F2H356D642H37617D2H35093437352D3H3521242H356D682H3559ADCA34616D2H355935F3370D2H3537616D2H355935C1370DE3CB34612H3537616D2H35592H35370D2H3537616D2H3559353137112H3537612H353761AD3337613F2H353D85CA34619BCA34616D3531590C3635693H35213C2H356D6A2H35592H3537616D2H35593F6C376927CB3461663337612H3537616D2H3559B1353115A3303761D82H3509C9CA3461351F37312H3537612H353761EAC834613F2H353D2H3537616D2H355935F3370D752H37616D2H3559283435112H3537612H353761763637613F2H353D613037616D2H35596730376135C1370D3B3137616D2H3559393137610F3637613F2H353D3A3037616D2H3559383037612H3537616D353D5937673F411B3525152H3537612B343D0936353D2D06333761043337612H3537616D2H3559043435112H35376114363761833037612A3637616D2H352H593435112H353761F2333761A7363761F03337612H3537616D2H3559350337112H3537612H353761943537613F2H353DB43337614A3337612H3537616D2H355935C1370D2H3537616D2H35594A3435112H35376158303761B83537615E30376135C537112H3537612H35376157343761332H353D892H37616D2H35598F2H37616D2H35593553370DB4CA34614ACA3461543531152H353761803435092H37352D302H353D2H3537616D2H35595C9037695D2H355991C834613E2H356D3E2H353D3E3237616D2H35593C3237612H3537616D2H35593567374133343761ED3137613F2H353D2H3537616D2H355935F3370D2H3537616D2H355935C1370D2D30376123303761162H37613D2H353D2H3537616D2H35593235313D2F2H37616D2H355935C1370D2H3537616D2H35592C3435112H3537612H3537617ACB34617E2H3559193337616D2H3559CC35376102343509C9CA34612H353761D22H35093437352D3D2H353D2H3537616D2H35591D35315952CA346150CA34616D2H3559353337112H3537612H353761F7CB34613F2H353D2H3537616D2H355935F3370D963537612H3537616D2H3559623435112H353761F136376182CB3461F73637616D2H355935F3370D2H3537616D2H35592H35370D2H3537616D2H3559352D37112H35376113313761E03537611131376135D737112H3537612H353761AF3637613F2H353D2H3537616D2H355935F3370D2A3037616D2H355935F3370D2H3537616D2H355935C1370D2H3537616D2H355935B337112H353761443637610B3637615A3637612H3537616D35255994353761AA3537612H3537616D2H35592H35370D2H3537616D2H355900343511AB343761AB343761A93437612H3537616D2H355935913731963137619631376194313761B12H35153E2H356D3E2H353D58CB34616D2H35595ECB3461712H35093437352DB12H35153E2H356D3E2H353D2H3537616D2H3559352933312H35376148303761B63037614E3037613437352D272H353DB33637616D2H3559B13637612H3537616D2H35592H35370D2H3537616D2H3559B33435112H3537612H353761723437613F2H353DBECB3461BCCB3461E1363761053521592H3537616D352159310B2F4112363761103637613F2H353D2H3537616D2H355935F3370D383037613E30376135B537112H3537612H35376162CA34613F2H353D2H3537616D2H355935F3370D2H3537616D2H355935C1370D09363761E13137613F2H353DFA3537616D2H3559F83537612H3537616D2H3559493435112H3537612H3537610ECB34617E2H35592H3537616D2H355901CB346150343509C9CA346135C1370D2H3537616D2H3559352H37112H3537612H353761592H37613F2H353D2H3537616D2H355935F3370D7630376135C1370D7E3337616D2H35597C333761083435093631352D3H35392H3537612H35376101353761302H353D2H3537616D2H35593545374127352H3D513437612H3537616D2H355935C1370DE6CA34616D35315934FD330DFAC93461F8C93461359137312H3537612H353761923037613H3521382H356D3H352122C83461A23137613F2H353D2H3537616D2H355935F3370D2H3537616D2H35592H35370DE7CB34616D3525152H353761733531093H312D1E3635699C303761372H353D34CB34612H3537616D2H35592H3537614D3435093437352D262H3515E3C83461AF343D0936353D2D2H353761813435093537352D402H3515262H356D342H3521242H356DF330376169353D152H353761C93435093631352D1F313761D2313761302H353D2H3537616D2H35593545374127352H3D2H3537616D353D59379F3F0D94CB34613437352D782H35153E2H356D3E2H353D2H3537616D2H3559352933312H3537612H353761F63037613E2H353D5D3537616D2H35592H35370D7C3637616D2H3559723637612H3537616D2H355935F3370DCFC934616D2H3559352933312H3537612H353761BB3137613E2H353DB33137616D2H35593A3435112H3537612H353761733137617E2H35592H3537616D2H355921363761273637612H3537616D2H355935C1370D2H3537616D2H35597D3435112H3537612H353761BAC834617E2H35599BCA34610C363569302H353D2H3537616D2H3559351B370D2H3537616D2H3559355B33312H353761803537617AC9346186353761A52H35093437352D3D2H353D8E3637618C3637616D2H355935AF37312H3537612H3537618ECA34613F2H353DECCB3461E2CB34613F2H353D2H3537616D2H355935F3370D6634376164343761357F37312H3537612H3537614D2H37613F2H353D2H3537616D2H355935F3370DCE31376135CF37312H3537612H35376100C93461B52H35592H3537616D2H35593549370D2H3537616D2H35593553370DB5CB346135F3370D2H3537616D2H355935C1370D87CA346185CA34613E2H353D2H3537616D2H3559352933312H3537612H353761103437613E2H353D4C313761423137612H3537616D2H355935A737312H35376166303761FB343761643037616D2H35592H35370D2H3537616D2H3559357537114D3537614D353761433537616D2H3559352933312H3537612H353761C3CB34613E2H353DDA3537612H3537616D2H355935C1370D2H3537616D2H35593E3435112H3537612H353761D93437617E2H3559D0343761D6343761352933312H3537612H353761733537613E2H353D753537610B3537613F2H353D2H3537616D2H355935F3370D2H3537616D2H35592H35370D03C9346101C934612H3537616D2H3559B43435112H3537612H35376101CB34613F2H353D47C934616D2H355945C934613F2H353D2H3537616D2H355923903769342H35213C2H356D3E2H353D69CA34616FCA34615D3435093437352D312H35153E2H356D3E2H353D143637612H3537616D2H355935F3370D2H3537616D2H355935C1370D2H3537616D2H355961343511972H3761972H3761952H3761B12H35153E2H356D3E2H353D81CA346187CA34612H3537616D2H35592H35370D2H3537616D2H355935C737112H3537612H353761A5CE34613F2H353D61C9346167C934616D2H3559357137312H3537612H3537611F3137613F2H353D2H3537616D2H355935F3370DB6C8346135F3370D2H3537616D2H355935C1370D9D31376193313761E5C934613F2H353D912H3761972H3761302H353D2H3537616D2H3559351B370D2H3537616D2H35595D2H3529302H353DB02H3761B62H37616ECB34613F2H353D2H3537616D2H355935F3370D552H37616D2H35596B2H37612H3537616D2H355935BB37312H3537612H353761443137613F2H353D2H3537616D2H355935F3370D763437612H3537616D2H3559351D37112H3537618C35376176CB3461823537612H3537616D3531590C3635695CCE34613D2H353DCD343761353D352D05C934613121230D2H3537616D352159309737311CC934611CC9346112C934612H3537616D353D59379F3F0D2H3537616D353D5937673F412635253D23CB34612H3537616D2H355935F3370D4BCB34616D2H355949CB34616D2H3559356B370D2H3537616D2H35596D3435112H3537612H353761D1CE3461682H3559693437612H3537616D2H355935F3370D2H3537616D2H35592H35370DDD2H3761D32H37613F2H353D2H3537616D2H355935F3370D2H3537616D2H35592H35370DF2C93461432H37613F2H353D2H3537616D2H355935F3370D2H3537616D2H35592H35370D6D353761351337312H3537612H35376150C934613F2H353D2H3537616D2H355935F3370D2H3537616D2H35592H35370D4A313761E22H35093437352DB12H35154EC83461356B370D2H3537616D2H355935C537112H3537612H3537612035376110CE3461263537616D2H355935F3370DAECB3461ACCB34616D2H3559633531592H3537616D35315934D1330D2H3537616D3531593B353D15333137612H3537616D2H355935E937312H353761CAC8346155C834612HC83461242H353D2H3537616D2H3559359137312H3537612H353761ECC93461702H35592H3537616D2H3559E7C93461E5C9346135B937411F353D592H3537616D353D5937D13F0D2H3537616D353D593235393D772H3761752H37613F2H353D2H3537616D2H355935F3370DD4CE3461EACE346135F3370D7ACE34616D2H355978CE34616D2H355935C1370DABC93461A9C934612H3537616D2H3559357D37312H3537612H3537618BCB34613F2H353DB43437612H3537616D2H3559352D37112H3537612H3537613A2H37613F2H353D723437616D2H3559703437616D2H355935E137112H3537612H353761A1CE34613F2H353D2H3537616D2H355935F3372H0DC8346103C83461342H35213H356D342H353D2H3537616D2H3559633531592H3537616D35315934D1330D4D3637613F2H353D2H3537616D2H355935F3370DDBC934613F2H353D2H3537616D2H355935F3370DBBCE34616D2H3559B9CE34613E2H353D2H3537616D2H3559352933312H3537612H35376146CB34613E2H353D58CB34616D2H35595ECB3461B0CB34613F2H353D2H3537616D2H355935F3370DD1343761D73437616D2H3559043435112H3537612H35376127CB34613F2H353D8C3637616D2H35598236376135CF33312H3537612H353761392H3761312H353DA42H37616D2H3559BA2H37616D2H35593H35392H3537612H353761D9C83461272H353D2H3537616D2H3559359F370D95CF34616D2H3559ABCF3461352933312H3537612H35376107C934613E2H353D2H3537616D2H3559358937312H35376119C934610BCE34611FC934613437352D7A2H35153E2H356D3E2H353D2ECE34616D2H35592CCE34613F2H353D2H3537616D2H355935F3370D192H376135C1370D2H3537616D2H3559353937112H3537612H353761A2CE34613F2H353D2H3537616D2H355935F3370DCCC834616D2H355935C1370DAACE3461A8CE34612H3537616D2H3559359137312H3537612H353761373537613H3521392H356D6CCF34613F2H353D4E3437614C3437616D2H35592H35370D2H3537616D2H3559351537112H3537612H353761BCCB34613F2H353D43343761413437613437352D7C2H35153E2H356D3E2H353D2H3537616D2H3559352933312H353761FECE346132CA3461FCCE34612H3537616D2H35592H35370D2H3537616D2H355935D337112H3537612H3537612A3637613F2H353DA7CE34617E2H35592H3537616D2H355987CA34610C2H3509C9CA34612H3537616D2H35592H35370D2H3537616D2H355935D537112H353761A9CF346159CE3461AFCF3461AB2H37613F2H353D2H3537616D2H355935F3370D2H3537616D2H355935C1370D9A353761983537612H3537616D2H355935F3370DFEC934616D2H35592H353761153435093437352D432H35153E2H356D3E2H353DB1CA34616D2H3559B7CA34612H3537616D2H355935F3370D2H3537616D2H355935C1370D19CA34611FCA34612H3537616D2H35592H35370D2H3537616D2H3559323435112H3537612H353761D12H37613F2H353DF8CE3461FECE34612H3537616D2H35592H353761363435093437352D302H353DF1CB34616D2H3559F7CB346135C1370DD4C934616D2H3559EAC93461F5352D0937352H2DA0353761A63537614A3435112H3537612H35376184C934617E2H35592H3537616D2H35599FC934619DC934613F2H353D2H3537616D2H355935F3370DE7C834616D2H355935C1370D47C934616D2H355945C934617B3435112H3537612H353761ABC934613F2H353D2H3537616D2H355935F3370D8B3537616D2H3559893537612H353761952H35093437352DB12H35153E2H356D392H353D55CA34612H3537616D2H3559273435112H3537612H35376139C934617E2H35592H3537616D2H3559BDCB3461B3CB3461AA2H37617E2H35598ECC34616D2H35598CCC346109CB3461712H35592H3537616D2H355978353115EECC34613F2H353D84CF34616D2H35599ACF34613437352DB12H35153E2H356DDECB34613D2H353D2H3537616D2H35593547370D7A343761359F370D2H3537616D2H3559356737411B353D152H353761E12H35093631352D3H3539CCC93461CCC93461C2C9346135F3370D2H3537616D2H35592H35370D2H3537616D2H355904343511D6CE3461D6CE3461D4CE346135FD370D2H3537616D2H355935673741B0353D154A2H37618A2H3509C9CA34613C331E0D023537616D351D59003537612H3537616D2H35591D3531595CCC346152CC346135FD370D2H3537616D2H355935673741B0353D152H353761ED2H35093631352D3H3539B2343761B2343761B03437616D2H355935C337112H3537612H353761D73437613F2H353D2H3537616D2H355935F3370DC8CB3461CECB34612H3537616D2H355935F3370D2H3537616D2H35592H35370DBC3437616D2H3559B23437614F2H35093437352D012H35153E2H356D1C34376145352109353D212D3C3537613CB11F0D2H3537616D351D593F7337312H3537612H353761373537613C6B1F0D492H37613F3E1E69353121452H3537612H353761C4CA3461353135456235376162353761603537613F2H353D2H3537616D2H355935F3370DB5CC34614BCC3461352536112H3537612H35376116CA34613F2H353D2H3537616D2H355935F3370D673437612H35370D2H3537616D2H35596E3435112H3537612H353761DBCE34613F2H353D9D3437616D2H3559933437615FCB34617E2H35592H3537616D2H355943CA34616E2H3509C9CA34616D2H3559143435112H3537612H35372H61C834613F2H353D2H3537616D2H355935F3370D37343761353437616D2H35595C903769712H355966CE34616D2H355964CE346135C1370D2H3537616D2H3559351D37112H3537612H353761E6CE34613F2H353D8F3537616D2H35598D3537616D2H35594234376143343509C9CA34616D2H355935F3370DBDCB34616D2H3559B3CB3461353735392H3537612H353761C0CD3461B52H35594CCA34616D2H355942CA34612H3537616D2H35592H3537612D3435093437352DD53437612HCA3461342H3549FACE3461D2CD34613H35213C2H356D342H35213A2H356DEACD346135F3370D2H3537616D2H35592H35370DEECF3461ECCF34616D2H35593F9637693H35213C2H356DE2CD3461B43537616D2H355935F3370D2H3537616D2H35592H35370D87CA346185CA34613E2H356D3E2H353D2H3537616D2H3559352933312H3537612H3537614EC934613E2H353D40C9346146C934616D2H355935C1370DFB343761F93437612H3537616D2H355935F3370D2H3537616D2H35592H35370DEBCF34616D3539592H3537610A343D0937353D2D2H353761DA2H35093537352D712H3559ABCF34612H3537616D2H3559352933312H3537612H35376197CF34613E2H353DA9CF34616D2H3559AFCF346135F3370D2H3537616D2H355935C1370D2H3537616D2H355935EF37112H3537612H353761D7C834613F2H353DF2C9346184CA3461312H353D053437611B3437616D2H35596A3531592H3537616D353159344B330D523437616D35315950343761373537613H35213C2H356DBFCD34616A2H355904CF34611ACF34616D2H355935B737112H3537612H35376186CA34613F2H353D3BCF346139CF3461B23435112H3537612H35376193C934617E2H35592H3537616D2H3559AAC93461A8C934612H37352D1D2H3559A6CC34616D2H3559A4CC34613H35392H3537612H3537612D353761B52H35592H3537616D2H35593549370D9CCF346192CF34616D2H3559183435112H3537612H353761D3C834613F2H353D2H3537616D2H355935F3370D58CE34616D2H35595ECE34617E2H35592H3537616D2H35592H353761863435093437352D22CE3461382H353DB3CE34616D2H3559B1CE34612H3537616D2H35591D2H3529B52H3559F5CB34616D2H35598BCB346135F3370D78CF34616D2H35597ECF34612H3537616D2H35592H35370D2H3537616D2H3559359537112H353761E535376152C93461FB3537612H3537616D2H355935C1370D443537616D2H35595A3537612H3537616D2H3559351737112H3537612H353761D3C834613F2H353D2H3537616D2H355935F3370D0B3437613E2H353D2H3537616D2H3559352933312H3537612H353761E8C934613E2H353D2H3537616D2H355935273731E2C93461E2C93461E0C9346135C1370D2H3537616D2H3559B23435112H3537612H353761D8C234617E2H3559D3C23461D1C234616D2H355935C1370D2H3537616D2H3559357B37112H3537612H35376170C934613F2H353DE13537616D2H3559E7353761359133312H3537612H35376141CA3461372H353D00CD34616D2H35592H35370D2H3537616D2H3559350137112H3537612H35376172CF34613F2H353DE5CD34612H3537616D2H35592H353761DD3435093437352D3H353D99CF34612H3537616D2H3559355D37312H3537612H3537618BCA34613F2H353DFCC234611F353761342H35213C2H356D682H35592H3537616D2H35592H3537616E3435093437352D02CB34612H3537616D2H35592H35370D2H3537616D2H3559033435112H3537612H353761F7C834613F2H353D42CF346140CF3461358737112H3537612H35376190CE34613F2H353D2H3537616D2H355935F3370D2H3537616D2H35592H35370D96CD3461523435112H3537612H353761CEC834617E2H3559C1C834616D2H3559C7C834618C3537618EC23461052H35592H3537616D2H3559B5353159D2CF3461D0CF3461E72H35093537352D682H35592H3537616D2H35596FCE34616DCE34613E2H353D2H3537616D2H3559352537312H3537612H35376159CF34613F2H353D38CD34616D2H355935F537312H35376193C93461D3C9346191C934612H3537616D2H355935C1370D2H3537616D2H3559383435112H35376154C834612FC834616AC834616D2H3559B53531592H3537616D3531593449330DC5CD34616D353159DBCD34612H3537616D3531593B353D156D35391513CC34613437352D172H35153E2H356D3E2H353D2H3537616D2H35593529333126CD346126CD346124CD346135F3370D2H3537616D2H355935C1370DC1CE34616D2H3559352933312H353761B8CD34612HC93461BECD34616D2H355935F3370D2H3537616D2H355935C1370D67CD346165CD34613F2H353D2H3537616D2H355935F3370D74CF34616D2H3559359137312H3537612ACC34612ACC346128CC34612H3537616D2H35592H3537619A3435093437352D6B2H35153E2H356D2DCD34612H3537616D2H35592H353761413435093437352DB12H35153E2H356D1CCE34616D2H355935F3370D703537616D2H3559763537612H3537616D3531596D353D153B353915B9CF34612H353761F42H35093437352D252H353D2H3537616D2H35593591373195CC346195CC3461ABCC34612H3537616D2H35592H35370D2H3537616D2H3559353136112H35376175CE34615BC834610BCE346135F3370D2H3537616D2H355935C1370D2H3537616D2H3559573435112H353761B535376151CE34614B3537613447330D2H3537616D3531590C3635692B2H35592H3537616D2H3559C8C33461CEC33461372H353D2H3537616D2H35593591373113CD346113CD346111CD34613E2H356D3E2H353DA9CA3461AFCA34613F2H353D28C934616D2H35592EC934616D3539156D3525152H3537615E3431093H312D1E363569682H355924CA34612H35370D05C834616D2H35591BC834613631352D6A2H35293H353D54C934616D2H35596AC934616D2H35595E3435112H3537612H35376185C934617E2H35592H3537616D2H35599CC934614B343509C9CA34616D2H355935EF37112H3537612H353761F3CF34613F2H353D4CCA346142CA34612H3537616D2H35592H35370D32CC346130CC346135F3370D2H3537616D2H355935C1370D2H3537616D2H355935EB37112H3537612H35376179CF34613F2H353D46CE3461682H355978CC34616D2H35597ECC3461343537613H35016D2H35593H353D2H3537616D2H355935CF37312H353761C8CE346122CF34612HCE34612H3537616D351D596D2035112H35376176C8346148C8346174C834613F2H353D2H3537616D2H355935F3370D2H3537616D2H35592H35370DB3CB34616D2H3559353D36312H3537612H353761C7CF34613F2H353D2H3537616D2H355935F3370D69C934616FC934612H3537616D2H355935D937112H3537612H353761E2C234613F2H353DB8C934617E2H35592H3537616D2H35592H3537615E2H35093437352DEECF3461352933312H3537612H353761333537613E2H353D2H3537616D2H355935A137312H3537612H35376151CC34613F2H353DE1C834610E3435112H3537612H35376134CF34617E2H355934CC3461CACD34613861E1200B71613E2862A2316408C860483566B280E26F627204DF4ACEBC230775CADD499CEB037C3BAB3072AAD76F48DB0A02006A033H002HCA92405H00F071C0405H008069C0406H0082C0406H00202H405H009072C0405H00C055C0405H00B8812H406H00322H406H0008406A063H002HCA84ABA7AF405H00B080C0405H00B07CC0405H00D073C0406H00F03F405H001073C0405H00107DC0405H00406DC0405H00C072C0406H00182H405H00C052C0406H0022406A0A3H002HCA8BA4A9A2A5B8AFAE6A0A3H002HCA99AFABBE9AABB8BE405H00C089C0405H009075C0405H002883C0405H00B08AC0405H00807CC0405H00D88DC06A083H002HCAA9A2ABB8ADAF6A0D3H002HCA8DAFBE89A2A3A6AEB8AFA4405H00688AC0405H00F07EC0406H0024406A0A3H002HCA82BFA7ABA4A5A3AE406H00332H406H00352H406H0072C0405H00804FC06A083H002HCAA5A6AEBAA5B96A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A093H002HCA9CAFA9BEA5B8F96A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F96A083H002HCAB8A52HA8AFAE405H00707F406A083H002HCA89A5A7A8ABBE6A083H002HCA82AFABA6BEA26A073H002HCABAABA3B8B9405H00907EC0406H0089C06A063H002HCA8EB8A5BA407H002H406H0031C0405H00C05340C86A0B3H002HCA8FBBBFA3BA9E2HA5A66A083H002HCA898CB8ABA7AF405H00307BC0405H001072C0405H00E88CC0405H00A880406A093H002HCA83ADA4A5B8AFAE6A063H002HCA85BAAFA4405H00E070C0405H00B070C06A0B3H002HCA89A6AB2HB984ABA7AF405H00807FC06A063H002HCABDABA3BE6A0C3H002HCAADAFBE85A6AE9E2HA5A66A083H002HCA87A5BCAF9EA5406H001C2H405H00405DC0406H00142H406H0031406A0A3H002HCAADAFBEA7A5A4AFB36A093H002HCA8EAFB9BEB8A5B3406H00102H405H00A08BC0406H00262H405H002083406A043H002HCAAEAD8B405H00288EC0405H002066C06A0A3H002HCA88ABA9A1BAABA9A16A083H002HCA89A5A6A5B8F9405H00107AC0408H00405H00388DC06A023H002HCA405H00588BC06A0B3H002HCA87A5A4AFB38EB8A5BA6A063H002HCA9AA62HB3406H002C406A063H002HCAABBE2HA7406H00342H409A5H99B93F405H004057C06A0A3H002HCA9AA5B9A3BEA3A5A46A0A3H002HCA89ABB9A2A3AFB8B9405H0098812H405H002070C0405H00D072C06A063H002HCAB9AFABBE6A063H002HCA80BFA7BA405H00B073C0405H00807AC0405H008070C0405H006062C0406H00302H405H003070C0405H003078C0405H00F070C06A053H002HCAA4AFBD405H00A8822H405H003071C06A043H002HCAB0FB406H002A2H405H00A078C0406H003E2H405H008882406A033H002HCA90405H001088C0405H00F082C04B406H00282H405H00405AC06A0B3H002HCABDA5B8A1B9BAABA9AF405H001884C0405H00D088C06A083H002HCA9AABB8AFA4BE406H002E406A073H002HCAB8A5A8A7AF405H0030822H405H00607EC0405H00405B401469EB1E2352F2A3D66D0C760B8F5H00EAE0B503466C10FA1A4E9H002H00013H00019H002H00019H002H00017H00019H009H001H00013H00013H00017H00019H002H00013H00013H00017H00013H00013H00019H002H00013H00013H00019H009H009H004H00019H002H00019H002H00013H00013H00013H00019H002H00019H002H00013H00019H009H005H00019H002H00019H009H001H00019H002H00013H00017H0006D60D284ACCFCC0A43B35F8B0768C0018B1762FDF0A02000E3537618D2H35093437352D372H353D2H353761312H3559352537312H353761343537613B3537612HCA3461302H35592H353761312H35592H353761E22H35093437352D333537613H352111353761313525152H353761703431093H312D35363569342H35493135315931353D1534353915313525152H353761143531093H312D35363569332H35592HCA34612H353761312H3559EFCA3461EDCA34612H353761312H3559373531592H35376131353159343B330DDECA3461DCCA3461D5CA3461342H35213H356D342H353DC7CA3461312H3559373531593A353761383537613H356D342H353DCCCA3461C2CA3461343537613H3501312H35593H353D2H353761312H355935253731DFCA3461DFCA3461DDCA346131353159343B330D2H3537613135315934353D1531353915F0CA346198BBE90D137FB62DF7919622730F2564084641BA5524907BF6DF620A5B0A02006A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F9406H00F03F6A083H002HCA89A5A6A5B8F96A023H002HCA408H006A0D3H002HCAA7A5A4AFB388BF2HBEA5A46A063H002HCABDABA3BE6A053H002HCAA4AFBD4B036C69AA7F3BDCA3EE58EEC305C05H00F9FFD8258060AD8E1AAA026H00013H00019H009H001H00017H00013H00019H002H00019H002H00013H00019H006H00019H002H00013H00019H002H00019H009H001H00019H002H00013H00013H00017H00013H00013H00017H00019H002H00013H00019H002H00019H002H00017H00019H002H00013H00019H009H001H00019H002H00017H00019H002H00019H009H005H00019H002H00019H002H00017H00013H00019H002H00019H009H005H00013H00019H002H00013H00019H006H00013H00013H00019H009H001H00013H00017H00013H00013H00013H00013H00013H00013H00013H00019H009H005H00019H002H00013H00017H00013H00013H00013H00019H002H00017H00013H00013H00013H00019H002H00019H002H00017H00019H006H00019H002H00019H006H00019H006H00019H009H005H00013H00013H00013H00019H002H00019H002H00013H00013H00017H00013H00019H002H00019H006H00019H002H00013H00017H00019H002H00019H002H00013H00019H009H001H00019H009H001H00013H00019H009H001H00017H00013H00019H002H00019H009H001H00013H00013H00019H009H001H00013H00019H009H005H00019H002H00019H002H00019H002H00013H00013H00013H00019H009H001H00013H00013H00019H002H00013H00019H002H00019H006H00019H002H00019H002H00013H00013H00019H002H00019H006H00019H002H00013H00019H006H00019H002H00013H00019H009H005H00013H00013H00013H00013H00019H002H00019H006H00013H00019H002H00019H002H00019H002H00013H00019H009H001H00019H002H00013H00019H002H00013H00019H009H005H00017H00019H002H00017H00013H00019H009H009H009H003H00019H006H00013H00019H002H00013H00017H00019H002H00019H009H009H004H00013H00019H002H00019H002H00019H002H00019H002H00013H00013H00019H002H00019H002H00019H006H00013H00019H002H00013H00019H002H00017H00019H009H001H00019H006H00013H00013H00019H006H00013H00019H009H001H00013H00019H006H00013H00019H009H001H00013H00019H006H00019H002H00019H002H00013H00013H00019H006H00019H006H00013H00019H009H009H00013H00019H009H005H00019H006H00013H00019H009H001H00017H00019H009H001H00013H00017H00013H00019H009H001H00019H009H001H00013H00019H009H005H00019H009H001H00019H002H00013H00017H00019H002H00019H009H005H00013H00019H002H00019H002H00013H00019H002H00017H00019H002H00019H002H00019H006H00013H00013H00019H002H00019H002H00013H00019H006H00019H002H00013H00019H009H009H004H00013H00013H00019H002H00013H00013H00019H009H001H00019H006H00019H002H00019H006H00013H00019H009H001H00013H00019H002H00019H002H00017H00019H002H00019H002H00013H00017H00019H009H001H00013H00019H002H00019H006H00019H009H001H00017H00013H00019H002H00017H00019H009H005H0096A2A8120E890748F05EB6DCB3769D106F5D3BF13F0D0200572H3761351537411C353D592H3537613C353D592H353761DD3435093637352H2D2H37614A3537613E35213D2H3537613C352159300B230D2H3537613C35215930372341313529B5573437612H3537613C2H355916283769152H37613C2H35593035311528353D592H3537613C353D5937553F0D2H3537613C353D591C2H3761122H37613C3525152H353761D83431093H312D31363569342H35493C3531593C353D151A3539153C352515E93537613H35392H3537612H3537616C2H37613E2H353D2H3537613C2H3559350B370D2H3537613C2H3559352H3741F13437612E2H35592H3537613C2H35591D2A37692E2H35596A3537613C2H355968353761D1343D0937353D2D2H353761502H35093537352D652H37613H353D2H3537613C2H35593529373145353761453537615B3537612H3537613C3531593463330D2H3537613C3531593471330D2H3537613C353159340D330D84343761312H356D1B2H3559FB343761F93437611B2H35592H3537613C2H3559853537619B3537613C3435093631352D3H35392H3537612H353761C3343761222H3559DB3437612H3537613E2H35093631352D1C2H35291C2H3559273537613C2H3559253537612B3435092H37352D222H3559CE3537613H3521392H356D3H3521312H356D7C343761342H3521302H356D3H3521ECCA34612H3537613C353D590235376100353761351937412H353761413435092H37352D222H3559A734376134352H213935216DC3343761353135452H353761C63437614ECA3461C43437613H3521392H356D05343761302H353D2H3537613C2H3559351137312H3537613E2H37611C3437613C2H37613835253D6E3537613C3525596C353761243531592H3537613C353159347B330D893437618F3437613C353D59370D3F0DC1353761C73537613C353D593D35393D2H3537613C353959A6CA3461A4CA34613C3531592B3635691F2H3515102H35293E2H353D2H3537613C2H3559350B370D0E343761B9353109372H312D2B363569222H3559A53437618ECA3461372H353D2H3537613C2H35593511373178343761783437617E3437612H3531152H353761323435092H37352DCC3537618A343761302H353D2H3537613C2H3559352937312H3537612H353761EE3537611B2H35592H3537613C2H3559C4353761DA3537613555370D193437613C2H35591F3437613C2H3559352H374110353D592H3537613C353D592H353761BE2H35093631352D523537612B363569142H35592H3537613C2H35593F35313D303437613C353159363437613C3531592B3635693H3521392H356D933537613C2H35592H353761AE3435093437352D322H353D783537613C2H35597E3537612H35376158343D0936353D2D2H3537615A2H35093537352D0C3537613C2H3559351137312H3537612H3537612C353761342H35213H356D342H353D3A353761383537612H3537611F3431093H312D31363569222H3559E3353761C23435093437352D332H353D2H3537613C2H35593C35313DADCA3461A3CA34613C2H3559373531592H3537613C353159347B330D3FCA34613DCA34613H35213H356D342H353D2H3537613C2H3559373531593C3537613C35315932353761322H353D2H3537613C2H3559352H374110353D590FCA34613C353D590DCA3461347B330D2H3537613C3531591A353D153C353915DECB34612H3537613C2H35595B353761593537612C2H3515382H356D342H3521302H356D1B2H3559C0CA34613C2H35592B3531597E3537613C3531597C353761353B374124353D592H3537613C353D59377B3F0D6BCA346169CA34613H35392H3537612H3537610ACA34611B2H35592H3537613C2H35592H353761D22H35093437352DE5CA3461F72H35093631352D3H35392H3537612H353761EBCA3461362H353D2C343761223437613C2H35592H3537613A3435093437352DD4CB3461283531592H3537613C3531593455330DD6CB3461302H356D1B2H35592H3537613C2H3559F635376130343509C9CA34612H3537613C2H35592H353761242H35093437352DD1CB34612H353761513521093631212D2H3521392H3537612H35376139CA34611035252932CA3461332H353D2H3537613C2H35593C35313D6BCA34613C35315969CA34612H3537613C2H35592H353761942H35093437352D332H353D87CA346185CA3461347B330D2H3537613C35315928353D592H3537613C353D5937553F0DE1353761E7353761B8CB34611C353761BECB3461B7CA34613C353D5937753F0D2H3537613C353D5937013F0DEECB34612H3537618C3435093437352D362H353D1C353761882H35093437352D332H353D2H3537613C2H35592D3531591B3537611B2H35592H3537613C2H35592H353761832H35093437352DFFCA34612H3537619A3531093H312D2F3635692E2H35596DCB34612H3537613C2H3559352H374138352H3D2H3537613C353D59A0CA3461A6CA346118363569222H3559AFCA3461ADCA3461372H35093437352D3E2H35592H3537613C2H35592H3537615A2H35093437352D3H3521ADCA34612H3537613C2H3559351F370D2H3537613C2H3559352137112H3537612H3537618DCB3461342H3521312H356DD8CB34612H3537613C3531592B363569A6CB34612H3537613C2H35592D2H3529222H35593ECA34613CCA34612H3537613C2H35592H353761EA2H35093437352D282H3559DDCB34613C2H3559D3CB34612H3537617C343509373D352D20CB34612H3537613C2H3559352H374110353D592H3537613C353D592H3537614F2H35093631352D1BCB346110353D592H3537613C353D592H3537613A2H35093631352D1C2H3529B8353761352H37413A353D156DCB346163CB34612H3537613C3531593413330D2H3537613C35315954CB34616ACB346152CB34611B2H3559B8CA34613C2H3559BECA34612H3537613C2H3559357B370DCBC83461C9C834612H3537613C2H35592H3531152H353761623435092H37352D94CA346159CB34611C2H35592H3537613C2H3559351937417F3537617D3537613C2H35592H353761992H35093437352D332H353D2H3537613C2H35592D3531598FCB34618DCB34613437352D332H353D2H3537613C2H35593509370D92CA34612E2H35592H3537613C2H3559243531592H3537613C353159347B330D343537612HCA34613C35315913353D153D353915133525152H353761DD3531093H312D4DCA34611C2H35093631352D2E2H3529DFC834612H3537613C2H3559383531152H353761083435092H37352D112H35593BCA34613C2H355939CA34612H3537613C2H35592H353761303435093437352D50CA3461192H355980CA34613C35315921353D1539353915333525157ACA3461343537613H35013C2H35593H353DA3CB3461A1CB34613C353D5937633F0D2H3537613C353D5937713F0D01CB346107CB34619E2H35092H37352D222H35597BCB34613C2H355979CB34613C2H3559351537413E352H3D2H3537613C353D59370B3F0D2H3537613C353D592H373F412DCB3461392H353D2H3537613C2H3559351137312H3537612H3537611CCB34611B2H3559CECB34611B2H35592H3537613C2H35592H353761912H35093437352D322H353D7DCB346173CB3461362H353D5EC834613C2H35595CC83461222H35592H3537613C2H35592H353761632H35093437352D3BCA34613437352D3E2H353D2H3537613C2H3559350B370D20CA34611B2H35592H3537613C2H3559C0CA346176343509C9CA34614BA34A4F5691C0B866DF49107A2299BDA899EC2C2A53033F0CB59C4F05631B53EF4CEA64D9C04D254030F431830A0200406H66D63F6A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A083H002HCA89A5A6A5B8F96A023H002HCA6A123H002HCA88ABA9A1ADB8A5BFA4AE89A5A6A5B8F96A063H002HCA9AABB8BE405H00407A406A083H002HCA87A5BCAF9EA5406H00E03F408H00405H008051406A0C3H002HCAADAFBE85A6AE9E2HA5A6405H00C059C040713D0AD7A370CD3F8B6A0A3H002HCA99ABACAF99BAA5BE6A0B3H002HCA8FBBBFA3BA9E2HA5A66A093H002HCA9CAFA9BEA5B8F94B6A0F3H002HCA89A6A3A9A18EAFBEAFA9BEA5B8405H004051406A083H002HCA82AFABA6BEA26A0A3H002HCA8BA9BEA3BCABBEAF6A063H002HCABDABA3BE6A083H002HCAA5A6AE9AA5B06A043H002HCAB0FB6A0A3H002HCA9AA5B9A3BEA3A5A46A0A3H002HCA99ABACAF9AA6ABBE6A103H002HCA9189A2A3A9A1AFA497EAE7EAEEFD6A063H002HCAADABA7AF6A083H002HCA898CB8ABA7AF6A0A3H002HCA88ABA9A1BAABA9A16A063H002HCA82AFABAE6A073H002HCABAABA3B8B96A063H002HCA99A2A5BA6A0A3H002HCA8BA4A9A2A5B8AFAE6A133H002HCAACA3B8AFA9A6A3A9A1AEAFBEAFA9BEA5B86A063H002HCAAC2HA5AE406H003E406A053H002HCAA4AFBD6A063H002HCA84ABA7AF6A063H002HCABE2HA5A66A0B3H002HCA9189A2A3A9A1AFA4976A093H002HCA83ADA4A5B8AFAE6A0A3H002HCA83A4B9BEABA4A9AF6A063H002HCA99A3B0AF6A063H002HCA9AA62HB3406H00F03F6A0B3H002HCA9DA5B8A1B9BAABA9AF0E71F98453161DCC9862A2AB08425H0076A189013F522EC1710C7H00013H00019H006H00019H009H005H00940A59502E362B5B8A7733D03A0C269B68C72D179E0A0200343537613437352D342H3549343537613H3501342H3559372H35592H353761342H3559C3CA346187343509C9CA34614A6FFB290CBB41575223BE48F8BB066CF3324A3F7623AB64E3E2D72996AE1D5C550A02006A023H002HCA405H00E494406A0D3H002HCAA7A5A4AFB388BF2HBEA5A400DDE50AAB58BDDF803DB1C302CC5H00FA675829329537A4351C9H009H001H00019H009H005H00013H00019H002H00019H006H00013H00019H002H00019H006H00013H00013H00981F63A46B5BA1A36E109FA163047955E05E22DDAF0A02002HCA3461343537613H3501312H3559342H35592HCA34612H353761312H35592H353761C53435093437352D3H353D2H353761312H3559353F373134353761343537612HCA346132353761342H353D2H353761312H35592H35370D34353761312H35592HCA3461362H3529342H352H49A3E137A6F13C7C371108101FED296EC816BB2B9154B0267F4B0736175FC9A0BED3D20B580A02006A083H002HCA898CB8ABA7AF6A063H002HCABDABA3BE6A023H002HCA6A083H002HCAA5A6AEBAA5B9405H00E494404B02985548F96119B87C031ACA020A5H00A3E6A5218F0686B05ED5029H009H00013H00019H009H001H00013H00013H00019H006H00019H002H00013H00019H009H001H00019H002H00017H00019H002H00019H009H001H00019H002H00013H00019H009H009H00013H00019H009H001H00019H006H00013H00019H002H00019H002H00019H002H00013H00013H00017H00019H002H00017H00019H002H00013H00019H002H00013H00013H00013H00019H002H00019H009H001H00019H002H00013H00019H009H009H00013H00019H006H00019H002H00013H00019H006H00013H00019H006H00013H00013H00019H002H00019H006H00019H002H00019H002H00019H006H00019H009H005H00013H00017H00019H002H00019H002H00019H009H001H00019H002H00013H00019H002H00019H009H001H00013H00019H002H00019H009H001H00019H002H00013H00019H006H00019H002H00013H00013H00013H00019H002H00013H00013H00013H00019H002H00019H009H001H00013H00019H009H009H004H00013H00019H009H001H00019H002H00013H00013H00013H00019H009H009H00013H00019H009H009H00017H00013H00019H002H00013H00019H009H001H00019H002H00013H00019H002H00019H006H00019H002H00013H00019H002H00013H00013H00019H002H00017H00019H002H00013H00019H009H001H00013H00019H002H00013H00019H002H00017H00019H002H00013H00019H002H00019H002H00019H002H00013H00017H00019H002H00019H002H00013H00013H00019H002H00013H00019H002H00019H002H00019H002H00019H002H00013H00017H00013H00013H00013H00019H006H00013H00019H002H00019H002H00017H00019H002H00019H002H00013H00017H00019H002H00013H00013H00013H00019H009H001H00013H00013H00019H009H001H00013H00019H006H00013H00019H009H005H00013H00019H002H00013H00019H006H00019H002H00013H00019H002H00019H009H001H00017H00019H002H00019H002H00013H00019H006H00019H002H00013H00019H006H00019H009H005H00017H00013H00013H00019H006H00013H00019H002H00019H009H005H00019H009H001H00013H00019H009H005H00013H00019H002H00019H009H001H00013H00019H002H00013H00017H00013H00019H002H00019H002H00013H00013H00019H006H00019H002H00013H00013H00019H002H00013H00019H002H00019H002H00017H00019H009H001H00019H002H00013H00013H00019H009H001H00013H00013H00013H00019H002H00013H00013H00019H002H00019H002H00019H002H00013H00019H002H00019H002H00013H00013H00013H00019H006H00019H002H00017H00013H00019H002H00019H009H001H00013H00019H002H00013H00019H009H001H00013H00013H00013H00019H006H00019H002H00017H00013H00019H002H00019H009H001H00019H006H00013H00019H009H001H00013H00019H002H00019H002H00019H002H00019H002H00013H00017H00019H002H00017H00019H002H00019H002H00019H002H00013H00019H002H00019H002H00019H002H00013H00019H006H00013H00019H002H00013H00019H002H00019H002H00013H00019H002H00019H002H00019H009H009H008H00013H00019H009H001H00019H002H00019H002H00019H002H00019H002H00019H002H00019H006H00E16D13D5127898F93E6B030CE317FCD60C7831406A0D0200073537612C2H35592H353761BA2H35093437352D272H3559872H3761852H37612H3537612C3531591236356932343761362H353D2H3437612C2H3559CA3537613835313D2H3537612C35315912363569282H3559FB343761F93437612H3537612C2H3559353735392H353761563437610F3537615434376115353D592H3537612C353D593C35393DA83537612C353959AE3537612C2H3559333531152H353761243435092H37352D302H353D313437612C2H3559373437612C2H35592H353761AE2H35093437352D252H35594434376134353761302H35012C2H3559342H3559973537612C2H355995353761A53537613D2H353D2H3537612C2H3559353735392H3537618B343761BC353761893437616E2H35093631352D102H3529272H355928353761362H353D2H3537612C2H35593735313D8CCA3461333531152H353761CE3435092H37352D3A2H3559553437616B3437613C2H356D3H35213D2H356D282H3559FECA3461FCCA34613D2H353D223437612C2H3559203437612C2H3559351D370D2H3537612C2H35593519374120353D15243537613A3537612H3537612C2H35592H353761583435093437352D362H353D642H37612H3537612C2H35593529370D2H3537612C2H35593519374139353D15FBCA3461F9CA3461182H35093631352D3H35398ACA34618ACA346188CA3461123635697E353761362H353D2H3537612C2H355930353159703537612C353159763537613A2H35592H3537612C2H35592H3531012H353761A03435092H37352D9B3437612H3537612C2H3559123531599D353761933537612C2H35592H353761523435093437352D362H353DC1CA3461371B3F0D2H3537612C353D5937013F0D2H3537612C353D59103539593D3437612C353959333437612C2H3559357137312H3537612H353761E3CA3461362H353D2H3537612C2H35593735313DFACA34612C353159F8CA3461F03435092H37352D3A2H35592H3537612C2H3559363531017D353761AC343509C9CA34612C2H3559357137312H3537612H3537615D343761362H353D543437612C2H35596A343761360D3B3H353761DB353D0937313D2D342H31752E3635693E2H353DDACA3461D8CA3461123635693H35213D2H356D282H35592H3537612C2H3559293531158C353761EE343509C9CA3461E32H35093437352D272H35592H3537612C2H3559FF343761E62H3509C9CA34612H353761893435093437352D3H353DBF3537612C2H3559BD3537612C2H3559353735392H3537612H3537615A343761342H35213D2H356D342H355977CA346175CA34612H3537612C2H35592H353761CC3435093437352D272H35592H3537612C2H355960353761663537612H3537612C2H3559351D370D1C35376118CA3461252H35595E3437615C3437612H37352D3E2H353DA33437612C2H3559A13437612C2H3559351337312H3537612H353761B6353761332H353D2H3537612C2H355935713731D9CA3461D9CA3461DFCA3461303531592H3537612C353159123635693H3521813537612C35315912363569FD353761362H353D2H3537612C2H355930353159F5353761351D370D2H3537612C2H3559351937412A353D155B353761593537612H3537612C2H35593519374124353D152H353761D92H35093631352D3H35392H3537611ECA3461AE3537611CCA3461357137312H3537612H35376162353761252H35592H3537612C2H3559353B370D89CA34612C3531593435330D2H3537612C3531592D353D153D353915E7353761362H353D2H3537612C2H3559303531592H3537612C353159123635693H35213D2H356D493437614B3435093437352D362H353D2H3537612C2H35593835313D2E3437612C3437613935313D2H3537612C353159342H35112H3537612H353761C8CB34613D2H353D8FCB34613H35213D2H356DF53537613D2H353D96CA346194CA34617F2H35093537352D282H35592H3537612C2H35593E3531152H353761503435092H37352D293437613509370D2H3537612C2H3559350737112H3537612H353761A6353761342H353D3A353761353735392H3537612H35376167353761342H35213D2H356D342H35592H3537612C2H355960CA346166CA3461342H35213D2H356D342H355948CB34614ECB34612H3537612C2H3559352F374113353D59763437612C353D59743437612H37352D282H35592H3537612C2H3559B9353761BF353761923435093631352D3H35392H3537612H3537611A3437613D2H353DAD353761A33537612C2H3559357137312H3537612H3537614DCA3461362H353D2H3537612C2H35593735313D44CA34615ACA34612H3537612C2H3559353B370DF6CB3461361B3B0D2H3537612C35395936273B0D2H3537612C35395936213BBD10352559C9353761CF3537612C2H3559313531012H353761683435092H37352D3E2H353DDDCB3461D3CB34612C35315910353D59ECCB34612C353D59E2CB34612H353761A43435093437352D7C3537613H312D12363569282H3559A73537612C2H3559A53537613D2H356D252H35592H3537612C2H3559353B370D79CA34612C2H35597FCA34612H3537612C2H3559333531155F353761682H3509C9CA3461AA3435093437352D362H353D07CB34612C2H355905CB34612H3537612C35315912363569292H351545CB34612C2H355933353115FDCB3461F3CB34612H353761143435092H37352D3C2H353D2H3537612C2H3559350D37BD3C2H356DA735376159CA3461332H353D2H3537612C2H3559351337312H3537612H35376150CA3461342H3521322H356D6ACA34612H35376177353D0937353D2D57CA346155CA3461342H35213D2H356D342H3559D2CB34612C35315912363569312H353D2H3537612C2H3559357137312H353761663537616635376164353761272H35592H3537612C2H3559F3CA3461F1CA3461313525152H353761323531093H312D123635693A2H3559463537612C2H355944353761D22H35093437352D23CB3461342H35493735313D2H3537612C353159123635691A353761362H353D2H3537612C2H355930353159123537612C2H35593529370D2H3537612C2H35593519374139353D15233537612C2H3559353735392H3537612H353761A5353761342H35213D2H356D342H3559B0CA34612C2H3559B6CA3461282H35592H3537612C2H35593735311590CA34612H37352D3A2H35592H3537612C2H3559373531011E3537611C3537612H3537613B3435093631352D3H35392H3537612H353761323537613D2H353DA4CB3461BACB34612H3537612C353159123635693H35213D2H356D3C2H353DCDCB34612C2H3559C3CB3461373531152H353761712H35092H37352D11CB346188CA3461302H353D2H3537612C2H355935133731BCCA3461BCCA3461B2CA34612C2H3559353B370D8ACA346188CA34612C35315912363569282H3559E9C834612C2H3559EFC83461D32H35092H37352D3E2H353D2H3537612C2H3559357137312H353761F8C83461BAC83461FEC834612C2H35593735313D2H3537612C35315912363569F1CB346189CB34613F2H353D2H3537612C2H355914353115A1C83461362H353D2H3537612C2H35593035315942CA346140CA3461343531012H353761262H35092H37352D282H35592H3537612C2H3559113531153D35376133353761357137312H3537612H35376196CB3461362H353DEBCA3461E9CA3461622H35092H37352D3E2H353DC2CB3461C0CB34613437352D362H353D2H3537612C2H35593835313D2H3537612C35315912363569282H355916CA34612C352559311B270D2H3537612C3525593173270D2H3537612C35255938CA346127353109C9CA34612C2H35592H353761553435093437352D282H3559E1C83461E7C834612H3537612C2H3559123531592H3537612C3531593435330DC0CB3461C6CB3461252H35592H3537612C2H3559353B370DA7C83461A5C8346137353F0D2H3537612C353D593735393D1DCA34612C35395913CA3461D6C3232D5247562706B9FC7814FEC12200EE370A8334F7336E2207A1A9FB926BF1473B2C92803929A8FAFF357A0A02006A053H002HCAA4AFBD6A063H002HCA9AA62HB3409A5H99C93F6A023H002HCA400AD7A3703DCA7AC06A083H002HCAA5A6AEBAA5B9406H00D03F6A093H002HCA83ADA4A5B8AFAE40C3F5285C8FC23A406A033H002HCAB3406H00142H406H002E406A0A3H002HCA87AFB9A29AABB8BE6A083H002HCA87A5BCAF9EA56A063H002HCA8EB8A5BA6A073H002HCABAA9AB2HA66A0B3H002HCABDA5B8A1B9BAABA9AF6A1C3H002HCA89ABA4EA83EAADAFBEEABEA2AFEA8DB82HAFA4EAA8A52HBEA6AF6A093H002HCAA5A6AEBAA52HB04B6A0D3H002HCA82A5B9BAA3BEABA680A5A86A1A3H002HCA89ABA4EA83EAADAFBEEABEA2AFEA98AFAEEAA8A52HBEA6AF6A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A0A3H002HCA9AA5B9A3BEA3A5A4400AD7A3703D926FC0406H003E406A033H002HCAB26A063H002HCA9EAFB2BE406H00F03F6A063H002HCABDABA3BE6A083H002HCA82AFABA6BEA26A1B3H002HCA89ABA4EA83EAADAFBEEABEA2AFEA88A6BFAFEAA8A52HBEA6AF6A0A3H002HCABEA5B9BEB8A3A4AD6A093H002HCA99A2A5AFB9F0EA8B6A033H002HCAB0406H00E03F6A063H002HCA99A2A5AF6A093H002HCA9CAFA9BEA5B8F96A083H002HCA898CB8ABA7AF0EF583D2E7163F0926244F32059100053H0065143B3F1E0EE3C319149H002H00019H006H00019H002H00013H00019H006H00019H002H00019H002H0068A326D931FABA58C02E00232A43D8A7AC5608E8A60A02003C353761313531593435330D343537612HCA34613135315931353D152H3537618B3435093637352D342H3549343537613H3501312H3559342H35592H353761312H355937353159DBCA3461D9CA34618E74CC4D69ED57138A77720B8E42AD759FC9A856AF4FD35138B653721888E663570A02006A0F3H002HCA89A6A3A9A18EAFBEAFA9BEA5B86A133H002HCAACA3B8AFA9A6A3A9A1AEAFBEAFA9BEA5B86A063H002HCA99A2A5AF6A023H002HCA406H00F03F00644E11F138DAFFCC645A6E037A5H0088A33A37CD88831204229H002H00019H006H00013H00013H00019H002H00019H002H00019H006H00019H009H009H00019H002H00013H00019H002H00017H00EE5AC88C2C714D6CF20F375E7F6769278E650329B20A020021353761302H3559373531592235376130353159203537613637352D342H35493439330D2H353761303531593425330D2H3537613035315930353D15C0CA34611F2H3509C9CA34613435330DC6CA346130353159C4CA3461343537613H3501302H3559362H3559D3CA3461D1CA346134373341323539152H353761A6343109362H312DDACA34616C6ACC7028B4212E665B3B17AEAC205EC463777552A71D5A5B0A02006A093H002HCA83ADA4A5B8AFAE6A0C3H002HCA8DAFBE99AFB8BCA3A9AF6A063H002HCAADABA7AF6A133H002HCAACA3B8AFA9A6A3A9A1AEAFBEAFA9BEA5B86A023H002HCA406H00F03F6A363H002HCA89A6AFABA4EABEA2AFEAB9A2A5AFB9EAA5A4EABEA2AFEAACA62HA5B8EAABA4AEEAA9A5A7AFEABEA5EAA7AFEAACA5B8EAA9ABB9A26A0B3H002HCA9DA5B8A1B9BAABA9AF6A0F3H002HCA89A6A3A9A18EAFBEAFA9BEA5B800811815A168F36B6533848804675H00A7C2BC3A823F740611527H00019H002H00019H002H00013H00017H00019H002H00019H009H001H00019H009H001H00013H00019H002H00019H002H00017H00019H002H00013H00019H009H005H00013H00019H002H00013H00019H002H00019H002H00019H006H00019H002H00019H002H00019H009H001H00013H00019H002H00013H00019H002H00019H006H00017H005674C37A71056166C14D6BFAFE7E2F7AA61420DBE60A0200383537612H35370D2H353761362H35593539370D2H353761362H3559353F37413D353D15023537613439330D2H353761363531593431330D2D353761343537613H3501362H3559312H355928353761362H35592E35376178343109362H312D3427330D2H3537613635315936353D152H353761CE2H35093637352H2D35376136353D152H353761422H35093637352D342H3559EFCA3461362H3559EDCA34612H35376136353159343F33413C35392H1535376136353159343F33413D353915D0CA3461D6CA3461343531592H353761363531593435330DE7CA346136353159E5CA3461342H35492H353761363531593435330D2H353761363531593439330DD9CA3461DFCA34612H353761132H35093631352D3H35392H3537612H353761DACA3461312H35592H353761362H355934353159DECA34612H353761B8353109362H312DF8CA3461F732F2B0439173547DC5E84F7A580B20F5163415BFE24A32FF17E30A434FC06C7081F0227ED1D3385C0A02006A093H002HCA83ADA4A5B8AFAE6A0B3H002HCABDA5B8A1B9BAABA9AF6A073H002HCA8DB82HAFA4406H00F03F6A133H002HCAACA3B8AFA9A6A3A9A1AEAFBEAFA9BEA5B86A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A0D3H002HCA82A5B9BAA3BEABA680A5A86A023H002HCA6A1C3H002HCA89ABA4EA83EAADAFBEEABEA2AFEA8DB82HAFA4EAA8A52HBEA6AF6A0F3H002HCA89A6A3A9A18EAFBEAFA9BEA5B80004CC868266DACAAF29888604705H001CA56470253B05CD00519H006H00019H002H00013H00013H00019H002H00019H002H00019H002H00019H006H00019H002H00013H00019H002H00013H00019H006H00019H009H005H00013H00019H002H00019H009H001H00017H00013H00019H002H00013H00019H006H00019H006H00013H00019H002H00019H006H00019H002H00013H00019H002H00019H002H000C81C6B6163A2HAB3369C1D6353EF8ABA55B461CE20A02001E3537612H3537613635315936353D152H353761423435093637352D342H35493439330D2H353761363531593437330D2H35376136353159343D330D21353761362H3559352H370D2B353761362H3559293537613437330D2H3537613635315934273341323539152H35376182343109362H312D3425330DD4CA34612H353761362H35592H353159D1CA346136353159D7CA34612H35376136353159342733413D3539152H3537616D353109362H312D2C353761343537613H3501362H3559302H3559D9CA34613527374132353D152H353761BA3435093631352D3H35393035376130353761363537613439330DE2CA346136353159E0CA3461F3CA3461302H35592H353761362H35592H353159C0CA346136353159C6CA346136353D152H353761E93435093637352D3H35592H353761362H35593539370DF5CA34618BCA3461CF7E52186757D9BD67A07F4A695B0FB34C98373B13A2695DBAC0E4575C0A02006A0B3H002HCABDA5B8A1B9BAABA9AF6A0D3H002HCA82A5B9BAA3BEABA680A5A86A023H002HCA406H00F03F6A063H002HCA88A6BFAF6A133H002HCAACA3B8AFA9A6A3A9A1AEAFBEAFA9BEA5B86A093H002HCA83ADA4A5B8AFAE6A1B3H002HCA89ABA4EA83EAADAFBEEABEA2AFEA88A6BFAFEAA8A52HBEA6AF6A0F3H002HCA89A6A3A9A18EAFBEAFA9BEA5B86A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE0061E6219F08DDB1A83C26DD04D95H007BFDF82042C1ECDF613D9H009H001H00019H006H00019H002H00019H006H00013H00019H002H00019H006H00013H00013H00019H002H00019H002H00019H009H001H00019H002H00013H00019H006H00013H00019H006H00019H006H00013H00019H002H00013H00019H002H00B44D560D609274910D2D3B459553F50E775A610CCE0A02002HCA3461343537613H3501342H3559302H35591D3537612H353761342H3559373531592H35376134353159343D330D233537612135376100353109362H312D343B330D2H3537613435315934353D15343537612HCA3461982H35093637352D342H3549343D330D2H35376134353159342H330D2H353761343531593427330D26353761343531592435376134353159342H330D2H353761343531593425334133353915D1CA3461D7CA3461B22H35093637352D302H3559E3CA34612H353761342H355937353159D0CA346134353159D6CA346134253341323539152H353761CC353109362H312D34353D15DACA3461D8CA34612B11E8A358742679C22H223906D4A322B1280F4452BE555D244575255C0A02006A023H002HCA406H00F03F6A0B3H002HCABDA5B8A1B9BAABA9AF6A0D3H002HCA82A5B9BAA3BEABA680A5A86A093H002HCA83ADA4A5B8AFAE6A133H002HCAACA3B8AFA9A6A3A9A1AEAFBEAFA9BEA5B86A1A3H002HCA89ABA4EA83EAADAFBEEABEA2AFEA98AFAEEAA8A52HBEA6AF6A0F3H002HCA89A6A3A9A18EAFBEAFA9BEA5B86A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A053H002HCA98AFAE007BABB7B942EE206B46B23304155H0039FB7B077ABF12317B3C9H002H00019H002H00019H009H005H00013H00019H002H00013H00013H00019H009H005H00019H002H00019H002H00019H002H00019H002H00017H00013H00013H00019H002H00013H00019H006H00019H002H00013H00017H00013H00017H00013H00013H00017H0091FC4BDB1A3AB695902EBE3DF54B8AAACBA40DC4D10A020027353761313531593437330D2H353761313531593421330D2035376131353159263537612H353761D13521093631212D2H3521392H3537612H3537612B353761312H234130352915143537612A353761343537613H3501312H3559362H35592H353761312H355937353159D0CA3461D6CA34613427330D2H35376131353159342F33412H3537615F3531093733312D2HCA34613D35376131252341323529152H3537610E3521093631212D2H3521393F3537613F3537613D353761353135452H3537612H353761C7CA3461342H3549FE3421093631212D33342369C3CA3461C0CA3461312H234130352915F9CA346109A4A109BC865A1D5D4E571CF25FAD578D36BE507D0EAE0382D81529CBFCE3503653EA05B25E1E32691C6E58600A02008B6A093H002HCA9AA6ABB3AFB8B96A063H002HCAADABA7AF6A063H002HCAA4AFB2BE405H00E494406A0D3H002HCA86A5A9ABA699A9B8A3BABE6A0A3H002HCA8EA3B9ABA8A6AFAE6A083H002HCA99A9B8A3BABE6A053H002HCA83B98B6A0B3H002HCA89A2ABB8ABA9BEAFB86A0D3H002HCA86A5A9ABA69AA6ABB3AFB86A103H002HCA8CA3A4AE8CA3B8B9BE89A2A3A6AE6A023H002HCA6A0D3H002HCA8DAFBE89A2A3A6AEB8AFA40050D0493A4782EFEE3C3F76089B5H00", L_217_())
-	end
-end)
-
-
-sector13:AddButton("Kaias Antilock (T,M,N)", function()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/iluvje54/kaias/main/project"))()
-end)
-
-sector13:AddButton("Fly (X)", function()
- loadstring(game:HttpGet("https://raw.githubusercontent.com/iluvje54/fly/main/ok"))()
-end)
-
-local slider = sector13:AddSlider("Anti-Lock Speed", 0, 1, 5, 1, function(L_141_arg0)
-	getgenv().Multiplier = L_141_arg0
-end)
-
-sector13:AddTextbox("CFrame Speed", "", function(L_142_arg0)
-	getgenv().Multiplier = L_142_arg0
-    end)
-    
-    
-
-
-sector12:AddTextbox("Field Of View",false,function(value)
-workspace.CurrentCamera.FieldOfView = (value)
-end)
-  
- local button = sector12:AddButton("Full Bright",false,function()
-local Light = game:GetService("Lighting")
-
-            function dofullbright()
-            Light.Ambient = Color3.new(1, 1, 1)
-            Light.ColorShift_Bottom = Color3.new(1, 1, 1)
-            Light.ColorShift_Top = Color3.new(1, 1, 1)
+            --
+            if instanceParent then
+                instanceParent[#instanceParent + 1] = instance
             end
-
-            dofullbright()
-
-            Light.LightingChanged:Connect(dofullbright)
-
-end)
-  
-  sector13:AddButton("Headless (Client Sided)", function()
-	local L_393_ = game.Players.LocalPlayer.Character
-	local L_394_ = L_393_:WaitForChild("Head")
-	local L_395_ = L_394_:WaitForChild("face")
-	L_395_.Transparency = 1 --Texture = "rbxassetid://209712379"
-	L_394_.Transparency = 1
-
-end)
-sector13:AddButton("Korblox (Client Sided)", function()
-	local L_396_ = game.Players.LocalPlayer.Character
-	local L_397_ = game.Players.LocalPlayer.Character
-	local L_398_ = L_396_.Head
-	local L_399_ = L_398_.face
-	local L_400_ = L_397_.RightFoot
-	local L_401_ = L_397_.RightLowerLeg
-	local L_402_ = L_397_.RightUpperLeg
-	local L_403_ = L_397_.LeftFoot
-	local L_404_ = L_397_.LeftLowerLeg
-	local L_405_ = L_397_.LeftUpperLeg
-    
-    -- Right
-	L_400_.MeshId = "http://www.roblox.com/asset/?id=902942093"
-	L_401_.MeshId = "http://www.roblox.com/asset/?id=902942093"
-	L_402_.MeshId = "http://www.roblox.com/asset/?id=902942096"
-	L_402_.TextureID = "http://roblox.com/asset/?id=902843398"
-	L_400_.Transparency = 1
-	L_401_.Transparency = 1
-    
-end)
-
-sector13:AddButton("Blizzard Beast Mode (Client)", function()
-	local L_406_ = game.Players.LocalPlayer.Character
-	local L_407_ = L_406_:WaitForChild("Head")
-	local L_408_ = L_407_:WaitForChild("face")
-	L_408_.Texture = "rbxassetid://209712379"
-end)
-sector13:AddButton("Super Super Happy Face (Client)", function()
-	local L_409_ = game.Players.LocalPlayer.Character
-	local L_410_ = L_409_:WaitForChild("Head")
-	local L_411_ = L_410_:WaitForChild("face")
-	L_411_.Texture = "rbxassetid://494290547"
-end)
-
-sector13:AddButton("Beast Mode (Client Sided)", function()
-	local L_412_ = game.Players.LocalPlayer.Character
-	local L_413_ = L_412_:WaitForChild("Head")
-	local L_414_ = L_413_:WaitForChild("face")
-	L_414_.Texture = "rbxassetid://127959433"
-end)
-sector13:AddButton("Playful Vampire (Client Sided)", function()
-	local L_415_ = game.Players.LocalPlayer.Character
-	local L_416_ = L_415_:WaitForChild("Head")
-	local L_417_ = L_416_:WaitForChild("face")
-	L_417_.Texture = "rbxassetid://2409281591"
-end)
-
-sector14:AddButton("Zombie T/OM", function()
-local L_206_ = game.Players.LocalPlayer.Character.Animate
-            L_206_.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=782841498"
-            L_206_.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=782845736"
-            L_206_.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=616168032"
-            L_206_.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=616163682"
-            L_206_.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=5319841935"
-            L_206_.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=707829716"
-            game.Players.LocalPlayer.Character.Humanoid.Jump = true
-wait(1)
-end)
-  
-  
-  sector14:AddButton("Zombie T/M", function()
-   local L_206_ = game.Players.LocalPlayer.Character.Animate
-            L_206_.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=782841498"
-            L_206_.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=782845736"
-            L_206_.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=616168032"
-            L_206_.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=616163682"
-            L_206_.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=1083218792"
-            L_206_.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=707829716"
-     game.Players.LocalPlayer.Character.Humanoid.Jump = true
-wait(1) 
-end)
-   
-   
-   sector14:AddButton("Zombie Run/Walk", function()
-   local L_206_ = game.Players.LocalPlayer.Character.Animate
-    L_206_.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=616168032"
-            L_206_.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=616163682"
-             game.Players.LocalPlayer.Character.Humanoid.Jump = true
-wait(1)
-end)
-
-sector14:AddButton("AutoClicker (Z)", function()
-     local Player = game:GetService("Players").LocalPlayer
-			local Mouse = Player:GetMouse()
-			local Clicking = false
-			Mouse.KeyDown:Connect(function(Key)
-				if Key == "z" then
-					Clicking = not Clicking
-					if Clicking == true then
-						repeat
-							mouse1click()
-							wait(0.001)
-						until Clicking == false
-					end
-				end
-			end)
-end)
-
-sector14:AddButton("Loop Mute Radio (Sided)", function()
- for i, v in pairs(game:GetService'Players':GetChildren()) do
-if v and v.Character then
-local character = v.Character.name
-
-   getgenv().Toggled = true
-   
-   local Player = character
-   
-   local Players = game:GetService('Players')
-   local RunService = game:GetService('RunService')
-   
-   RunService.Heartbeat:Connect(function()
-       if Toggled then
-           pcall(function()
-               Players[Player].Character.LowerTorso:FindFirstChild('BOOMBOXSOUND').Playing = false
-               Players[Player].Character.LowerTorso:FindFirstChild('BOOMBOXSOUND').TimePosition = 0
-           end)
-       end
-   end)
-end
-end
-end)
-
-sector14:AddButton("Spam Call Everyone", function()
-getgenv().SpamPhone = not getgenv().SpamPhone
-while SpamPhone do wait()
-   for i,v in pairs(game.Players:GetPlayers()) do
-       wait(00.1)
-       game.ReplicatedStorage.MainEvent:FireServer("PhoneCall", v.Name)
-   end
-end
-    end)
-
-sector14:AddButton("Rev Mountain", function()
-game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-696.847717, 167.674957, -41.0118256, 0.626992583, 7.53169349e-09, -0.779025197, -1.29610933e-09, 1, 8.62493632e-09, 0.779025197, -4.39806902e-09, 0.626992583)
-end)
-
-sector14:AddButton("Db Mountain", function()
- game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1087.02783, 104.254997, -268.160614, 0.0359299146, -0.000130457382, -0.99935472, -2.87694893e-05, 1, -0.000131575929, 0.99935472, 3.34783836e-05, 0.0359299146)
-end)
-
-sector14:AddButton("Flame Mountain", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-228.709259, 96.75, -46.1524429, 0.988781095, -6.16038989e-08, -0.149372295, 5.44428751e-08, 1, -5.20298862e-08, 0.149372295, 4.33139249e-08, 0.988781095)
-end)
-
-sector14:AddButton("Tac Mountain", function()
- game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(493.328918, 112.5, -689.263916, -0.999886096, 0.000241556234, -0.0150990579, 0.000226202334, 0.999999464, 0.00101856329, 0.0150993001, 0.00101503218, -0.999885678)
-end)
-
-sector15:AddButton("Church Mountain", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(288.8479, 143.25, -245.123169, -0.999539435, 3.95160157e-07, 0.0303715728, -3.52983733e-07, 1, -2.46274394e-05, -0.0303715728, -2.4626821e-05, -0.999539435)
-end)
-   
- sector15:AddButton("Teleport Ufo", function()
-  game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(2.85052466, 132, -736.571106, -0.0460956171, -4.24733706e-08, -0.998937011, 7.26012459e-08, 1, -4.58687275e-08, 0.998937011, -7.46384217e-08, -0.0460956171)
-end)
-   
-   sector15:AddButton("Admin Guns", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-872.853516, -34.4276848, -538.013306, -0.999724388, -3.9898886e-08, -0.0234765243, -3.9204977e-08, 1, -3.00177518e-08, 0.0234765243, -2.90890814e-08, -0.999724388)
-    end)
- sector15:AddButton("Admin Guns 2", function()
-        	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-808.708557, -39.6492004, -932.789368, 0.999899805, 2.01343173e-08, -0.0141554065, -2.17800533e-08, 1, -1.16108232e-07, 0.0141554065, 1.16404912e-07, 0.999899805)
-    end)
-   sector15:AddButton("Admin Foods", function()
-       	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-788.053406, -39.6492004, -932.951233, 0.998369277, 2.46515359e-08, 0.0570784509, -2.8773524e-08, 1, 7.13949646e-08, -0.0570784509, -7.29209759e-08, 0.998369277) 
-    end)
-   
-    
-    
-    
-    
-
-    sector15:AddButton("Teleport Rpg", function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(139.815933, -22.9016266, -136.737762, 0.0339428484, -7.90177737e-08, 0.999423802, -4.7851227e-08, 1, 8.06884728e-08, -0.999423802, -5.0562452e-08, 0.0339428484)
-    end)
-sector15:AddButton("Teleport Bank", function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-318.891174, 80.2145309, -257.177429, 0.0479469746, -5.14644114e-08, 0.998850107, -3.12971538e-09, 1, 5.16738901e-08, -0.998850107, -5.60372015e-09, 0.0479469746)
-    end)
-   sector15:AddButton("Teleport Taco", function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(707.502014, 139, -543.044739, -0.00318608154, -0.00102963799, 0.999993861, 0.000187970581, 0.999999464, 0.00103024102, -0.99999404, 0.00019125198, -0.00318560796)
-    end)
-    sector15:AddButton("TeleportDrum Gun", function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-80.8381271, 46.828949, -85.845993, 0.999289691, 4.71884114e-08, 0.0376862474, -4.71660684e-08, 1, -1.48225032e-09, -0.0376862474, -2.96314889e-10, 0.999289691)
-    end)
-    sector15:AddButton("Teleport Rev Roof", function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-634.463135, 80.434761, -204.232559, -0.0190527271, -1.03574322e-07, -0.999818563, 4.36709335e-09, 1, -1.03676342e-07, 0.999818563, -6.3416179e-09, -0.0190527271)
-    end)
-            sector16:AddButton("Playground", function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-308.851196, 103.049866, -685.874817, 0.0775452703, 4.43633544e-05, -0.996988416, 4.02679916e-06, 1, 4.48105384e-05, 0.996988416, -7.48951334e-06, 0.0775452703)
-    end)
-           
-
-      sector16:AddButton("Buy Db (Dupeable)", function()
-    L_10_ = game:GetService'Players'.LocalPlayer
-	local L_504_ = game.Workspace.Ignored.Shop['[Double-Barrel SG] - $1400']
-	local L_505_ = L_10_.Character.HumanoidRootPart.Position
-	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = L_504_.Head.CFrame + Vector3.new(0, 3, 0)
-	wait(0.5)
-	fireclickdetector(game.Workspace.Ignored.Shop['[Double-Barrel SG] - $1400'].ClickDetector)
-	fireclickdetector(game.Workspace.Ignored.Shop['[Double-Barrel SG] - $1400'].ClickDetector)
-	L_10_.Character.HumanoidRootPart.CFrame = CFrame.new(L_505_)
-	L_10_.Character.HumanoidRootPart.CFrame = CFrame.new(L_505_)
-    end)
-
- sector16:AddButton("Buy Rev (Dupeable)", function()
-	L_10_ = game:GetService'Players'.LocalPlayer
-	local L_498_ = '[Revolver] - $1300'
-	local L_499_ = game.Workspace.Ignored.Shop[L_498_]
-	local L_500_ = L_10_.Character.HumanoidRootPart.Position
-	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = L_499_.Head.CFrame + Vector3.new(0, 3, 0)
-	wait(0.5)
-	fireclickdetector(game.Workspace.Ignored.Shop[L_498_].ClickDetector)
-	fireclickdetector(game.Workspace.Ignored.Shop[L_498_].ClickDetector)
-	L_10_.Character.HumanoidRootPart.CFrame = CFrame.new(L_500_)
-	L_10_.Character.HumanoidRootPart.CFrame = CFrame.new(L_500_)
-end)
-
-sector16:AddButton("Teleport G Station", function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(595.925171, 130.75, -346.41568, -0.0400748774, 7.26109022e-08, 0.999196708, 2.20863914e-08, 1, -7.17834538e-08, -0.999196708, 1.91919352e-08, -0.0400748774)
-    end)
-             
-	sector16:AddButton("Teleport Cemetery", function()
-        	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(135.109558, 99.75, -57.2315979, 0.999993503, -0.000633752206, -0.0035054055, 0.000638642872, 0.999998808, 0.00139435288, 0.00350463158, -0.00139658386, 0.999992728)
-    end)
-              
-	sector16:AddButton("Teleport School Roof", function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-525.353455, 68.125, 311.824402, 0.999992013, 1.03866675e-08, -0.00399552286, -1.03507425e-08, 1, 9.01170427e-09, 0.00399552286, -8.97027519e-09, 0.999992013)
-    end)
-
-      sector16:AddButton("Godmode (Melees)", function()
-    local function L_427_func()
-		local L_428_ = game:GetService('Players').LocalPlayer;
-		local L_429_ = L_428_.Character;
-		L_429_:FindFirstChildOfClass('Humanoid').Health = 0;
-
-		local L_430_ = L_428_.CharacterAdded:Wait();
-		local L_431_ = Instance.new('Folder');
-		L_431_.Name = 'FULLY_LOADED_CHAR';
-		L_431_.Parent = L_430_;
-		L_430_:WaitForChild('RagdollConstraints'):Destroy();
-		local L_432_ = Instance.new('BoolValue', L_430_);
-		L_432_.Name = 'RagdollConstraints';
-
-		local L_433_ = game:GetService("Players")
-		local L_434_ = L_433_.LocalPlayer
-		local L_435_ = L_434_.Character
-
-		L_435_.BodyEffects.Armor:Destroy()
-		L_435_.BodyEffects.Defense:Destroy()
-
-		local L_436_ = Instance.new("NumberValue")
-		L_436_.Name = "Defense"
-		L_436_.Parent = L_435_.BodyEffects
-
-		local L_437_ = Instance.new("NumberValue")
-		L_437_.Name = "Armor"
-		L_437_.Parent = L_435_.BodyEffects
-
-		game.ReplicatedStorage.MainEvent:FireServer("Block", true)
+            --
+            return instance
+        end
 	end
-
-
-	L_427_func()
-	while wait() do
-		for L_438_forvar0, L_439_forvar1 in pairs(game.Players.LocalPlayer.Character:FindFirstChildWhichIsA('Humanoid'):GetPlayingAnimationTracks()) do
-			if L_439_forvar1.Name == 'Block' then
-				L_439_forvar1:Stop()
-			end
-		end
-	end	
-      end)
-
- sector16:AddButton("Godmode (Guns)", function()
-    local L_424_ = game.Players.LocalPlayer
-
-	L_424_.Character:FindFirstChild("FULLY_LOADED_CHAR").Parent = game.ReplicatedStorage
-	L_424_.Character:Remove()
-	game.ReplicatedStorage:FindFirstChild("FULLY_LOADED_CHAR").Parent = L_424_.Character
-	local L_425_ = true
-
-	while wait() do
-		pcall(function()
-			if game.Players.LocalPlayer.Character.BodyEffects:FindFirstChild("BreakingParts") and L_425_ == true then
-				game.Players.LocalPlayer.Character.BodyEffects.BreakingParts:Destroy()
-				local L_426_ = Instance.new("Folder", game.Players.LocalPlayer.Character)
-				L_426_.Name = "FULLY_LOADED_CHAR"
-				wait()
-				game.StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, true)
-				L_424_.Character:FindFirstChild("FULLY_LOADED_CHAR").Parent = game.ReplicatedStorage
-			end
-		end)
-	end
-    end)
-
- sector16:AddButton("Anti Ban (Admin)", function()
-local annoying = {"JokeTheFool", "Sherosama", "dtbbullet", "AStrongMuscle", "XavierWild", "NikoSenpai", "UziGarage", "iumu", "Benoxa", "Luutyy", "clubstar54", "givkitheth", "DrxcoBaby" , "DrxcoRxsh" } -- you can add more players by doing {"Player1", "Player2"}
- 
-game.Players.PlayerAdded:Connect(function(plr)
-for i, v in pairs(annoying) do
-if plr.Name == v then
-local loc = game.Players.LocalPlayer
-loc:Kick("Kicked an admin has joined")
-end
-end
-end)
- end)
-
- sector16:AddButton("Better GamePlay", function()
-local decalsyeeted = true -- Leaving this on makes games look shitty but the fps goes up by at least 20.
-local g = game
-local w = g.Workspace
-local l = g.Lighting
-local t = w.Terrain
-t.WaterWaveSize = 0
-t.WaterWaveSpeed = 0
-t.WaterReflectance = 0
-t.WaterTransparency = 0
-l.GlobalShadows = false
-l.FogEnd = 9e9
-l.Brightness = 0
-settings().Rendering.QualityLevel = "Level01"
-for i, v in pairs(g:GetDescendants()) do
-    if v:IsA("Part") or v:IsA("Union") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") then
-        v.Material = "Plastic"
-        v.Reflectance = 0
-    elseif v:IsA("Decal") or v:IsA("Texture") and decalsyeeted then
-        v.Transparency = 1
-    elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-        v.Lifetime = NumberRange.new(0)
-    elseif v:IsA("Explosion") then
-        v.BlastPressure = 1
-        v.BlastRadius = 1
-    elseif v:IsA("Fire") or v:IsA("SpotLight") or v:IsA("Smoke") then
-        v.Enabled = false
-    elseif v:IsA("MeshPart") then
-        v.Material = "Plastic"
-        v.Reflectance = 0
-        v.TextureID = 10385902758728957
+    --
+    function utility:Instance(InstanceType, InstanceProperties)
+        local Object = Instance.new(InstanceType)
+        --
+        for Index, Value in pairs(InstanceProperties) do
+            Object[Index] = Value
+        end
+        --
+        library.objects[Object] = true
+        --
+        return Object
     end
-end
-for i, e in pairs(l:GetChildren()) do
-    if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
-        e.Enabled = false
+    --
+    function utility:RemoveInstance(Object)
+        library.objects[Object] = nil
+        Object:Remove()
     end
-end
-end)
-
-local button = sector16:AddButton("Autofarm (Unstoppable)", false, function()
-    --[[
-Da Hood auto rob script by Amnesia
-I know script became a bit monkey code but i am lazy to make it look better
-I didn't obfuscate it because why not
-]]
-repeat
-    wait()
-until game:IsLoaded()
-local gm = getrawmetatable(game)
-setreadonly(gm, false)
-local namecall = gm.__namecall
-gm.__namecall =
-    newcclosure(
-    function(self, ...)
-        local args = {...}
-        if not checkcaller() and getnamecallmethod() == "FireServer" and tostring(self) == "MainEvent" then
-            if tostring(getcallingscript()) ~= "Framework" then
+    --
+    function utility:UpdateOffset(instance, instanceOffset)
+        for i,v in pairs(library.drawings) do
+            if v[1] == instance then
+                v[2] = instanceOffset
+            end
+        end
+    end
+    --
+    function utility:UpdateTransparency(instance, instanceTransparency)
+        for i,v in pairs(library.drawings) do
+            if v[1] == instance then
+                v[3] = instanceTransparency
+            end
+        end
+    end
+    --
+    function utility:Remove(instance, hidden)
+        library.colors[instance] = nil
+        --
+        local ind = 0
+        --
+        for i,v in pairs(hidden and library.hidden or library.drawings) do
+            if v[1] == instance then
+                ind = i
+                if hidden then
+                    v[1] = nil
+                else
+                    v[2] = nil
+                    v[1] = nil
+                end
+            end
+        end
+        --
+        Remove(hidden and library.hidden or library.drawings, ind)
+        instance:Remove()
+    end
+    --
+    function utility:GetSubPrefix(str)
+        local str = tostring(str):gsub(" ","")
+        local var = ""
+        --
+        if #str == 2 then
+            local sec = string.sub(str,#str,#str+1)
+            var = sec == "1" and "st" or sec == "2" and "nd" or sec == "3" and "rd" or "th"
+        end
+        --
+        return var
+    end
+    --
+    function utility:Connection(connectionType, connectionCallback)
+        local connection = connectionType:Connect(connectionCallback)
+        library.connections[#library.connections + 1] = connection
+        --
+        return connection
+    end
+    --
+    function utility:Disconnect(connection)
+        for i,v in pairs(library.connections) do
+            if v == connection then
+                library.connections[i] = nil
+                v:Disconnect()
+            end
+        end
+    end
+    --
+    function utility:MouseLocation()
+        return uis:GetMouseLocation()
+    end
+    --
+    function utility:MouseOverDrawing(values, valuesAdd)
+        local valuesAdd = valuesAdd or {}
+        local values = {
+            (values[1] or 0) + (valuesAdd[1] or 0),
+            (values[2] or 0) + (valuesAdd[2] or 0),
+            (values[3] or 0) + (valuesAdd[3] or 0),
+            (values[4] or 0) + (valuesAdd[4] or 0)
+        }
+        --
+        local mouseLocation = utility:MouseLocation()
+	    return (mouseLocation.x >= values[1] and mouseLocation.x <= (values[1] + (values[3] - values[1]))) and (mouseLocation.y >= values[2] and mouseLocation.y <= (values[2] + (values[4] - values[2])))
+    end
+    --
+    function utility:GetTextBounds(text, textSize, font)
+        local textbounds = Vector2.new(0, 0)
+        --
+        local textlabel = utility:Create("TextLabel", {Vector2.new(0, 0)}, {
+            Text = text,
+            Size = textSize,
+            Font = font,
+            Hidden = true
+        })
+        --
+        textbounds = textlabel.TextBounds
+        utility:Remove(textlabel, true)
+        --
+        return textbounds
+    end
+    --
+    function utility:GetScreenSize()
+        return ws.CurrentCamera.ViewportSize
+    end
+    --
+    function utility:LoadImage(instance, imageName, imageLink)
+        local data
+        --
+        if isfile(library.folders.assets.."/"..imageName..".png") then
+            data = readfile(library.folders.assets.."/"..imageName..".png")
+        else
+            if imageLink then
+                data = game:HttpGet(imageLink)
+                writefile(library.folders.assets.."/"..imageName..".png", data)
+            else
                 return
             end
         end
-        if not checkcaller() and getnamecallmethod() == "Kick" then
-            return
+        --
+        if data and instance then
+            instance.Data = data
         end
-        return namecall(self, unpack(args))
     end
-)
-
-local LocalPlayer = game:GetService("Players").LocalPlayer
-
-function gettarget()
-    local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:wait()
-    local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-    local maxdistance = math.huge
-    local target
-    for i, v in pairs(game:GetService("Workspace").Cashiers:GetChildren()) do
-        if v:FindFirstChild("Head") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            local distance = (HumanoidRootPart.Position - v.Head.Position).magnitude
-            if distance < maxdistance then
-                target = v
-                maxdistance = distance
+    --
+    function utility:Lerp(instance, instanceTo, instanceTime)
+        local currentTime = 0
+        local currentIndex = {}
+        local connection
+        --
+        for i,v in pairs(instanceTo) do
+            currentIndex[i] = instance[i]
+        end
+        --
+        local function lerp()
+            for i,v in pairs(instanceTo) do
+                instance[i] = ((v - currentIndex[i]) * currentTime / instanceTime) + currentIndex[i]
             end
         end
+        --
+        connection = utility:Connection(rs.RenderStepped, function(delta)
+            if currentTime < instanceTime then
+                currentTime = currentTime + delta
+                lerp()
+            else
+                connection:Disconnect()
+            end
+        end)
+        --
+        
     end
-    return target
+    --
+    function utility:Combine(table1, table2)
+        local table3 = {}
+        for i,v in pairs(table1) do table3[i] = v end
+        local t = #table3
+        for z,x in pairs(table2) do table3[z + t] = x end
+        return table3
+    end
+    --
+    function utility:WrapText(Text, Size)
+        local Max = (Size / 7)
+        --
+        return Text:sub(0, Max)
+    end
+    --
+    function utility:InputToString(Input)
+        if Input then
+            local String = (tostring(Input) .. "."):gsub("%.", ",")
+            local Count = 0
+            --
+            for Value in String:gmatch("(.-),") do
+                Count = Count + 1
+                --
+                if Count == 3 then
+                    String = Value:gsub("Keypad", "")
+                end
+            end
+            --
+            if String == "Unknown" or Input.Value == 27 then
+                return "None"
+            elseif utility.Keyboard.InputNames[String] then
+                String = utility.Keyboard.InputNames[String]
+            end
+            --
+            return String
+        else
+            return "None"
+        end
+    end
 end
 
-for i, v in pairs(workspace:GetDescendants()) do
-    if v:IsA("Seat") then
-        v:Destroy()
+-- // Library Functions
+do
+    library.__index = library
+	pages.__index = pages
+	sections.__index = sections
+    --
+    function library:Notification(info)
     end
-end
-
-
-shared.MoneyFarm = true -- Just execute shared.MoneyFarm = false to stop farming
-
-while shared.MoneyFarm do
-    wait()
-    local Target = gettarget()
-    repeat
-        wait()
-        pcall(
-            function()
-                local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:wait()
-                local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-                local Combat = LocalPlayer.Backpack:FindFirstChild("Combat") or Character:FindFirstChild("Combat")
-                if not Combat then
-                    Character:FindFirstChild("Humanoid").Health = 0
+    --
+    function library:Loader(info)
+		local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title or "UI Title"
+        local size = info.size or info.Size or Vector2.new(375,359)
+        local accent = info.accent or info.Accent or info.color or info.Color or theme.accent
+        local callback = info.callback or info.Callback or info.callBack or info.CallBack or function() end
+        local pageammount = info.pages or info.Pages or 1
+        --
+        theme.accent = accent
+        --
+        local window = {pages = {}, loader = true, isVisible = false, pageammount = pageammount, callback = callback, wminfo = "$$$$$ AntarcticaWare $$$$$ || UID : %u || Ping : %s || Fps : %u", currentPage = nil, fading = false, dragging = false, drag = Vector2.new(0,0), currentContent = {frame = nil, dropdown = nil, multibox = nil, colorpicker = nil, keybind = nil, textbox = nil}}
+        --
+        local main_frame = utility:Create("Frame", {Vector2.new(0,0)}, {
+            Size = utility:Size(0, size.X, 0, size.Y),
+            Position = utility:Position(0.5, -(size.X/2) ,0.5, -(size.Y/2)),
+            Color = theme.outline
+        });window["main_frame"] = main_frame
+        --
+        library.colors[main_frame] = {
+            Color = "outline"
+        }
+        --
+        local frame_inline = utility:Create("Frame", {Vector2.new(1,1), main_frame}, {
+            Size = utility:Size(1, -2, 1, -2, main_frame),
+            Position = utility:Position(0, 1, 0, 1, main_frame),
+            Color = theme.accent
+        })
+        --
+        library.colors[frame_inline] = {
+            Color = "accent"
+        }
+        --
+        local inner_frame = utility:Create("Frame", {Vector2.new(1,1), frame_inline}, {
+            Size = utility:Size(1, -2, 1, -2, frame_inline),
+            Position = utility:Position(0, 1, 0, 1, frame_inline),
+            Color = theme.lightcontrast
+        })
+        --
+        library.colors[inner_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        local title = utility:Create("TextLabel", {Vector2.new(4,2), inner_frame}, {
+            Text = name,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0, 4, 0, 2, inner_frame)
+        })
+        --
+        library.colors[title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        local inner_frame_inline = utility:Create("Frame", {Vector2.new(4,18), inner_frame}, {
+            Size = utility:Size(1, -8, 1, -22, inner_frame),
+            Position = utility:Position(0, 4, 0, 18, inner_frame),
+            Color = theme.inline
+        })
+        --
+        library.colors[inner_frame_inline] = {
+            Color = "inline"
+        }
+        --
+        local inner_frame_inline2 = utility:Create("Frame", {Vector2.new(1,1), inner_frame_inline}, {
+            Size = utility:Size(1, -2, 1, -2, inner_frame_inline),
+            Position = utility:Position(0, 1, 0, 1, inner_frame_inline),
+            Color = theme.outline
+        })
+        --
+        library.colors[inner_frame_inline2] = {
+            Color = "outline"
+        }
+        --
+        local back_frame = utility:Create("Frame", {Vector2.new(1,1), inner_frame_inline2}, {
+            Size = utility:Size(1, -2, 1, -2, inner_frame_inline2),
+            Position = utility:Position(0, 1, 0, 1, inner_frame_inline2),
+            Color = theme.darkcontrast
+        });window["back_frame"] = back_frame
+        --
+        library.colors[back_frame] = {
+            Color = "darkcontrast"
+        }
+        --
+        local tab_frame_inline = utility:Create("Frame", {Vector2.new(4,24), back_frame}, {
+            Size = utility:Size(1, -8, 1, -28, back_frame),
+            Position = utility:Position(0, 4, 0, 24, back_frame),
+            Color = theme.outline
+        })
+        --
+        library.colors[tab_frame_inline] = {
+            Color = "outline"
+        }
+        --
+        local tab_frame_inline2 = utility:Create("Frame", {Vector2.new(1,1), tab_frame_inline}, {
+            Size = utility:Size(1, -2, 1, -2, tab_frame_inline),
+            Position = utility:Position(0, 1, 0, 1, tab_frame_inline),
+            Color = theme.inline
+        })
+        --
+        library.colors[tab_frame_inline2] = {
+            Color = "inline"
+        }
+        --
+        local tab_frame = utility:Create("Frame", {Vector2.new(1,1), tab_frame_inline2}, {
+            Size = utility:Size(1, -2, 1, -2, tab_frame_inline2),
+            Position = utility:Position(0, 1, 0, 1, tab_frame_inline2),
+            Color = theme.lightcontrast
+        });window["tab_frame"] = tab_frame
+        --
+        library.colors[tab_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        function window:SetName(Name)
+            title.Text = Name
+        end
+        --
+        function window:Move(vector)
+            for i,v in pairs(library.drawings) do
+                if v[2][2] then
+                    v[1].Position = utility:Position(0, v[2][1].X, 0, v[2][1].Y, v[2][2])
+                else
+                    v[1].Position = utility:Position(0, vector.X, 0, vector.Y)
+                end
+            end
+        end
+        --
+        function window:CloseContent()
+            if window.currentContent.dropdown and window.currentContent.dropdown.open then
+                local dropdown = window.currentContent.dropdown
+                dropdown.open = not dropdown.open
+                utility:LoadImage(dropdown.dropdown_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                --
+                for i,v in pairs(dropdown.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                dropdown.holder.drawings = {}
+                dropdown.holder.buttons = {}
+                dropdown.holder.inline = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.dropdown = nil
+            elseif window.currentContent.multibox and window.currentContent.multibox.open then
+                local multibox = window.currentContent.multibox
+                multibox.open = not multibox.open
+                utility:LoadImage(multibox.multibox_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                --
+                for i,v in pairs(multibox.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                multibox.holder.drawings = {}
+                multibox.holder.buttons = {}
+                multibox.holder.inline = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.multibox = nil
+            elseif window.currentContent.colorpicker and window.currentContent.colorpicker.open then
+                local colorpicker = window.currentContent.colorpicker
+                colorpicker.open = not colorpicker.open
+                --
+                for i,v in pairs(colorpicker.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                colorpicker.holder.drawings = {}
+                --
+                window.currentContent.frame = nil
+                window.currentContent.colorpicker = nil
+            elseif window.currentContent.keybind and window.currentContent.keybind.open then
+                local modemenu = window.currentContent.keybind.modemenu
+                window.currentContent.keybind.open = not window.currentContent.keybind.open
+                --
+                for i,v in pairs(modemenu.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                modemenu.drawings = {}
+                modemenu.buttons = {}
+                modemenu.frame = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.keybind = nil
+            elseif window.currentContent.textbox and window.currentContent.textbox.Disconnect then
+                window.currentContent.textbox.Disconnect()
+                window.currentContent.textbox = nil
+            end
+        end
+        --
+        function window:IsOverContent()
+            local isOver = false
+            --
+            if window.currentContent.frame and utility:MouseOverDrawing({window.currentContent.frame.Position.X,window.currentContent.frame.Position.Y,window.currentContent.frame.Position.X + window.currentContent.frame.Size.X,window.currentContent.frame.Position.Y + window.currentContent.frame.Size.Y}) then
+                isOver = true
+            end
+            --
+            return isOver
+        end
+        --
+        function window:Unload()
+            for i,v in pairs(library.connections) do
+                v:Disconnect()
+                v = nil
+            end
+            --
+            for i,v in next, library.hidden do
+                coroutine.wrap(function()
+                    if v[1] and v[1].Remove and v[1].__OBJECT_EXISTS then
+                        local instance = v[1]
+                        v[1] = nil
+                        v = nil
+                        --
+                        instance:Remove()
+                    end
+                end)()
+            end
+            --
+            for i,v in pairs(library.drawings) do
+                coroutine.wrap(function()
+                    if v[1].__OBJECT_EXISTS then
+                        local instance = v[1]
+                        v[2] = nil
+                        v[1] = nil
+                        v = nil
+                        --
+                        instance:Remove()
+                    end
+                end)()
+            end
+            --
+            for i,v in pairs(library.objects) do
+                i:Remove()
+            end
+            --
+            for i,v in pairs(library.began) do
+                v = nil
+            end
+            --
+            for i,v in pairs(library.ended) do
+                v = nil
+            end
+            --
+            for i,v in pairs(library.changed) do
+                v = nil
+            end
+            --
+            library.shared.initialized = false
+            library.drawings = {}
+            library.objects = {}
+            library.hidden = {}
+            library.connections = {}
+            library.began = {}
+            library.ended = {}
+            library.changed = {}
+            library.pointers = {}
+            library.colors = {}
+            --
+            uis.MouseIconEnabled = true
+        end
+        --
+        function window:Cursor(info)
+            window.cursor = {}
+            --
+            local cursor = utility:Create("Triangle", nil, {
+                Color = theme.cursoroutline,
+                Thickness = 2.5,
+                Filled = false,
+                ZIndex = 65,
+                Hidden = true
+            });window.cursor["cursor"] = cursor
+            --
+            library.colors[cursor] = {
+                Color = "cursoroutline"
+            }
+            --
+            local cursor_inline = utility:Create("Triangle", nil, {
+                Color = theme.accent,
+                Filled = true,
+                Thickness = 0,
+                ZIndex = 65,
+                Hidden = true
+            });window.cursor["cursor_inline"] = cursor_inline
+            --
+            library.colors[cursor_inline] = {
+                Color = "accent"
+            }
+            --
+            utility:Connection(rs.RenderStepped, function()
+                local mouseLocation = utility:MouseLocation()
+                --
+                cursor.PointA = Vector2.new(mouseLocation.X, mouseLocation.Y)
+                cursor.PointB = Vector2.new(mouseLocation.X + 12, mouseLocation.Y + 4)
+                cursor.PointC = Vector2.new(mouseLocation.X + 4, mouseLocation.Y + 12)
+                --
+                cursor_inline.PointA = Vector2.new(mouseLocation.X, mouseLocation.Y)
+                cursor_inline.PointB = Vector2.new(mouseLocation.X + 12, mouseLocation.Y + 4)
+                cursor_inline.PointC = Vector2.new(mouseLocation.X + 4, mouseLocation.Y + 12)
+            end)
+            --
+            uis.MouseIconEnabled = false
+            --
+            return window.cursor
+        end
+        --
+        function window:Fade()
+            window.fading = true
+            window.isVisible = not window.isVisible
+            --
+            spawn(function()
+                for i, v in pairs(library.drawings) do
+                    utility:Lerp(v[1], {Transparency = window.isVisible and v[3] or 0}, 0.25)
+                end
+            end)
+            --
+            window.cursor["cursor"].Transparency = window.isVisible and 1 or 0
+            window.cursor["cursor_inline"].Transparency = window.isVisible and 1 or 0
+            uis.MouseIconEnabled = not window.isVisible
+            --
+            window.fading = false
+        end
+        --
+        function window:Initialize()
+            if window.pages[1] then window.pages[1]:Show() end
+            --
+            for i,v in pairs(window.pages) do
+                v:Update()
+            end
+            --
+            library.shared.initialized = true
+            --
+            window:Cursor()
+            --
+            window:Fade()
+        end
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and window.isVisible and utility:MouseOverDrawing({main_frame.Position.X,main_frame.Position.Y,main_frame.Position.X + main_frame.Size.X,main_frame.Position.Y + 20}) then
+                local mouseLocation = utility:MouseLocation()
+                --
+                window.dragging = true
+                window.drag = Vector2.new(mouseLocation.X - main_frame.Position.X, mouseLocation.Y - main_frame.Position.Y)
+            end
+            
+            --
+            if window.currentContent.textbox then
+                if uis:IsKeyDown(Enum.KeyCode["LeftControl"]) and uis:IsKeyDown(Enum.KeyCode.V) then
+                    window.currentContent.textbox.Fire((utility:GetClipboard())) 
                     return
                 end
-                HumanoidRootPart.CFrame = Target.Head.CFrame * CFrame.new(0, -2.5, 3)
-                Combat.Parent = Character
-                Combat:Activate()
+                if Find(utility.Keyboard.Letters, utility:InputToString(Input.KeyCode)) then
+                    if uis:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        window.currentContent.textbox.Fire((utility:InputToString(Input.KeyCode)):upper())
+                    else
+                        window.currentContent.textbox.Fire((utility:InputToString(Input.KeyCode)):lower())
+                    end
+                elseif utility:InputToString(Input.KeyCode) == "Space" then
+                    window.currentContent.textbox.Fire(" ")
+                elseif utility.Keyboard.Modifiers[utility:InputToString(Input.KeyCode)] then
+                    if uis:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        if utility.Keyboard.Modifiers[utility:InputToString(Input.KeyCode)] then
+                            window.currentContent.textbox.Fire(utility.Keyboard.Modifiers[utility:InputToString(Input.KeyCode)])
+                        end
+                    else
+                        window.currentContent.textbox.Fire(utility:InputToString(Input.KeyCode))
+                    end
+                elseif utility:InputToString(Input.KeyCode) == "Back" then
+                    window.currentContent.textbox.Fire("Backspace")
+                    --
+                    window.currentContent.textbox.Backspace = {tick(), 0}
+                end
             end
-        )
-    until not Target or Target.Humanoid.Health < 0
-    for i, v in pairs(game:GetService("Workspace").Ignored.Drop:GetDescendants()) do
-        if v:IsA("ClickDetector") and v.Parent and v.Parent.Name:find("Money") then
-            local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:wait()
-            local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-            if (v.Parent.Position - HumanoidRootPart.Position).magnitude <= 18 then
-                repeat
+        end
+        --
+        library.ended[#library.ended + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and window.dragging then
+                window.dragging = false
+                window.drag = Vector2.new(0, 0)
+            end
+            --
+            if window.currentContent.textbox and window.currentContent.textbox.Fire and window.currentContent.textbox.Backspace then
+                if utility:InputToString(Input.KeyCode) == "Back" then
+                    window.currentContent.textbox.Backspace = nil
+                end
+            end
+        end
+        --
+        library.changed[#library.changed + 1] = function(Input)
+            if window.dragging and window.isVisible then
+                local mouseLocation = utility:MouseLocation()
+                if utility:GetScreenSize().Y-main_frame.Size.Y-5 > 5 then
+                    local move = Vector2.new(math.clamp(mouseLocation.X - window.drag.X, 5, utility:GetScreenSize().X-main_frame.Size.X-5), math.clamp(mouseLocation.Y - window.drag.Y, 5, utility:GetScreenSize().Y-main_frame.Size.Y-5))
+                    window:Move(move)
+                else
+                    local move = Vector2.new(mouseLocation.X - window.drag.X, mouseLocation.Y - window.drag.Y)
+                    window:Move(move)
+                end
+            end
+        end
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.KeyCode == Enum.KeyCode.P then
+                local plrs = game:GetService("Players")
+                local plr = plrs.LocalPlayer
+                if #plrs:GetPlayers() <= 1 then
+                    plr:Kick("\nRejoining...")
                     wait()
-                    fireclickdetector(v)
-                until not v or not v.Parent.Parent
+                    game:GetService('TeleportService'):Teleport(game.PlaceId, plr)
+                else
+                    game:GetService('TeleportService'):TeleportToPlaceInstance(game.PlaceId, game.JobId, plr)
+                end
+            elseif Input.KeyCode == Enum.KeyCode.U then
+                window:Unload()
+            end
+        end
+        --
+        utility:Connection(uis.InputBegan,function(Input, Typing)
+            for _, func in pairs(library.began) do
+                if not window.dragging then
+                    local e,s = pcall(function()
+                        func(Input, Typing)
+                    end)
+                else
+                    break
+                end
+            end
+        end)
+        --
+        utility:Connection(uis.InputEnded,function(Input)
+            for _, func in pairs(library.ended) do
+                local e,s = pcall(function()
+                    func(Input)
+                end)
+            end
+        end)
+        --
+        utility:Connection(uis.InputChanged,function()
+            for _, func in pairs(library.changed) do
+                local e,s = pcall(function()
+                    func()
+                end)
+            end
+        end)
+        --
+        utility:Connection(rs.RenderStepped,function()
+            if window.currentContent.textbox and window.currentContent.textbox.Fire and window.currentContent.textbox.Backspace then
+                local Time = (tick() - window.currentContent.textbox.Backspace[1])
+                --
+                if Time > 0.4 then
+                    window.currentContent.textbox.Backspace[2] = window.currentContent.textbox.Backspace[2] + 1
+                    --
+                    if (window.currentContent.textbox.Backspace[2] % 5 == 0) then
+                        window.currentContent.textbox.Fire("Backspace")
+                    end
+                end
+            end
+        end)
+        --
+        utility:Connection(ws.CurrentCamera:GetPropertyChangedSignal("ViewportSize"),function()
+            window:Move(Vector2.new((utility:GetScreenSize().X/2) - (size.X/2), (utility:GetScreenSize().Y/2) - (size.Y/2)))
+        end)
+        --
+		return setmetatable(window, library)
+	end
+    --
+    function library:New(info)
+		local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title or "UI Title"
+        local size = info.size or info.Size or Vector2.new(504,604)
+        local accent = info.accent or info.Accent or info.color or info.Color or theme.accent
+        local callback = info.callback or info.Callback or info.callBack or info.CallBack or function() end
+        local style = info.style or info.Style or 1
+        local pageammount = info.PageAmmount
+        --
+        theme.accent = accent
+        --
+        local window = {pages = {}, loader = style == 2, init = false, pageammount = pageammount, isVisible = false, callback = callback, uibind = Enum.KeyCode.Z, wminfo = "$$$$$ AntarcticaWare $$$$$ || UID : %u || Ping : %s || Fps : %u", currentPage = nil, fading = false, dragging = false, drag = Vector2.new(0,0), currentContent = {frame = nil, dropdown = nil, multibox = nil, colorpicker = nil, keybind = nil, textbox = nil}}
+        --
+        local main_frame = utility:Create("Frame", {Vector2.new(0,0)}, {
+            Size = utility:Size(0, size.X, 0, size.Y),
+            Position = utility:Position(0.5, -(size.X/2) ,0.5, -(size.Y/2)),
+            Color = theme.outline
+        });window["main_frame"] = main_frame
+        --
+        library.colors[main_frame] = {
+            Color = "outline"
+        }
+        --
+        local frame_inline = utility:Create("Frame", {Vector2.new(1,1), main_frame}, {
+            Size = utility:Size(1, -2, 1, -2, main_frame),
+            Position = utility:Position(0, 1, 0, 1, main_frame),
+            Color = theme.accent
+        })
+        --
+        library.colors[frame_inline] = {
+            Color = "accent"
+        }
+        --
+        local inner_frame = utility:Create("Frame", {Vector2.new(1,1), frame_inline}, {
+            Size = utility:Size(1, -2, 1, -2, frame_inline),
+            Position = utility:Position(0, 1, 0, 1, frame_inline),
+            Color = theme.lightcontrast
+        })
+        --
+        library.colors[inner_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        local title = utility:Create("TextLabel", {Vector2.new(4,2), inner_frame}, {
+            Text = name,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0, 4, 0, 2, inner_frame)
+        })
+        --
+        library.colors[title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        local inner_frame_inline = utility:Create("Frame", {Vector2.new(4,18), inner_frame}, {
+            Size = utility:Size(1, -8, 1, -22, inner_frame),
+            Position = utility:Position(0, 4, 0, 18, inner_frame),
+            Color = theme.inline
+        })
+        --
+        library.colors[inner_frame_inline] = {
+            Color = "inline"
+        }
+        --
+        local inner_frame_inline2 = utility:Create("Frame", {Vector2.new(1,1), inner_frame_inline}, {
+            Size = utility:Size(1, -2, 1, -2, inner_frame_inline),
+            Position = utility:Position(0, 1, 0, 1, inner_frame_inline),
+            Color = theme.outline
+        })
+        --
+        library.colors[inner_frame_inline2] = {
+            Color = "outline"
+        }
+        --
+        local back_frame = utility:Create("Frame", {Vector2.new(1,1), inner_frame_inline2}, {
+            Size = utility:Size(1, -2, 1, -2, inner_frame_inline2),
+            Position = utility:Position(0, 1, 0, 1, inner_frame_inline2),
+            Color = theme.darkcontrast
+        });window["back_frame"] = back_frame
+        --
+        library.colors[back_frame] = {
+            Color = "darkcontrast"
+        }
+        --
+        local tab_frame_inline = utility:Create("Frame", {Vector2.new(4,24), back_frame}, {
+            Size = utility:Size(1, -8, 1, -28, back_frame),
+            Position = utility:Position(0, 4, 0, 24, back_frame),
+            Color = theme.outline
+        })
+        --
+        library.colors[tab_frame_inline] = {
+            Color = "outline"
+        }
+        --
+        local tab_frame_inline2 = utility:Create("Frame", {Vector2.new(1,1), tab_frame_inline}, {
+            Size = utility:Size(1, -2, 1, -2, tab_frame_inline),
+            Position = utility:Position(0, 1, 0, 1, tab_frame_inline),
+            Color = theme.inline
+        })
+        --
+        library.colors[tab_frame_inline2] = {
+            Color = "inline"
+        }
+        --
+        local tab_frame = utility:Create("Frame", {Vector2.new(1,1), tab_frame_inline2}, {
+            Size = utility:Size(1, -2, 1, -2, tab_frame_inline2),
+            Position = utility:Position(0, 1, 0, 1, tab_frame_inline2),
+            Color = theme.lightcontrast
+        });window["tab_frame"] = tab_frame
+        --
+        library.colors[tab_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        function window:UpdateTitle(newtitle)
+            title.Text = newtitle
+        end
+        --
+        function ColorLerp(Value, MinColor, MaxColor)
+            if Value <= 0 then return MaxColor end
+            if Value >= 100 then return MinColor end
+            --
+            return Color3.new(
+                MaxColor.R + (MinColor.R - MaxColor.R) * Value,
+                MaxColor.G + (MinColor.G - MaxColor.G) * Value,
+                MaxColor.B + (MinColor.B - MaxColor.B) * Value
+            )
+        end
+        -- // Esp Preview
+        do
+            window.VisualPreview = {
+                Size = {X = 5, Y = 0},
+                Color1 = Color3.fromRGB(0, 255, 0),
+                Color2 = Color3.fromRGB(255, 0, 0),
+                HealthBarFade = 0,
+                Fading = false,
+                State = false,
+                Visible = true,
+                Drawings = {},
+                Components = {
+                    Box = {
+                        Outline = nil,
+                        Box = nil,
+                        Fill = nil
+                    },
+                    HealthBar = {
+                        Outline = nil,
+                        Box = nil,
+                        Value = nil
+                    },
+                    Skeleton = {
+                        Head = {},
+                        Torso = {},
+                        LeftArm = {},
+                        RightArm = {},
+                        Hips = {},
+                        LeftLeg = {},
+                        RightLeg = {},
+                        HipsTorso = {}
+                    },
+                    Chams = {
+                        Head = {},
+                        Torso = {},
+                        LeftArm = {},
+                        RightArm = {},
+                        LeftLeg = {},
+                        RightLeg = {}
+                    },
+                    Title = {
+                        Text = nil
+                    },
+                    Distance = {
+                        Text = nil
+                    },
+                    Tool = {
+                        Text = nil
+                    },
+                    Flags = {
+                        Text = nil
+                    }
+                }
+            }
+            --
+            local esppreview_frame = utility:Create("Frame", {Vector2.new(main_frame.Size.X + 5,0), main_frame}, {
+                Size = utility:Size(0, 236, 0, 339),
+                Position = utility:Position(1, 5, 0, 0, main_frame),
+                Color = theme.outline
+            }, window.VisualPreview.Drawings)
+            --
+            library.colors[esppreview_frame] = {
+                Color = "outline"
+            }
+            --
+            local esppreview_inline = utility:Create("Frame", {Vector2.new(1,1), esppreview_frame}, {
+                Size = utility:Size(1, -2, 1, -2, esppreview_frame),
+                Position = utility:Position(0, 1, 0, 1, esppreview_frame),
+                Color = theme.accent
+            }, window.VisualPreview.Drawings)
+            --
+            library.colors[esppreview_inline] = {
+                Color = "accent"
+            }
+            --
+            local esppreview_inner = utility:Create("Frame", {Vector2.new(1,1), esppreview_inline}, {
+                Size = utility:Size(1, -2, 1, -2, esppreview_inline),
+                Position = utility:Position(0, 1, 0, 1, esppreview_inline),
+                Color = theme.lightcontrast
+            }, window.VisualPreview.Drawings)
+            --
+            library.colors[esppreview_inner] = {
+                Color = "lightcontrast"
+            }
+            --
+            local esppreview_title = utility:Create("TextLabel", {Vector2.new(4,2), esppreview_inner}, {
+                Text = "ESP Preview",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Position = utility:Position(0, 4, 0, 2, esppreview_inner)
+            }, window.VisualPreview.Drawings)
+            --
+            local esppreview_visiblebutton = utility:Create("TextLabel", {Vector2.new(esppreview_inner.Size.X - (5 + 7),2), esppreview_inner}, {
+                Text = "O",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Position = utility:Position(1, -(5 + 7), 0, 2, esppreview_inner)
+            }, window.VisualPreview.Drawings)
+            --
+            library.colors[esppreview_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            local esppreview_inner_inline = utility:Create("Frame", {Vector2.new(4,18), esppreview_inner}, {
+                Size = utility:Size(1, -8, 1, -22, esppreview_inner),
+                Position = utility:Position(0, 4, 0, 18, esppreview_inner),
+                Color = theme.inline
+            }, window.VisualPreview.Drawings)
+            --
+            library.colors[esppreview_inner_inline] = {
+                Color = "inline"
+            }
+            --
+            local esppreview_inner_outline = utility:Create("Frame", {Vector2.new(1,1), esppreview_inner_inline}, {
+                Size = utility:Size(1, -2, 1, -2, esppreview_inner_inline),
+                Position = utility:Position(0, 1, 0, 1, esppreview_inner_inline),
+                Color = theme.outline
+            }, window.VisualPreview.Drawings)
+            --
+            library.colors[esppreview_inner_outline] = {
+                Color = "outline"
+            }
+            --
+            local esppreview_inner_frame = utility:Create("Frame", {Vector2.new(1,1), esppreview_inner_outline}, {
+                Size = utility:Size(1, -2, 1, -2, esppreview_inner_outline),
+                Position = utility:Position(0, 1, 0, 1, esppreview_inner_outline),
+                Color = theme.darkcontrast
+            }, window.VisualPreview.Drawings)
+            --
+            library.colors[esppreview_inner_frame] = {
+                Color = "darkcontrast"
+            }
+            --
+            local esppreview_frame_previewbox = utility:Create("Frame", {Vector2.new(10,10), esppreview_inner_frame}, {
+                Size = utility:Size(1, -20, 1, -20, esppreview_inner_frame),
+                Position = utility:Position(0, 10, 0, 10, esppreview_inner_frame),
+                Color = Color3.fromRGB(0, 0, 0),
+                Transparency = 0
+            })
+            --
+            local BoxSize = utility:Size(1, -7, 1, -55, esppreview_frame_previewbox)
+            local healthbaroutline
+            local healthbar
+            local healthvalue
+            local boxoutline
+            --
+            function window.VisualPreview:UpdateHealthBar()
+                window.VisualPreview.HealthBarFade = window.VisualPreview.HealthBarFade + 0.015
+                local Smoothened = (math.acos(math.cos(window.VisualPreview.HealthBarFade * math.pi)) / math.pi)
+                local Size = (healthbaroutline.Size.Y - 2) * Smoothened
+                local Color = ColorLerp(Smoothened, window.VisualPreview.Color1, window.VisualPreview.Color2)
+                --
+                healthvalue.Text = "<- " .. math.round(Smoothened * 100)
+                healthvalue.Color = Color
+                healthbar.Color = Color
+                healthbar.Size = utility:Size(1, -2, 0, Size, healthbaroutline)
+                healthbar.Position = utility:Position(0, 1, 1, -Size - 1, healthbaroutline)
+                window.VisualPreview:UpdateHealthValue(5)
+                utility:UpdateOffset(healthbar, {Vector2.new(1, healthbaroutline.Size.Y - Size - 1), healthbaroutline})
+            end
+            --
+            function window.VisualPreview:UpdateHealthValue(Size)
+                local New = Vector2.new(healthbar.Position.X + (5 - Size), math.clamp(healthbar.Position.Y + 5, 0, (healthbar.Position.Y) + (healthbar.Size.Y) - 18))
+                --
+                healthvalue.Position = New
+                utility:UpdateOffset(healthvalue, {Vector2.new(5 - Size, New.Y - healthbar.Position.Y), healthbar})
+            end
+            --
+            function window.VisualPreview:ValidateSize(Side, Size)
+                if not (window.VisualPreview.Size[Side] == Size) then
+                    window.VisualPreview.Size[Side] = Size
+                    --
+                    esppreview_frame.Size = utility:Size(0, 231 + window.VisualPreview.Size[Side], 0, 339)
+                    esppreview_inline.Size = utility:Size(1, -2, 1, -2, esppreview_frame)
+                    esppreview_inner.Size = utility:Size(1, -2, 1, -2, esppreview_inline)
+                    esppreview_inner_inline.Size = utility:Size(1, -8, 1, -22, esppreview_inner)
+                    esppreview_inner_outline.Size = utility:Size(1, -2, 1, -2, esppreview_inner_inline)
+                    esppreview_inner_frame.Size = utility:Size(1, -2, 1, -2, esppreview_inner_outline)
+                    esppreview_frame_previewbox.Size = utility:Size(1, -20, 1, -20, esppreview_inner_frame)
+                    --
+                    esppreview_visiblebutton.Position = utility:Position(1, -(5 + 7), 0, 2, esppreview_inner)
+                    esppreview_frame_previewbox.Position = utility:Position(0, 10, 0, 10, esppreview_inner_frame)
+                    --
+                    utility:UpdateOffset(esppreview_visiblebutton, {Vector2.new(esppreview_inner.Size.X - (5 + 7),2), esppreview_inner})
+                    utility:UpdateOffset(esppreview_frame_previewbox, {Vector2.new(10,10), esppreview_inner_frame})
+                    utility:UpdateOffset(boxoutline, {Vector2.new(esppreview_frame_previewbox.Size.X - BoxSize.X - 1, 20), esppreview_frame_previewbox})
+                    --
+                    window:Move(main_frame.Position + Vector2.new(0, 0))
+                end
+            end
+            --
+            function window.VisualPreview:SetPreviewState(State)
+                window.VisualPreview.Fading = true
+                window.VisualPreview.State = State
+                --
+                task.spawn(function()
+                    for Index, Value in pairs(window.VisualPreview.Drawings) do
+                        utility:Lerp(Index, {Transparency = window.VisualPreview.State and Value or 0}, 0.2)
+                        utility:UpdateTransparency(Index, window.VisualPreview.State and Value or 0)
+                    end
+                end)
+                --
+                window.VisualPreview.Fading = false
+            end
+            --
+            function window.VisualPreview:SetComponentProperty(Component, Property, State, Index)
+                for Index2, Value in pairs(window.VisualPreview.Components[Component]) do
+                    if Index then
+                        Value[Index][Property] = State
+                        --
+                        if Property == "Transparency" then
+                            utility:UpdateTransparency(Value[Index], State)
+                            if window.VisualPreview.Drawings[Value[Index]] then
+                                window.VisualPreview.Drawings[Value[Index]] = State
+                            end
+                        end
+                    else
+                        Value[Property] = State
+                        --
+                        if Property == "Transparency" then
+                            utility:UpdateTransparency(Value, State)
+                            if window.VisualPreview.Drawings[Value] then
+                                window.VisualPreview.Drawings[Value] = State
+                            end
+                        end
+                    end 
+                end
+            end
+            --
+            function window.VisualPreview:SetComponentSelfProperty(Component, Self, Property, State, Index)
+                if Index then
+                    window.VisualPreview.Components[Component][Self][Index][Property] = State
+                    --
+                    if Property == "Transparency" then
+                        utility:UpdateTransparency(window.VisualPreview.Components[Component][Self][Index], State)
+                        if window.VisualPreview.Drawings[window.VisualPreview.Components[Component][Self][Index]] then
+                            window.VisualPreview.Drawings[window.VisualPreview.Components[Component][Self][Index]] = State
+                        end
+                    end
+                else
+                    window.VisualPreview.Components[Component][Self][Property] = State
+                    --
+                    if Property == "Transparency" then
+                        utility:UpdateTransparency(window.VisualPreview.Components[Component][Self], State)
+                        if window.VisualPreview.Drawings[window.VisualPreview.Components[Component][Self]] then
+                            window.VisualPreview.Drawings[window.VisualPreview.Components[Component][Self]] = State
+                        end
+                    end
+                end 
+            end
+            --
+            library.began[#library.began + 1] = function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 and esppreview_visiblebutton.Visible and window.isVisible and utility:MouseOverDrawing({esppreview_visiblebutton.Position.X, esppreview_visiblebutton.Position.Y, esppreview_visiblebutton.Position.X + esppreview_visiblebutton.TextBounds.X, esppreview_visiblebutton.Position.Y + esppreview_visiblebutton.TextBounds.Y}) and not window:IsOverContent() then
+                    window.VisualPreview.Visible = false
+                    esppreview_visiblebutton.Text = window.VisualPreview.Visible and "O" or "0"
+                end
+            end
+            --
+            do -- Preview Stuff
+                local preview_boxoutline = utility:Create("Frame", {Vector2.new(esppreview_frame_previewbox.Size.X - BoxSize.X - 1, 20), esppreview_frame_previewbox}, {
+                    Size = BoxSize,
+                    Position = utility:Position(1, -(BoxSize.X - 1), 0, 20, esppreview_frame_previewbox),
+                    Color = Color3.fromRGB(0, 0, 0),
+                    Filled = false,
+                    Thickness = 2.5
+                }, window.VisualPreview.Drawings);boxoutline = preview_boxoutline
+                --
+                local preview_box = utility:Create("Frame", {Vector2.new(0, 0), preview_boxoutline}, {
+                    Size = utility:Size(1, 0, 1, 0, preview_boxoutline),
+                    Position = utility:Position(0, 0, 0, 0, preview_boxoutline),
+                    Color = Color3.fromRGB(255, 255, 255),
+                    Filled = false,
+                    Thickness = 0.6
+                }, window.VisualPreview.Drawings)
+                --
+                local preview_heatlhbaroutline = utility:Create("Frame", {Vector2.new(-6, -1), preview_boxoutline}, {
+                    Size = utility:Size(0, 4, 1, 2, preview_boxoutline),
+                    Position = utility:Position(0, -6, 0, -1, preview_boxoutline),
+                    Color = Color3.fromRGB(0, 0, 0),
+                    Filled = true
+                }, window.VisualPreview.Drawings);healthbaroutline = preview_heatlhbaroutline
+                --
+                local preview_heatlhbar = utility:Create("Frame", {Vector2.new(1, 1), preview_heatlhbaroutline}, {
+                    Size = utility:Size(1, -2, 1, -2, preview_heatlhbaroutline),
+                    Position = utility:Position(0, 1, 0, 1, preview_heatlhbaroutline),
+                    Color = Color3.fromRGB(255, 0, 0),
+                    Filled = true
+                }, window.VisualPreview.Drawings);healthbar = preview_heatlhbar
+                --
+                local preview_title = utility:Create("TextLabel", {Vector2.new(preview_box.Size.X / 2, -20), preview_box}, {
+                    Text = "Username",
+                    Size = theme.textsize,
+                    Font = theme.font,
+                    Color = theme.textcolor,
+                    OutlineColor = theme.textborder,
+                    Center = true,
+                    Position = utility:Position(0.5, 0, 0, -20, preview_box)
+                }, window.VisualPreview.Drawings)
+                --
+                local preview_distance = utility:Create("TextLabel", {Vector2.new(preview_box.Size.X / 2, preview_box.Size.Y + 5), preview_box}, {
+                    Text = "25m",
+                    Size = theme.textsize,
+                    Font = theme.font,
+                    Color = theme.textcolor,
+                    OutlineColor = theme.textborder,
+                    Center = true,
+                    Position = utility:Position(0.5, 0, 1, 5, preview_box)
+                }, window.VisualPreview.Drawings)
+                --
+                local preview_tool = utility:Create("TextLabel", {Vector2.new(preview_box.Size.X / 2, preview_box.Size.Y + 20), preview_box}, {
+                    Text = "Weapon",
+                    Size = theme.textsize,
+                    Font = theme.font,
+                    Color = theme.textcolor,
+                    OutlineColor = theme.textborder,
+                    Center = true,
+                    Position = utility:Position(0.5, 0, 1, 20, preview_box)
+                }, window.VisualPreview.Drawings)
+                --
+                local preview_character = utility:Create("Frame", {Vector2.new(46/2, 40/2), preview_box}, {
+                    Size = utility:Size(1, -46, 1, -40, preview_box),
+                    Position = utility:Position(0, (46/2), 0, (40/2), preview_box),
+                    Color = Color3.fromRGB(255, 255, 255),
+                    Transparency = 0
+                }, window.VisualPreview.Drawings)
+                --
+                do -- Chams
+                    for Index = 1, 2 do
+                        local transparency = Index == 1 and 0.75 or 0.5
+                        local color = Index == 1 and Color3.fromRGB(93, 62, 152) or Color3.fromRGB(255, 255, 255)
+                        --
+                        local extrasize = Index == 1 and 4 or 0
+                        local extraoffset = Index == 1 and -2 or 0
+                        --
+                        local preview_character_head = utility:Create("Frame", {Vector2.new((preview_character.Size.X * 0.35) + (extraoffset), extraoffset), preview_character}, {
+                            Size = utility:Size(0.3, extrasize, 0.2, 0, preview_character),
+                            Position = utility:Position(0.35, extraoffset, 0, extraoffset, preview_character),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_character_torso = utility:Create("Frame", {Vector2.new((preview_character.Size.X * 0.25) + (extraoffset), (preview_character.Size.Y * 0.2) + (extraoffset)), preview_character}, {
+                            Size = utility:Size(0.5, extrasize, 0.4, extrasize, preview_character),
+                            Position = utility:Position(0.25, extraoffset, 0.2, extraoffset, preview_character),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_character_leftarm = utility:Create("Frame", {Vector2.new(extraoffset, (preview_character.Size.Y * 0.2) + (extraoffset)), preview_character}, {
+                            Size = utility:Size(0.25, 0, 0.4, extrasize, preview_character),
+                            Position = utility:Position(0, extraoffset, 0.2, extraoffset, preview_character),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_character_rightarm = utility:Create("Frame", {Vector2.new((preview_character.Size.X * 0.75) + (extraoffset + extrasize), (preview_character.Size.Y * 0.2) + (extraoffset)), preview_character}, {
+                            Size = utility:Size(0.25, 0, 0.4, extrasize, preview_character),
+                            Position = utility:Position(0.75, extraoffset, 0.2, extraoffset, preview_character),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_character_leftleg = utility:Create("Frame", {Vector2.new((preview_character.Size.X * 0.25) + (extraoffset), (preview_character.Size.Y * 0.6) + (extraoffset + extrasize)), preview_character}, {
+                            Size = utility:Size(0.25, extrasize / 2, 0.4, 0, preview_character),
+                            Position = utility:Position(0.25, extraoffset, 0.6, extraoffset + extrasize, preview_character),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_character_rightleg = utility:Create("Frame", {Vector2.new((preview_character.Size.X * 0.5) + (extraoffset + (extrasize / 2)), (preview_character.Size.Y * 0.6) + (extraoffset + extrasize)), preview_character}, {
+                            Size = utility:Size(0.25, extrasize / 2, 0.4, 0, preview_character),
+                            Position = utility:Position(0.25, extraoffset, 0.6, extraoffset + extrasize, preview_character),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        window.VisualPreview.Components.Chams["Head"][Index] = preview_character_head
+                        window.VisualPreview.Components.Chams["Torso"][Index] = preview_character_torso
+                        window.VisualPreview.Components.Chams["LeftArm"][Index] = preview_character_leftarm
+                        window.VisualPreview.Components.Chams["RightArm"][Index] = preview_character_rightarm
+                        window.VisualPreview.Components.Chams["LeftLeg"][Index] = preview_character_leftleg
+                        window.VisualPreview.Components.Chams["RightLeg"][Index] = preview_character_rightleg
+                    end
+                end
+                --
+                do -- Skeleton
+                    for Index = 1, 2 do
+                        local skeletonsize = Vector2.new(Index == 1 and 3 or 1, Index == 1 and -10 or -12)
+                        local skeletonoffset = Vector2.new(Index == 1 and -1 or 0, Index == 1 and 5 or 6)
+                        local transparency = 0.5
+                        local color = Index == 1 and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(255, 255, 255)
+                        --
+                        local preview_skeleton_head = utility:Create("Frame", {Vector2.new((window.VisualPreview.Components.Chams["Head"][2].Size.X * 0.5) + skeletonoffset.X, (window.VisualPreview.Components.Chams["Head"][2].Size.Y * 0.5) + skeletonoffset.Y), window.VisualPreview.Components.Chams["Head"][2]}, {
+                            Size = utility:Size(0, skeletonsize.X, 0.5, 0, window.VisualPreview.Components.Chams["Head"][2]),
+                            Position = utility:Position(0.5, skeletonoffset.X, 0.5, skeletonoffset.Y, window.VisualPreview.Components.Chams["Head"][2]),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_skeleton_torso = utility:Create("Frame", {Vector2.new((window.VisualPreview.Components.Chams["Torso"][2].Size.X * 0) + skeletonoffset.X - (window.VisualPreview.Components.Chams["LeftArm"][2].Size.X / 2) + (Index == 1 and 3 or 1), skeletonoffset.Y), window.VisualPreview.Components.Chams["Torso"][2]}, {
+                            Size = utility:Size(1, skeletonsize.X + window.VisualPreview.Components.Chams["LeftArm"][2].Size.X - (Index == 1 and 6 or 2), 0, skeletonsize.X, window.VisualPreview.Components.Chams["Torso"][2]),
+                            Position = utility:Position(0, skeletonoffset.X - (window.VisualPreview.Components.Chams["LeftArm"][2].Size.X / 2) + (Index == 1 and 3 or 1), 0, skeletonoffset.Y, window.VisualPreview.Components.Chams["Torso"][2]),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_skeleton_leftarm = utility:Create("Frame", {Vector2.new((window.VisualPreview.Components.Chams["LeftArm"][2].Size.X * 0.5) + skeletonoffset.X, skeletonoffset.Y), window.VisualPreview.Components.Chams["LeftArm"][2]}, {
+                            Size = utility:Size(0, skeletonsize.X, 1, skeletonsize.Y, window.VisualPreview.Components.Chams["LeftArm"][2]),
+                            Position = utility:Position(0.5, skeletonoffset.X, 0, skeletonoffset.Y, window.VisualPreview.Components.Chams["LeftArm"][2]),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_skeleton_rightarm = utility:Create("Frame", {Vector2.new((window.VisualPreview.Components.Chams["RightArm"][2].Size.X * 0.5) + skeletonoffset.X, skeletonoffset.Y), window.VisualPreview.Components.Chams["RightArm"][2]}, {
+                            Size = utility:Size(0, skeletonsize.X, 1, skeletonsize.Y, window.VisualPreview.Components.Chams["RightArm"][2]),
+                            Position = utility:Position(0.5, skeletonoffset.X, 0, skeletonoffset.Y, window.VisualPreview.Components.Chams["RightArm"][2]),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_skeleton_hips = utility:Create("Frame", {Vector2.new((window.VisualPreview.Components.Chams["LeftLeg"][2].Size.X * 1) + skeletonoffset.X - (window.VisualPreview.Components.Chams["LeftLeg"][2].Size.X / 2) + (Index == 1 and 3 or 1), skeletonoffset.Y), window.VisualPreview.Components.Chams["LeftLeg"][2]}, {
+                            Size = utility:Size(1, skeletonsize.X - (Index == 1 and 6 or 2), 0, skeletonsize.X, window.VisualPreview.Components.Chams["LeftLeg"][2]),
+                            Position = utility:Position(0.5, skeletonoffset.X + (Index == 1 and 3 or 1), 0, skeletonoffset.Y, window.VisualPreview.Components.Chams["LeftLeg"][2]),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_skeleton_leftleg = utility:Create("Frame", {Vector2.new((window.VisualPreview.Components.Chams["LeftLeg"][2].Size.X * 0.5) + skeletonoffset.X, skeletonoffset.Y), window.VisualPreview.Components.Chams["LeftLeg"][2]}, {
+                            Size = utility:Size(0, skeletonsize.X, 1, skeletonsize.Y, window.VisualPreview.Components.Chams["LeftLeg"][2]),
+                            Position = utility:Position(0.5, skeletonoffset.X, 0, skeletonoffset.Y, window.VisualPreview.Components.Chams["LeftLeg"][2]),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_skeleton_rightleg = utility:Create("Frame", {Vector2.new((window.VisualPreview.Components.Chams["RightLeg"][2].Size.X * 0.5) + skeletonoffset.X, skeletonoffset.Y), window.VisualPreview.Components.Chams["RightLeg"][2]}, {
+                            Size = utility:Size(0, skeletonsize.X, 1, skeletonsize.Y, window.VisualPreview.Components.Chams["RightLeg"][2]),
+                            Position = utility:Position(0.5, skeletonoffset.X, 0, skeletonoffset.Y, window.VisualPreview.Components.Chams["RightLeg"][2]),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        local preview_skeleton_hipstorso = utility:Create("Frame", {Vector2.new((window.VisualPreview.Components.Chams["Torso"][2].Size.X * 0.5) + skeletonoffset.X, skeletonoffset.Y + (Index == 1 and 3 or 1)), window.VisualPreview.Components.Chams["Torso"][2]}, {
+                            Size = utility:Size(0, skeletonsize.X, 1, Index == 1 and -3 or -1, window.VisualPreview.Components.Chams["Torso"][2]),
+                            Position = utility:Position(0.5, skeletonoffset.X, 0, skeletonoffset.Y + (Index == 1 and 3 or 1), window.VisualPreview.Components.Chams["Torso"][2]),
+                            Color = color,
+                            Transparency = transparency
+                        }, window.VisualPreview.Drawings)
+                        --
+                        window.VisualPreview.Components.Skeleton["Head"][Index] = preview_skeleton_head
+                        window.VisualPreview.Components.Skeleton["Torso"][Index] = preview_skeleton_torso
+                        window.VisualPreview.Components.Skeleton["LeftArm"][Index] = preview_skeleton_leftarm
+                        window.VisualPreview.Components.Skeleton["RightArm"][Index] = preview_skeleton_rightarm
+                        window.VisualPreview.Components.Skeleton["Hips"][Index] = preview_skeleton_hips
+                        window.VisualPreview.Components.Skeleton["LeftLeg"][Index] = preview_skeleton_leftleg
+                        window.VisualPreview.Components.Skeleton["RightLeg"][Index] = preview_skeleton_rightleg
+                        window.VisualPreview.Components.Skeleton["HipsTorso"][Index] = preview_skeleton_hipstorso
+                    end
+                end
+                --
+                local preview_boxfill = utility:Create("Frame", {Vector2.new(1, 1), preview_boxoutline}, {
+                    Size = utility:Size(1, -2, 1, -2, preview_boxoutline),
+                    Position = utility:Position(0, 1, 0, 1, preview_boxoutline),
+                    Color = Color3.fromRGB(255, 255, 255),
+                    Filled = true,
+                    Transparency = 0.9
+                }, window.VisualPreview.Drawings)
+                --
+                local preview_flags = utility:Create("TextLabel", {Vector2.new(preview_box.Size.X -56, 5), preview_box}, {
+                    Text = "Flags ->", --Display\nMoving\nJumping\nDesynced"
+                    Size = theme.textsize,
+                    Font = theme.font,
+                    Color = Color3.fromRGB(255, 255, 255),
+                    OutlineColor = theme.textborder,
+                    Center = false,
+                    Position = utility:Position(1, -56, 0, 5, preview_box)
+                }, window.VisualPreview.Drawings)
+                --
+                local preview_healthbarvalue = utility:Create("TextLabel", {Vector2.new(0, 5), preview_heatlhbar}, {
+                    Text = "<- Number", --Display\nMoving\nJumping\nDesynced"
+                    Size = theme.textsize,
+                    Font = theme.font,
+                    Color = Color3.fromRGB(0, 255, 0),
+                    OutlineColor = theme.textborder,
+                    Center = false,
+                    Position = utility:Position(0, 0, 0, 5, preview_heatlhbar)
+                }, window.VisualPreview.Drawings);healthvalue = preview_healthbarvalue
+                --
+                window.VisualPreview.Components.Title["Text"] = preview_title
+                window.VisualPreview.Components.Distance["Text"] = preview_distance
+                window.VisualPreview.Components.Tool["Text"] = preview_tool
+                window.VisualPreview.Components.Flags["Text"] = preview_flags
+                window.VisualPreview.Components.Box["Outline"] = preview_boxoutline
+                window.VisualPreview.Components.Box["Box"] = preview_box
+                window.VisualPreview.Components.Box["Fill"] = preview_boxfill
+                window.VisualPreview.Components.HealthBar["Outline"] = preview_heatlhbaroutline
+                window.VisualPreview.Components.HealthBar["Box"] = preview_heatlhbar
+                window.VisualPreview.Components.HealthBar["Value"] = preview_healthbarvalue
+            end
+            --
+            do -- New Drawings
+                local NewDrawings = {}
+                --
+                for Index, Value in pairs(library.drawings) do
+                    if Value[1] and table.find(window.VisualPreview.Drawings, Value[1]) then
+                        NewDrawings[Value[1]] = Value[3]
+                    end
+                end
+                --
+                window.VisualPreview.Drawings = NewDrawings
+            end
+        end
+        --
+        function window:SetName(Name)
+            title.Text = Name
+        end
+        --
+        function window:GetConfig()
+            local config = {}
+            --
+            for i,v in pairs(library.pointers) do
+                if typeof(v:Get()) == "table" and v:Get().Transparency then
+                    local hue, sat, val = v:Get().Color:ToHSV()
+                    config[i] = {Color = {hue, sat, val}, Transparency = v:Get().Transparency}
+                else
+                    config[i] = v:Get()
+                end
+            end
+            --
+            return game:GetService("HttpService"):JSONEncode(config)
+        end
+        --
+        function window:LoadConfig(config)
+            local config = hs:JSONDecode(config)
+            --
+            for i,v in pairs(config) do
+                if library.pointers[i] then
+                    library.pointers[i]:Set(v)
+                end
+            end
+        end
+        --
+        function window:Move(vector)
+            for i,v in pairs(library.drawings) do
+                if v[1].Visible then
+                    if v[2][2] then
+                        v[1].Position = utility:Position(0, v[2][1].X, 0, v[2][1].Y, v[2][2])
+                    else
+                        v[1].Position = utility:Position(0, vector.X, 0, vector.Y)
+                    end
+                end
+            end
+        end
+        --
+        function window:CloseContent()
+            if window.currentContent.dropdown and window.currentContent.dropdown.open then
+                local dropdown = window.currentContent.dropdown
+                dropdown.open = not dropdown.open
+                utility:LoadImage(dropdown.dropdown_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                --
+                for i,v in pairs(dropdown.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                dropdown.holder.drawings = {}
+                dropdown.holder.buttons = {}
+                dropdown.holder.inline = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.dropdown = nil
+            elseif window.currentContent.multibox and window.currentContent.multibox.open then
+                local multibox = window.currentContent.multibox
+                multibox.open = not multibox.open
+                utility:LoadImage(multibox.multibox_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                --
+                for i,v in pairs(multibox.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                multibox.holder.drawings = {}
+                multibox.holder.buttons = {}
+                multibox.holder.inline = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.multibox = nil
+            elseif window.currentContent.colorpicker and window.currentContent.colorpicker.open then
+                local colorpicker = window.currentContent.colorpicker
+                colorpicker.open = not colorpicker.open
+                --
+                for i,v in pairs(colorpicker.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                colorpicker.holder.drawings = {}
+                --
+                window.currentContent.frame = nil
+                window.currentContent.colorpicker = nil
+            elseif window.currentContent.keybind and window.currentContent.keybind.open then
+                local modemenu = window.currentContent.keybind.modemenu
+                window.currentContent.keybind.open = not window.currentContent.keybind.open
+                --
+                for i,v in pairs(modemenu.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                modemenu.drawings = {}
+                modemenu.buttons = {}
+                modemenu.frame = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.keybind = nil
+            elseif window.currentContent.textbox and window.currentContent.textbox.Disconnect then
+                if window.currentContent.textbox.Item.oldenter ~= window.currentContent.textbox.Item.current then
+                    window.currentContent.textbox.Item.oldenter = window.currentContent.textbox.Item.current
+                    task.spawn(function()
+                        window.currentContent.textbox.Item.callback(window.currentContent.textbox.Item.current, true)
+                    end)
+                end
+                window.currentContent.textbox.Disconnect()
+                window.currentContent.textbox = nil
+            end
+        end
+        --
+        function window:IsOverContent()
+            local isOver = false
+            --
+            if window.currentContent.frame and utility:MouseOverDrawing({window.currentContent.frame.Position.X,window.currentContent.frame.Position.Y,window.currentContent.frame.Position.X + window.currentContent.frame.Size.X,window.currentContent.frame.Position.Y + window.currentContent.frame.Size.Y}) then
+                isOver = true
+            end
+            --
+            return isOver
+        end
+        --
+        function window:Unload()
+            for i,v in pairs(library.connections) do
+                v:Disconnect()
+                v = nil
+            end
+            --
+            for i,v in next, library.hidden do
+                coroutine.wrap(function()
+                    if v[1] and v[1].Remove and v[1].__OBJECT_EXISTS then
+                        local instance = v[1]
+                        v[1] = nil
+                        v = nil
+                        --
+                        instance:Remove()
+                    end
+                end)()
+            end
+            --
+            for i,v in pairs(library.drawings) do
+                coroutine.wrap(function()
+                    if v[1].__OBJECT_EXISTS then
+                        local instance = v[1]
+                        v[2] = nil
+                        v[1] = nil
+                        v = nil
+                        --
+                        instance:Remove()
+                    end
+                end)()
+            end
+            --
+            for i,v in pairs(library.objects) do
+                i:Remove()
+            end
+            --
+            for i,v in pairs(library.began) do
+                v = nil
+            end
+            --
+            for i,v in pairs(library.ended) do
+                v = nil
+            end
+            --
+            for i,v in pairs(library.changed) do
+                v = nil
+            end
+            --
+            library.drawings = {}
+            library.objects = {}
+            library.hidden = {}
+            library.connections = {}
+            library.began = {}
+            library.ended = {}
+            library.changed = {}
+            --
+            uis.MouseIconEnabled = true
+        end
+        --
+        function window:Watermark(info)
+            window.watermark = {visible = false}
+            --
+            local info = info or {}
+            local watermark_name = info.name or info.Name or info.title or info.Title or window.wminfo
+            --
+            local text_bounds = utility:GetTextBounds(watermark_name, theme.textsize, theme.font)
+            --
+            local watermark_outline = utility:Create("Frame", {Vector2.new(100,38/2-10)}, {
+                Size = utility:Size(0, text_bounds.X+20, 0, 21),
+                Position = utility:Position(0, 100, 0, 38/2-10),
+                Hidden = true,
+                ZIndex = 60,
+                Color = theme.outline,
+                Visible = window.watermark.visible
+            })window.watermark.outline = watermark_outline
+            --
+            library.colors[watermark_outline] = {
+                Color = "outline"
+            }
+            --
+            local watermark_inline = utility:Create("Frame", {Vector2.new(1,1), watermark_outline}, {
+                Size = utility:Size(1, -2, 1, -2, watermark_outline),
+                Position = utility:Position(0, 1, 0, 1, watermark_outline),
+                Hidden = true,
+                ZIndex = 60,
+                Color = theme.inline,
+                Visible = window.watermark.visible
+            })
+            --
+            library.colors[watermark_inline] = {
+                Color = "inline"
+            }
+            --
+            local watermark_frame = utility:Create("Frame", {Vector2.new(1,1), watermark_inline}, {
+                Size = utility:Size(1, -2, 1, -2, watermark_inline),
+                Position = utility:Position(0, 1, 0, 1, watermark_inline),
+                Hidden = true,
+                ZIndex = 60,
+                Color = theme.lightcontrast,
+                Visible = window.watermark.visible
+            })
+            --
+            library.colors[watermark_frame] = {
+                Color = "lightcontrast"
+            }
+            --
+            local watermark_accent = utility:Create("Frame", {Vector2.new(0,0), watermark_frame}, {
+                Size = utility:Size(1, 0, 0, 1, watermark_frame),
+                Position = utility:Position(0, 0, 0, 0, watermark_frame),
+                Hidden = true,
+                ZIndex = 60,
+                Color = theme.accent,
+                Visible = window.watermark.visible
+            })
+            --
+            library.colors[watermark_accent] = {
+                Color = "accent"
+            }
+            --
+            local watermark_title = utility:Create("TextLabel", {Vector2.new(2 + 6,4), watermark_outline}, {
+                Text = "Failed Loading Watermark.",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Hidden = true,
+                ZIndex = 60,
+                Position = utility:Position(0, 2 + 6, 0, 4, watermark_outline),
+                Visible = window.watermark.visible
+            })
+            --
+            library.colors[watermark_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            function window.watermark:UpdateSize()
+                watermark_outline.Size = utility:Size(0, watermark_title.TextBounds.X + 4 + (6*2), 0, 21)
+                watermark_inline.Size = utility:Size(1, -2, 1, -2, watermark_outline)
+                watermark_frame.Size = utility:Size(1, -2, 1, -2, watermark_inline)
+                watermark_accent.Size = utility:Size(1, 0, 0, 1, watermark_frame)
+            end
+            --
+            function window.watermark:Visibility()
+                watermark_outline.Visible = window.watermark.visible
+                watermark_inline.Visible = window.watermark.visible
+                watermark_frame.Visible = window.watermark.visible
+                watermark_accent.Visible = window.watermark.visible
+                watermark_title.Visible = window.watermark.visible
+            end
+            --
+            function window.watermark:Update(updateType, updateValue)
+                if updateType == "Visible" then
+                    window.watermark.visible = updateValue
+                    window.watermark:Visibility()
+                end
+            end
+            --
+            window.watermark:UpdateSize()
+            --
+            local temp = tick()
+            local Tick = tick()
+            --
+            utility:Connection(rs.RenderStepped, function(FPS)
+                library.shared.fps = math.floor(1 / math.abs(temp - tick()))
+                temp = tick()
+                library.shared.ping = stats.Network:FindFirstChild("ServerStatsItem") and tostring(math.round(stats.Network.ServerStatsItem["Data Ping"]:GetValue())) or "Unknown"
+                --
+                task.spawn(function()
+                    if (tick() - Tick) > 0.15 then
+                        watermark_title.Text = window.wminfo:gsub("$PING", library.shared.ping):gsub("$FPS", library.shared.fps)
+                        window.watermark:UpdateSize()
+                        --
+                        Tick = tick()
+                    end
+                end)
+            end)
+            --
+            return window.watermark
+        end
+        --
+        function window:KeybindsList(info)
+            window.keybindslist = {visible = false, keybinds = {}}
+            --
+            local info = info or {}
+            --
+            local keybindslist_outline = utility:Create("Frame", {Vector2.new(10,(utility:GetScreenSize().Y/2)-200)}, {
+                Size = utility:Size(0, 180, 0, 22),
+                Position = utility:Position(0, 10, 0.4, 0),
+                Hidden = true,
+                ZIndex = 55,
+                Color = theme.outline,
+                Visible = window.keybindslist.visible
+            })window.keybindslist.outline = keybindslist_outline
+            --
+            library.colors[keybindslist_outline] = {
+                Color = "outline"
+            }
+            --
+            local keybindslist_inline = utility:Create("Frame", {Vector2.new(1,1), keybindslist_outline}, {
+                Size = utility:Size(1, -2, 1, -2, keybindslist_outline),
+                Position = utility:Position(0, 1, 0, 1, keybindslist_outline),
+                Hidden = true,
+                ZIndex = 55,
+                Color = theme.inline,
+                Visible = window.keybindslist.visible
+            })
+            --
+            library.colors[keybindslist_inline] = {
+                Color = "inline"
+            }
+            --
+            local keybindslist_frame = utility:Create("Frame", {Vector2.new(1,1), keybindslist_inline}, {
+                Size = utility:Size(1, -2, 1, -2, keybindslist_inline),
+                Position = utility:Position(0, 1, 0, 1, keybindslist_inline),
+                Hidden = true,
+                ZIndex = 55,
+                Color = theme.lightcontrast,
+                Visible = window.keybindslist.visible
+            })
+            --
+            library.colors[keybindslist_frame] = {
+                Color = "lightcontrast"
+            }
+            --
+            local keybindslist_accent = utility:Create("Frame", {Vector2.new(0,0), keybindslist_frame}, {
+                Size = utility:Size(1, 0, 0, 1, keybindslist_frame),
+                Position = utility:Position(0, 0, 0, 0, keybindslist_frame),
+                Hidden = true,
+                ZIndex = 55,
+                Color = theme.accent,
+                Visible = window.keybindslist.visible
+            })
+            --
+            library.colors[keybindslist_accent] = {
+                Color = "accent"
+            }
+            --
+            local keybindslist_title = utility:Create("TextLabel", {Vector2.new(keybindslist_outline.Size.X/2,4), keybindslist_outline}, {
+                Text = "[ Keybinds ]",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Center = true,
+                Hidden = true,
+                ZIndex = 55,
+                Position = utility:Position(0.5, 0, 0, 5, keybindslist_outline),
+                Visible = window.keybindslist.visible
+            })
+            --
+            library.colors[keybindslist_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            function window.keybindslist:Resort()
+                local index = 0
+                for i,v in pairs(window.keybindslist.keybinds) do
+                    v:Move(0 + (index*17))
+                    --
+                    index = index + 1
+                end
+            end
+            --
+            function window.keybindslist:Add(keybindname, keybindvalue)
+                if keybindname and keybindvalue and not window.keybindslist.keybinds[keybindname] then
+                    local keybindTable = {}
+                    --
+                    local keybind_outline = utility:Create("Frame", {Vector2.new(0,keybindslist_outline.Size.Y-1), keybindslist_outline}, {
+                        Size = utility:Size(1, 0, 0, 18, keybindslist_outline),
+                        Position = utility:Position(0, 0, 1, -1, keybindslist_outline),
+                        Hidden = true,
+                        ZIndex = 55,
+                        Color = theme.outline,
+                        Visible = window.keybindslist.visible
+                    })
+                    --
+                    library.colors[keybind_outline] = {
+                        Color = "outline"
+                    }
+                    --
+                    local keybind_inline = utility:Create("Frame", {Vector2.new(1,1), keybind_outline}, {
+                        Size = utility:Size(1, -2, 1, -2, keybind_outline),
+                        Position = utility:Position(0, 1, 0, 1, keybind_outline),
+                        Hidden = true,
+                        ZIndex = 55,
+                        Color = theme.inline,
+                        Visible = window.keybindslist.visible
+                    })
+                    --
+                    library.colors[keybind_inline] = {
+                        Color = "inline"
+                    }
+                    --
+                    local keybind_frame = utility:Create("Frame", {Vector2.new(1,1), keybind_inline}, {
+                        Size = utility:Size(1, -2, 1, -2, keybind_inline),
+                        Position = utility:Position(0, 1, 0, 1, keybind_inline),
+                        Hidden = true,
+                        ZIndex = 55,
+                        Color = theme.darkcontrast,
+                        Visible = window.keybindslist.visible
+                    })
+                    --
+                    library.colors[keybind_frame] = {
+                        Color = "darkcontrast"
+                    }
+                    --
+                    local keybind_title = utility:Create("TextLabel", {Vector2.new(4,3), keybind_outline}, {
+                        Text = keybindname,
+                        Size = theme.textsize,
+                        Font = theme.font,
+                        Color = theme.textcolor,
+                        OutlineColor = theme.textborder,
+                        Center = false,
+                        Hidden = true,
+                        ZIndex = 55,
+                        Position = utility:Position(0, 4, 0, 3, keybind_outline),
+                        Visible = window.keybindslist.visible
+                    })
+                    --
+                    library.colors[keybind_title] = {
+                        OutlineColor = "textborder",
+                        Color = "textcolor"
+                    }
+                    --
+                    local keybind_value = utility:Create("TextLabel", {Vector2.new(keybind_outline.Size.X - 4 - utility:GetTextBounds(keybindname, theme.textsize, theme.font).X,3), keybind_outline}, {
+                        Text = "["..keybindvalue.."]",
+                        Size = theme.textsize,
+                        Font = theme.font,
+                        Color = theme.textcolor,
+                        OutlineColor = theme.textborder,
+                        Hidden = true,
+                        ZIndex = 55,
+                        Position = utility:Position(1, -4 - utility:GetTextBounds(keybindname, theme.textsize, theme.font).X, 0, 3, keybind_outline),
+                        Visible = window.keybindslist.visible
+                    })
+                    --
+                    library.colors[keybind_value] = {
+                        OutlineColor = "textborder",
+                        Color = "textcolor"
+                    }
+                    --
+                    function keybindTable:Move(yPos)
+                        keybind_outline.Position = utility:Position(0, 0, 1, -1 + yPos, keybindslist_outline)
+                        keybind_inline.Position = utility:Position(0, 1, 0, 1, keybind_outline)
+                        keybind_frame.Position = utility:Position(0, 1, 0, 1, keybind_inline)
+                        keybind_title.Position = utility:Position(0, 4, 0, 3, keybind_outline)
+                        keybind_value.Position = utility:Position(1, -4 - keybind_value.TextBounds.X, 0, 3, keybind_outline)
+                    end
+                    --
+                    function keybindTable:Remove()
+                        utility:Remove(keybind_outline, true)
+                        utility:Remove(keybind_inline, true)
+                        utility:Remove(keybind_frame, true)
+                        utility:Remove(keybind_title, true)
+                        utility:Remove(keybind_value, true)
+                        --
+                        window.keybindslist.keybinds[keybindname] = nil
+                        keybindTable = nil
+                    end
+                    --
+                    function keybindTable:Visibility()
+                        keybind_outline.Visible = window.keybindslist.visible
+                        keybind_inline.Visible = window.keybindslist.visible
+                        keybind_frame.Visible = window.keybindslist.visible
+                        keybind_title.Visible = window.keybindslist.visible
+                        keybind_value.Visible = window.keybindslist.visible
+                    end
+                    --
+                    window.keybindslist.keybinds[keybindname] = keybindTable
+                    window.keybindslist:Resort()
+                end
+            end
+            --
+            function window.keybindslist:Remove(keybindname)
+                if keybindname and window.keybindslist.keybinds[keybindname] then
+                    window.keybindslist.keybinds[keybindname]:Remove()
+                    window.keybindslist.keybinds[keybindname] = nil
+                    window.keybindslist:Resort()
+                end
+            end
+            --
+            function window.keybindslist:Visibility()
+                keybindslist_outline.Visible = window.keybindslist.visible
+                keybindslist_inline.Visible = window.keybindslist.visible
+                keybindslist_frame.Visible = window.keybindslist.visible
+                keybindslist_accent.Visible = window.keybindslist.visible
+                keybindslist_title.Visible = window.keybindslist.visible
+                --
+                for i,v in pairs(window.keybindslist.keybinds) do
+                    v:Visibility()
+                end
+            end
+            --
+            function window.keybindslist:Update(updateType, updateValue)
+                if updateType == "Visible" then
+                    window.keybindslist.visible = updateValue
+                    window.keybindslist:Visibility()
+                end
+            end
+    
+            --
+            utility:Connection(ws.CurrentCamera:GetPropertyChangedSignal("ViewportSize"),function()
+                keybindslist_outline.Position = utility:Position(0, 10, 0.4, 0)
+                keybindslist_inline.Position = utility:Position(0, 1, 0, 1, keybindslist_outline)
+                keybindslist_frame.Position = utility:Position(0, 1, 0, 1, keybindslist_inline)
+                keybindslist_accent.Position = utility:Position(0, 0, 0, 0, keybindslist_frame)
+                keybindslist_title.Position = utility:Position(0.5, 0, 0, 5, keybindslist_outline)
+                --
+                window.keybindslist:Resort()
+            end)
+        end
+        --
+        function window:StatusList(info)
+            window.statuslist = {visible = false, statuses = {}}
+            --
+            local info = info or {}
+            --
+            local statuslist_outline = utility:Create("Frame", {Vector2.new(10,(utility:GetScreenSize().Y/2)-200)}, {
+                Size = utility:Size(0, 210, 0, 22),
+                Position = utility:Position(1, -220, 0.4, 0),
+                Hidden = true,
+                ZIndex = 55,
+                Color = theme.outline,
+                Visible = window.statuslist.visible
+            })window.statuslist.outline = statuslist_outline
+            --
+            library.colors[statuslist_outline] = {
+                Color = "outline"
+            }
+            --
+            local statuslist_inline = utility:Create("Frame", {Vector2.new(1,1), statuslist_outline}, {
+                Size = utility:Size(1, -2, 1, -2, statuslist_outline),
+                Position = utility:Position(0, 1, 0, 1, statuslist_outline),
+                Hidden = true,
+                ZIndex = 55,
+                Color = theme.inline,
+                Visible = window.statuslist.visible
+            })
+            --
+            library.colors[statuslist_inline] = {
+                Color = "inline"
+            }
+            --
+            local statuslist_frame = utility:Create("Frame", {Vector2.new(1,1), statuslist_inline}, {
+                Size = utility:Size(1, -2, 1, -2, statuslist_inline),
+                Position = utility:Position(0, 1, 0, 1, statuslist_inline),
+                Hidden = true,
+                ZIndex = 55,
+                Color = theme.lightcontrast,
+                Visible = window.statuslist.visible
+            })
+            --
+            library.colors[statuslist_frame] = {
+                Color = "lightcontrast"
+            }
+            --
+            local statuslist_accent = utility:Create("Frame", {Vector2.new(0,0), statuslist_frame}, {
+                Size = utility:Size(1, 0, 0, 1, statuslist_frame),
+                Position = utility:Position(0, 0, 0, 0, statuslist_frame),
+                Hidden = true,
+                ZIndex = 55,
+                Color = theme.accent,
+                Visible = window.statuslist.visible
+            })
+            --
+            library.colors[statuslist_accent] = {
+                Color = "accent"
+            }
+            --
+            local statuslist_title = utility:Create("TextLabel", {Vector2.new(statuslist_outline.Size.X/2,4), statuslist_outline}, {
+                Text = "[ Statuses ]",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Center = true,
+                Hidden = true,
+                ZIndex = 55,
+                Position = utility:Position(0.5, 0, 0, 5, statuslist_outline),
+                Visible = window.statuslist.visible
+            })
+            --
+            library.colors[statuslist_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            function window.statuslist:Resort()
+                local index = 0
+                for i,v in pairs(window.statuslist.statuses) do
+                    v:Move(0 + (index*17))
+                    --
+                    index = index + 1
+                end
+            end
+            --
+            function window.statuslist:Add(statusname)
+                if statusname and not window.statuslist.statuses[statusname] then
+                    local statusTable = {}
+                    --
+                    local status_outline = utility:Create("Frame", {Vector2.new(0,statuslist_outline.Size.Y-1), statuslist_outline}, {
+                        Size = utility:Size(1, 0, 0, 18, statuslist_outline),
+                        Position = utility:Position(0, 0, 1, -1, statuslist_outline),
+                        Hidden = true,
+                        ZIndex = 55,
+                        Color = theme.outline,
+                        Visible = window.statuslist.visible
+                    })
+                    --
+                    library.colors[status_outline] = {
+                        Color = "outline"
+                    }
+                    --
+                    local status_inline = utility:Create("Frame", {Vector2.new(1,1), status_outline}, {
+                        Size = utility:Size(1, -2, 1, -2, status_outline),
+                        Position = utility:Position(0, 1, 0, 1, status_outline),
+                        Hidden = true,
+                        ZIndex = 55,
+                        Color = theme.inline,
+                        Visible = window.statuslist.visible
+                    })
+                    --
+                    library.colors[status_inline] = {
+                        Color = "inline"
+                    }
+                    --
+                    local status_frame = utility:Create("Frame", {Vector2.new(1,1), status_inline}, {
+                        Size = utility:Size(1, -2, 1, -2, status_inline),
+                        Position = utility:Position(0, 1, 0, 1, status_inline),
+                        Hidden = true,
+                        ZIndex = 55,
+                        Color = theme.darkcontrast,
+                        Visible = window.statuslist.visible
+                    })
+                    --
+                    library.colors[status_frame] = {
+                        Color = "darkcontrast"
+                    }
+                    --
+                    local status_title = utility:Create("TextLabel", {Vector2.new(4,3), status_outline}, {
+                        Text = statusname,
+                        Size = theme.textsize,
+                        Font = theme.font,
+                        Color = theme.textcolor,
+                        OutlineColor = theme.textborder,
+                        Center = false,
+                        Hidden = true,
+                        ZIndex = 55,
+                        Position = utility:Position(0, 4, 0, 3, status_outline),
+                        Visible = window.statuslist.visible
+                    })
+                    --
+                    library.colors[status_title] = {
+                        OutlineColor = "textborder",
+                        Color = "textcolor"
+                    }
+                    --
+                    function statusTable:Move(yPos)
+                        status_outline.Position = utility:Position(0, 0, 1, -1 + yPos, statuslist_outline)
+                        status_inline.Position = utility:Position(0, 1, 0, 1, status_outline)
+                        status_frame.Position = utility:Position(0, 1, 0, 1, status_inline)
+                        status_title.Position = utility:Position(0, 4, 0, 3, status_outline)
+                    end
+                    --
+                    function statusTable:Remove()
+                        utility:Remove(status_outline, true)
+                        utility:Remove(status_inline, true)
+                        utility:Remove(status_frame, true)
+                        utility:Remove(status_title, true)
+                        --
+                        window.statuslist.statuses[statusname] = nil
+                        statusTable = nil
+                    end
+                    --
+                    function statusTable:Visibility()
+                        status_outline.Visible = window.statuslist.visible
+                        status_inline.Visible = window.statuslist.visible
+                        status_frame.Visible = window.statuslist.visible
+                        status_title.Visible = window.statuslist.visible
+                    end
+                    --
+                    function statusTable:Update(text)
+                        status_title.Text = text 
+                    end
+                    --
+                    window.statuslist.statuses[statusname] = statusTable
+                    window.statuslist:Resort()
+                end
+            end
+            --
+            function window.statuslist:Remove(statusname)
+                if statusname and window.statuslist.statuses[statusname] then
+                    window.statuslist.statuses[statusname]:Remove()
+                    window.statuslist.statuses[statusname] = nil
+                    window.statuslist:Resort()
+                end
+            end
+            --
+            function window.statuslist:Visibility()
+                statuslist_outline.Visible = window.statuslist.visible
+                statuslist_inline.Visible = window.statuslist.visible
+                statuslist_frame.Visible = window.statuslist.visible
+                statuslist_accent.Visible = window.statuslist.visible
+                statuslist_title.Visible = window.statuslist.visible
+                --
+                for i,v in pairs(window.statuslist.statuses) do
+                    v:Visibility()
+                end
+            end
+            --
+            function window.statuslist:Update(updateType, updateValue)
+                if updateType == "Visible" then
+                    window.statuslist.visible = updateValue
+                    window.statuslist:Visibility()
+                end
+            end
+            --
+            utility:Connection(ws.CurrentCamera:GetPropertyChangedSignal("ViewportSize"),function()
+                statuslist_outline.Position = utility:Position(1, -160, 0.4, 0)
+                statuslist_inline.Position = utility:Position(0, 1, 0, 1, statuslist_outline)
+                statuslist_frame.Position = utility:Position(0, 1, 0, 1, statuslist_inline)
+                statuslist_accent.Position = utility:Position(0, 0, 0, 0, statuslist_frame)
+                statuslist_title.Position = utility:Position(0.5, 0, 0, 5, statuslist_outline)
+                --
+                window.statuslist:Resort()
+            end)
+            --[[
+            utility:Connection(rs.Heartbeat, function()
+                if game.Players.LocalPlayer and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") ~= nil then 
+                    for i,v in next, window.statuslist.statuses do
+                        if string.match(i, "Velocity") then
+                            v:Update("Velocity | "..tostring(math.round(game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity.X)..", "..math.round(game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity.Y)..", "..math.round(game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity.Z)) or "0, 0, 0")
+                        else
+                            v:Update("Position | "..tostring(math.round(game.Players.LocalPlayer.Character.HumanoidRootPart.Position.X)..", "..math.round(game.Players.LocalPlayer.Character.HumanoidRootPart.Position.Y)..", "..math.round(game.Players.LocalPlayer.Character.HumanoidRootPart.Position.Z)) or "0, 0, 0")
+                        end
+                    end
+                end
+            end)
+            --]]
+        end
+        function window:Cursor(info)
+            window.cursor = {}
+            --
+            local cursor = utility:Create("Triangle", nil, {
+                Color = theme.cursoroutline,
+                Thickness = 2.5,
+                Filled = false,
+                ZIndex = 65,
+                Hidden = true
+            });window.cursor["cursor"] = cursor
+            --
+            library.colors[cursor] = {
+                Color = "cursoroutline"
+            }
+            --
+            local cursor_inline = utility:Create("Triangle", nil, {
+                Color = theme.accent,
+                Filled = true,
+                Thickness = 0,
+                ZIndex = 65,
+                Hidden = true
+            });window.cursor["cursor_inline"] = cursor_inline
+            --
+            library.colors[cursor_inline] = {
+                Color = "accent"
+            }
+            --
+            utility:Connection(rs.RenderStepped, function()
+                local mouseLocation = utility:MouseLocation()
+                --
+                cursor.PointA = Vector2.new(mouseLocation.X, mouseLocation.Y)
+                cursor.PointB = Vector2.new(mouseLocation.X + 12, mouseLocation.Y + 4)
+                cursor.PointC = Vector2.new(mouseLocation.X + 4, mouseLocation.Y + 12)
+                --
+                cursor_inline.PointA = Vector2.new(mouseLocation.X, mouseLocation.Y)
+                cursor_inline.PointB = Vector2.new(mouseLocation.X + 12, mouseLocation.Y + 4)
+                cursor_inline.PointC = Vector2.new(mouseLocation.X + 4, mouseLocation.Y + 12)
+
+                
+            end)
+            --
+            uis.MouseIconEnabled = false
+            --
+            return window.cursor
+        end
+        --
+        function window:Fade()
+            window.fading = true
+            window.isVisible = not window.isVisible
+            --
+            spawn(function()
+                for i, v in pairs(library.drawings) do
+                    utility:Lerp(v[1], {Transparency = window.isVisible and v[3] or 0}, 0.25)
+                end
+            end)
+            --
+            window.cursor["cursor"].Transparency = window.isVisible and 1 or 0
+            window.cursor["cursor_inline"].Transparency = window.isVisible and 1 or 0
+            uis.MouseIconEnabled = not window.isVisible
+            --
+            window.fading = false
+        end
+        --
+        function window:Initialize()
+            window.pages[1]:Show()
+            --
+            for i,v in pairs(window.pages) do
+                v:Update()
+            end
+            --
+            library.shared.initialized = true
+            --
+            window:Watermark()
+            window:KeybindsList()
+            window:StatusList()
+            window.statuslist:Add("Velocity - 0,0,0")
+            window.statuslist:Add("Position - 0,0,0")
+            window:Cursor()
+            --
+            window.init = true
+            --
+            window:Fade()
+        end
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and window.isVisible and utility:MouseOverDrawing({main_frame.Position.X,main_frame.Position.Y,main_frame.Position.X + main_frame.Size.X,main_frame.Position.Y + 20}) then
+                local mouseLocation = utility:MouseLocation()
+                --
+                window.dragging = true
+                window.drag = Vector2.new(mouseLocation.X - main_frame.Position.X, mouseLocation.Y - main_frame.Position.Y)
+            end
+            --
+            if window.currentContent.textbox then
+                if uis:IsKeyDown(Enum.KeyCode["LeftControl"]) and uis:IsKeyDown(Enum.KeyCode.V) then
+                    window.currentContent.textbox.Fire((utility:GetClipboard())) 
+                    return
+                end
+                if Find(utility.Keyboard.Letters, utility:InputToString(Input.KeyCode)) then
+                    if uis:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        window.currentContent.textbox.Fire((utility:InputToString(Input.KeyCode)):upper())
+                    else
+                        window.currentContent.textbox.Fire((utility:InputToString(Input.KeyCode)):lower())
+                    end
+                elseif utility:InputToString(Input.KeyCode) == "Space" then
+                    window.currentContent.textbox.Fire(" ")
+                elseif utility.Keyboard.Modifiers[utility:InputToString(Input.KeyCode)] then
+                    if uis:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        if utility.Keyboard.Modifiers[utility:InputToString(Input.KeyCode)] then
+                            window.currentContent.textbox.Fire(utility.Keyboard.Modifiers[utility:InputToString(Input.KeyCode)])
+                        end
+                    else
+                        window.currentContent.textbox.Fire(utility:InputToString(Input.KeyCode))
+                    end
+                elseif utility:InputToString(Input.KeyCode) == "Back" then
+                    window.currentContent.textbox.Fire("Backspace")
+                    --
+                    window.currentContent.textbox.Backspace = {tick(), 0}
+                end
+            end
+        end
+        --
+        library.ended[#library.ended + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and window.dragging then
+                window.dragging = false
+                window.drag = Vector2.new(0, 0)
+            end
+            --
+            if window.currentContent.textbox and window.currentContent.textbox.Fire and window.currentContent.textbox.Backspace then
+                if utility:InputToString(Input.KeyCode) == "Back" then
+                    window.currentContent.textbox.Backspace = nil
+                end
+            end
+        end
+        --
+        library.changed[#library.changed + 1] = function(Input)
+            if window.dragging and window.isVisible then
+                local mouseLocation = utility:MouseLocation()
+                if utility:GetScreenSize().Y-main_frame.Size.Y-5 > 5 then
+                    local move = Vector2.new(math.clamp(mouseLocation.X - window.drag.X, 5, utility:GetScreenSize().X-main_frame.Size.X-5), math.clamp(mouseLocation.Y - window.drag.Y, 5, utility:GetScreenSize().Y-main_frame.Size.Y-5))
+                    window:Move(move)
+                else
+                    local move = Vector2.new(mouseLocation.X - window.drag.X, mouseLocation.Y - window.drag.Y)
+                    window:Move(move)
+                end
+            end
+        end
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.KeyCode == window.uibind then
+                window:Fade()
+            end
+            --[[
+            if Input.KeyCode == Enum.KeyCode.P then
+                local plrs = game:GetService("Players")
+                local plr = plrs.LocalPlayer
+                if #plrs:GetPlayers() <= 1 then
+                    plr:Kick("\nRejoining...")
+                    wait()
+                    game:GetService('TeleportService'):Teleport(game.PlaceId, plr)
+                else
+                    game:GetService('TeleportService'):TeleportToPlaceInstance(game.PlaceId, game.JobId, plr)
+                end
+            end]]
+        end
+        --
+        utility:Connection(uis.InputBegan,function(Input, Typing)
+            for _, func in pairs(library.began) do
+                if not window.dragging then
+                    local e,s = pcall(function()
+                        func(Input, Typing)
+                    end)
+                else
+                    break
+                end
+            end
+        end)
+        --
+        utility:Connection(uis.InputEnded,function(Input)
+            for _, func in pairs(library.ended) do
+                local e,s = pcall(function()
+                    func(Input)
+                end)
+            end
+        end)
+        --
+        utility:Connection(uis.InputChanged,function()
+            for _, func in pairs(library.changed) do
+                local e,s = pcall(function()
+                    func()
+                end)
+            end
+        end)
+        --
+        utility:Connection(rs.RenderStepped,function()
+            if window.currentContent.textbox and window.currentContent.textbox.Fire and window.currentContent.textbox.Backspace then
+                local Time = (tick() - window.currentContent.textbox.Backspace[1])
+                --
+                if Time > 0.4 then
+                    window.currentContent.textbox.Backspace[2] = window.currentContent.textbox.Backspace[2] + 1
+                    --
+                    if (window.currentContent.textbox.Backspace[2] % 5 == 0) then
+                        window.currentContent.textbox.Fire("Backspace")
+                    end
+                end
+            end
+        end)
+        --
+        utility:Connection(ws.CurrentCamera:GetPropertyChangedSignal("ViewportSize"),function()
+            window:Move(Vector2.new((utility:GetScreenSize().X/2) - (size.X/2), (utility:GetScreenSize().Y/2) - (size.Y/2)))
+        end)
+        --
+		return setmetatable(window, library)
+	end
+    --
+    function library:Page(info)
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title or "New Page"
+        --
+        local window = self
+        --
+        local page = {name = name, open = false, sections = {}, sectionOffset = {left = 0, right = 0}, window = window}
+        --
+        local position = 4
+        --
+        for i,v in pairs(window.pages) do
+            position = position + (v.page_button.Size.X+2)
+        end
+        --
+        local textbounds = utility:GetTextBounds(name, theme.textsize, theme.font)
+        --
+        local page_button = utility:Create("Frame", {Vector2.new(position,4), window.back_frame}, {
+            Size = utility:Size(0, window.pageammount and (((window.back_frame.Size.X - 8 - ((window.pageammount - 1) * 2)) / window.pageammount)) or (textbounds.X+20), 0, 21),
+            Position = utility:Position(0, position, 0, 4, window.back_frame),
+            Color = theme.outline
+        });page["page_button"] = page_button
+        --
+        library.colors[page_button] = {
+            Color = "outline"
+        }
+        --
+        local page_button_inline = utility:Create("Frame", {Vector2.new(1,1), page_button}, {
+            Size = utility:Size(1, -2, 1, -1, page_button),
+            Position = utility:Position(0, 1, 0, 1, page_button),
+            Color = theme.inline
+        });page["page_button_inline"] = page_button_inline
+        --
+        library.colors[page_button_inline] = {
+            Color = "inline"
+        }
+        --
+        local page_button_color = utility:Create("Frame", {Vector2.new(1,1), page_button_inline}, {
+            Size = utility:Size(1, -2, 1, -1, page_button_inline),
+            Position = utility:Position(0, 1, 0, 1, page_button_inline),
+            Color = theme.darkcontrast
+        });page["page_button_color"] = page_button_color
+        --
+        library.colors[page_button_color] = {
+            Color = "darkcontrast"
+        }
+        --
+        local page_button_title = utility:Create("TextLabel", {Vector2.new(utility:Position(0.5, 0, 0, 2, page_button_color).X - page_button_color.Position.X,2), page_button_color}, {
+            Text = name,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textdark,
+            Center = true,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0.5, 0, 0, 2, page_button_color)
+        });page["page_button_title"] = page_button_title
+        --
+        library.colors[page_button_title] = {
+            OutlineColor = "textborder",
+            Color = "textdark"
+        }
+        --
+        window.pages[#window.pages + 1] = page
+        --
+        function page:GetTotalYSize(Side)
+            local TotalYSize = 0
+            --
+            for i,v in pairs(page.sections) do
+                if v.side == Side then
+                    TotalYSize = TotalYSize + v.section_inline.Size.Y + 5
+                end
+            end
+            --
+            return TotalYSize
+        end
+        --
+        function page:Update()
+            page.sectionOffset["left"] = 0
+            page.sectionOffset["right"] = 0
+            --
+            for i,v in pairs(page.sections) do
+                if v.side then
+                    utility:UpdateOffset(v.section_inline, {Vector2.new(v.side == "right" and (window.tab_frame.Size.X/2)+2 or 5,5 + page["sectionOffset"][v.side]), window.tab_frame})
+                    v:Update(page.sectionOffset[v.side] + 10)
+                    page.sectionOffset[v.side] = page.sectionOffset[v.side] + v.section_inline.Size.Y + 5
+                else
+                    page.sectionOffset["left"] = page.sectionOffset["left"] + v["playerList_inline"].Size.Y + 5
+                    page.sectionOffset["right"] = page.sectionOffset["right"] + v["playerList_inline"].Size.Y + 5
+                end
+            end
+            --
+            window:Move(window.main_frame.Position)
+        end
+        --
+        function page:Show()
+            if window.currentPage then
+                window.currentPage.page_button_color.Size = utility:Size(1, -2, 1, -1, window.currentPage.page_button_inline)
+                window.currentPage.page_button_color.Color = theme.darkcontrast
+                window.currentPage.page_button_title.Color = theme.textdark
+                window.currentPage.open = false
+                --
+                
+                --
+                library.colors[window.currentPage.page_button_color] = {
+                    Color = "darkcontrast"
+                }
+                --
+                library.colors[window.currentPage.page_button_title] = {
+                    OutlineColor = "textborder",
+                    Color = "textdark"
+                }
+                --
+                for i,v in pairs(window.currentPage.sections) do
+                    for z,x in pairs(v.visibleContent) do
+                        x.Visible = false
+                    end
+                end
+                --
+                window:CloseContent()
+            end
+            --
+            window.currentPage = page
+            page_button_color.Size = utility:Size(1, -2, 1, 0, page_button_inline)
+            page_button_color.Color = theme.lightcontrast
+            page_button_title.Color = theme.textcolor
+            page.open = true
+            --
+            library.colors[page_button_color] = {
+                Color = "lightcontrast"
+            }
+            --
+            library.colors[page_button_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            for i,v in pairs(page.sections) do
+                for z,x in pairs(v.visibleContent) do
+                    x.Visible = true
+                end
+            end
+            --
+            window.callback(name, window.currentPage)
+            window:Move(window.main_frame.Position)
+        end
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and utility:MouseOverDrawing({page_button.Position.X,page_button.Position.Y,page_button.Position.X + page_button.Size.X,page_button.Position.Y + page_button.Size.Y}) and window.currentPage ~= page then
+                if page.name == "Players" then
+                    window.VisualPreview:SetPreviewState(true)
+                else
+                    window.VisualPreview:SetPreviewState(false)
+                end
+                page:Show()
+            end
+        end
+        --
+        return setmetatable(page, pages)
+    end
+    --
+    function pages:Section(info)
+        local window = self.window
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title or "New Section"
+        local size = info.size or info.Size
+        local fill = info.fill or info.Fill
+        local side = window.loader and "left" or (info.side or info.Side or "left")
+        side = side:lower()
+        local page = self
+        local section = {window = window, page = page, visibleContent = {}, currentAxis = 20, side = side}
+        --
+        local section_inline = utility:Create("Frame", {Vector2.new(side == "right" and (window.tab_frame.Size.X/2)+2 or 5,5 + page["sectionOffset"][side]), window.tab_frame}, {
+            Size = utility:Size(window.loader and 1 or info.Wide and 1 or 0.5, window.loader and -10 or info.Wide and -10 or -7, 0, size or 22, window.tab_frame),
+            Position = utility:Position(side == "right" and 0.5 or 0, side == "right" and 2 or 5, 0, 5 + page.sectionOffset[side], window.tab_frame),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent);section["section_inline"] = section_inline
+        --
+        library.colors[section_inline] = {
+            Color = "inline"
+        }
+        --
+        local section_outline = utility:Create("Frame", {Vector2.new(1,1), section_inline}, {
+            Size = utility:Size(1, -2, 1, -2, section_inline),
+            Position = utility:Position(0, 1, 0, 1, section_inline),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent);section["section_outline"] = section_outline
+        --
+        library.colors[section_outline] = {
+            Color = "outline"
+        }
+        --
+        local section_frame = utility:Create("Frame", {Vector2.new(1,1), section_outline}, {
+            Size = utility:Size(1, -2, 1, -2, section_outline),
+            Position = utility:Position(0, 1, 0, 1, section_outline),
+            Color = theme.darkcontrast,
+            Visible = page.open
+        }, section.visibleContent);section["section_frame"] = section_frame
+        --
+        library.colors[section_frame] = {
+            Color = "darkcontrast"
+        }
+        --
+        local section_accent = utility:Create("Frame", {Vector2.new(0,0), section_frame}, {
+            Size = utility:Size(1, 0, 0, 2, section_frame),
+            Position = utility:Position(0, 0, 0, 0, section_frame),
+            Color = theme.accent,
+            Visible = page.open
+        }, section.visibleContent);section["section_accent"] = section_accent
+        --
+        library.colors[section_accent] = {
+            Color = "accent"
+        }
+        --
+        local section_title = utility:Create("TextLabel", {Vector2.new(3,3), section_frame}, {
+            Text = name,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0, 3, 0, 3, section_frame),
+            Visible = page.open
+        }, section.visibleContent);section["section_title"] = section_title
+        --
+        library.colors[section_title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        function section:Update(Padding)
+            section_inline.Size = utility:Size(window.loader and 1 or info.Wide and 1 or 0.5, window.loader and -10 or info.Wide and -10 or -7, 0, fill and (window.tab_frame.Size.Y - (Padding or 0)) or (size or (section.currentAxis+4)), window.tab_frame)
+            section_outline.Size = utility:Size(1, -2, 1, -2, section_inline)
+            section_frame.Size = utility:Size(1, -2, 1, -2, section_outline)
+        end
+        --
+        function section:UpdateTitle(text)
+            section_title.Text = text
+        end
+        --
+        page.sectionOffset[side] = page.sectionOffset[side] + 100 + 5
+        page.sections[#page.sections + 1] = section
+        --
+        return setmetatable(section, sections)
+    end
+    --
+    function pages:MultiSection(info)
+        local info = info or {}
+        local msections = info.sections or info.Sections or {}
+        local side = info.side or info.Side or "left"
+        local size = info.size or info.Size or 150
+        local fill = info.fill or info.Fill
+        local callback = info.callback or info.Callback or info.callBack or info.CallBack or function() end
+        side = side:lower()
+        local window = self.window
+        local page = self
+        local multiSection = {window = window, page = page, sections = {}, backup = {}, visibleContent = {}, currentSection = nil, side = side}
+        --
+        local multiSection_inline = utility:Create("Frame", {Vector2.new(side == "right" and (window.tab_frame.Size.X/2)+2 or 5,5 + page["sectionOffset"][side]), window.tab_frame}, {
+            Size = utility:Size(window.loader and 1 or 0.5, window.loader and -10 or -7, 0, size, window.tab_frame),
+            Position = utility:Position(side == "right" and 0.5 or 0, side == "right" and 2 or 5, 0, 5 + page.sectionOffset[side], window.tab_frame),
+            Color = theme.inline,
+            Visible = page.open
+        }, multiSection.visibleContent);multiSection["section_inline"] = multiSection_inline
+        --
+        library.colors[multiSection_inline] = {
+            Color = "inline"
+        }
+        --
+        local multiSection_outline = utility:Create("Frame", {Vector2.new(1,1), multiSection_inline}, {
+            Size = utility:Size(1, -2, 1, -2, multiSection_inline),
+            Position = utility:Position(0, 1, 0, 1, multiSection_inline),
+            Color = theme.outline,
+            Visible = page.open
+        }, multiSection.visibleContent);multiSection["section_outline"] = multiSection_outline
+        --
+        library.colors[multiSection_outline] = {
+            Color = "outline"
+        }
+        --
+        local multiSection_frame = utility:Create("Frame", {Vector2.new(1,1), multiSection_outline}, {
+            Size = utility:Size(1, -2, 1, -2, multiSection_outline),
+            Position = utility:Position(0, 1, 0, 1, multiSection_outline),
+            Color = theme.darkcontrast,
+            Visible = page.open
+        }, multiSection.visibleContent);multiSection["section_frame"] = multiSection_frame
+        --
+        library.colors[multiSection_frame] = {
+            Color = "darkcontrast"
+        }
+        --
+        local multiSection_backFrame = utility:Create("Frame", {Vector2.new(0,2), multiSection_frame}, {
+            Size = utility:Size(1, 0, 0, 17, multiSection_frame),
+            Position = utility:Position(0, 0, 0, 2, multiSection_frame),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, multiSection.visibleContent)
+        --
+        library.colors[multiSection_backFrame] = {
+            Color = "lightcontrast"
+        }
+        --
+        local multiSection_bottomFrame = utility:Create("Frame", {Vector2.new(0,multiSection_backFrame.Size.Y - 1), multiSection_backFrame}, {
+            Size = utility:Size(1, 0, 0, 1, multiSection_backFrame),
+            Position = utility:Position(0, 0, 1, -1, multiSection_backFrame),
+            Color = theme.outline,
+            Visible = page.open
+        }, multiSection.visibleContent)
+        --
+        library.colors[multiSection_bottomFrame] = {
+            Color = "outline"
+        }
+        --
+        local multiSection_accent = utility:Create("Frame", {Vector2.new(0,0), multiSection_frame}, {
+            Size = utility:Size(1, 0, 0, 2, multiSection_frame),
+            Position = utility:Position(0, 0, 0, 0, multiSection_frame),
+            Color = theme.accent,
+            Visible = page.open
+        }, multiSection.visibleContent);multiSection["section_accent"] = multiSection_accent
+        --
+        library.colors[multiSection_accent] = {
+            Color = "accent"
+        }
+        --
+        function multiSection:Update(Padding)
+            multiSection_inline.Size = utility:Size(window.loader and 1 or 0.5, window.loader and -10 or -7, 0, fill and (window.tab_frame.Size.Y - (Padding or 0)) or size, window.tab_frame)
+            multiSection_outline.Size = utility:Size(1, -2, 1, -2, multiSection_inline)
+            multiSection_frame.Size = utility:Size(1, -2, 1, -2, multiSection_outline)
+            --
+            for Index, Value in pairs(multiSection.sections) do
+                Value:Update(Padding)
+            end
+        end
+        --
+        for i,v in pairs(msections) do
+            local msection = {window = window, page = page, currentAxis = 24, sections = {}, visibleContent = {}, section_inline = multiSection_inline, section_outline = multiSection_outline, section_frame = multiSection_frame, section_accent = multiSection_accent}
+            --
+            local textBounds = utility:GetTextBounds(v, theme.textsize, theme.font)
+            --
+            local msection_frame = utility:Create("Frame", {Vector2.new(((i - 1) * (1 / #msections)) * multiSection_backFrame.Size.X,0), multiSection_backFrame}, {
+                Size = utility:Size(1 / #msections, 0, 1, -1, multiSection_backFrame),
+                Position = utility:Position((i - 1) * (1 / #msections), 0, 0, 0, multiSection_backFrame),
+                Color = i == 1 and theme.darkcontrast or theme.lightcontrast,
+                Visible = page.open
+            }, multiSection.visibleContent);msection["msection_frame"] = msection_frame
+            --
+            library.colors[msection_frame] = {
+                Color = i == 1 and "darkcontrast" or "lightcontrast"
+            }
+            --
+            local msection_line = utility:Create("Frame", {Vector2.new(msection_frame.Size.X - (i == #msections and 0 or 1),0), msection_frame}, {
+                Size = utility:Size(0, 1, 1, 0, msection_frame),
+                Position = utility:Position(1, -(i == #msections and 0 or 1), 0, 0, msection_frame),
+                Color = theme.outline,
+                Visible = page.open
+            }, multiSection.visibleContent)
+            --
+            library.colors[msection_line] = {
+                Color = "outline"
+            }
+            --
+            local msection_title = utility:Create("TextLabel", {Vector2.new(msection_frame.Size.X * 0.5,1), msection_frame}, {
+                Text = v,
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Center = true,
+                Position = utility:Position(0.5, 0, 0, 1, msection_frame),
+                Visible = page.open
+            }, multiSection.visibleContent)
+            --
+            library.colors[msection_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            local msection_bottomline = utility:Create("Frame", {Vector2.new(0,msection_frame.Size.Y), msection_frame}, {
+                Size = utility:Size(1, (i == #msections and 0 or -1), 0, 1, msection_frame),
+                Position = utility:Position(0, 0, 1, 0, msection_frame),
+                Color = i == 1 and theme.darkcontrast or theme.outline,
+                Visible = page.open
+            }, multiSection.visibleContent);msection["msection_bottomline"] = msection_bottomline
+            --
+            library.colors[msection_bottomline] = {
+                Color = i == 1 and "darkcontrast" or "outline"
+            }
+            --
+            function msection:Update()
+                if multiSection.currentSection == msection then
+                    multiSection.visibleContent = utility:Combine(multiSection.backup, multiSection.currentSection.visibleContent)
+                else
+                    for z,x in pairs(msection.visibleContent) do
+                        x.Visible = false
+                    end
+                end
+            end
+            --
+            library.began[#library.began + 1] = function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and page.open and  utility:MouseOverDrawing({msection_frame.Position.X,msection_frame.Position.Y,msection_frame.Position.X + msection_frame.Size.X,msection_frame.Position.Y + msection_frame.Size.Y}) and multiSection.currentSection ~= msection and not window:IsOverContent() then
+                    multiSection.currentSection.msection_frame.Color = theme.lightcontrast
+                    multiSection.currentSection.msection_bottomline.Color = theme.outline
+                    --
+                    library.colors[multiSection.currentSection.msection_frame] = {
+                        Color = "lightcontrast"
+                    }
+                    --
+                    library.colors[multiSection.currentSection.msection_bottomline] = {
+                        Color = "outline"
+                    }
+                    --
+                    for i,v in pairs(multiSection.currentSection.visibleContent) do
+                        v.Visible = false
+                    end
+                    --
+                    multiSection.currentSection = msection
+                    msection_frame.Color = theme.darkcontrast
+                    msection_bottomline.Color = theme.darkcontrast
+                    --
+                    library.colors[msection_frame] = {
+                        Color = "darkcontrast"
+                    }
+                    --
+                    library.colors[msection_bottomline] = {
+                        Color = "darkcontrast"
+                    }
+                    --
+                    for i,v in pairs(multiSection.currentSection.visibleContent) do
+                        v.Visible = true
+                    end
+                    --
+                    multiSection.visibleContent = utility:Combine(multiSection.backup, multiSection.currentSection.visibleContent)
+                    --
+                    callback(v, msection)
+                    window:Move(window.main_frame.Position)
+                end
+            end
+            --
+            if i == 1 then
+                multiSection.currentSection = msection
+                callback(v, msection)
+            end
+            --
+            multiSection.sections[#multiSection.sections + 1] = setmetatable(msection, sections)
+        end
+        --
+        for z,x in pairs(multiSection.visibleContent) do
+            multiSection.backup[z] = x
+        end
+        --
+        page.sectionOffset[side] = page.sectionOffset[side] + 100 + 5
+        page.sections[#page.sections + 1] = multiSection
+        --
+        return Unpack(multiSection.sections)
+    end
+    --
+    function pages:PlayerList(info)
+        local info = info or {}
+        --
+        local window = self.window
+        local page = self
+        --
+        local playerList = {window = window, page = page, visibleContent = {}, buttons = {}, currentAxis = 20, scrollingindex = 0, scrolling = {false, nil}, items = {}, players = {}}
+        --
+        local playerList_inline = utility:Create("Frame", {Vector2.new(5,5), window.tab_frame}, {
+            Size = utility:Size(1, -10, 0, ((10 * 22) + 4) + 20 + 60 + 12, window.tab_frame),
+            Position = utility:Position(0, 5, 0, 5, window.tab_frame),
+            Color = theme.inline,
+            Visible = page.open
+        }, playerList.visibleContent);playerList["playerList_inline"] = playerList_inline
+        --
+        library.colors[playerList_inline] = {
+            Color = "inline"
+        }
+        --
+        local playerList_outline = utility:Create("Frame", {Vector2.new(1,1), playerList_inline}, {
+            Size = utility:Size(1, -2, 1, -2, playerList_inline),
+            Position = utility:Position(0, 1, 0, 1, playerList_inline),
+            Color = theme.outline,
+            Visible = page.open
+        }, playerList.visibleContent);playerList["playerList_outline"] = playerList_outline
+        --
+        library.colors[playerList_outline] = {
+            Color = "outline"
+        }
+        --
+        local playerList_frame = utility:Create("Frame", {Vector2.new(1,1), playerList_outline}, {
+            Size = utility:Size(1, -2, 1, -2, playerList_outline),
+            Position = utility:Position(0, 1, 0, 1, playerList_outline),
+            Color = theme.darkcontrast,
+            Visible = page.open
+        }, playerList.visibleContent);playerList["playerList_frame"] = playerList_frame
+        --
+        library.colors[playerList_frame] = {
+            Color = "darkcontrast"
+        }
+        --
+        local playerList_accent = utility:Create("Frame", {Vector2.new(0,0), playerList_frame}, {
+            Size = utility:Size(1, 0, 0, 2, playerList_frame),
+            Position = utility:Position(0, 0, 0, 0, playerList_frame),
+            Color = theme.accent,
+            Visible = page.open
+        }, playerList.visibleContent);playerList["playerList_accent"] = playerList_accent
+        --
+        library.colors[playerList_accent] = {
+            Color = "accent"
+        }
+        --
+        local playerList_title = utility:Create("TextLabel", {Vector2.new(3,3), playerList_frame}, {
+            Text = "Player List - 0 Players",
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0, 3, 0, 3, playerList_frame),
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[playerList_title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        local list_outline = utility:Create("Frame", {Vector2.new(4,20), playerList_frame}, {
+            Size = utility:Size(1, -8, 0, ((10 * 22) + 4), playerList_frame),
+            Position = utility:Position(0, 4, 0, 20, playerList_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[list_outline] = {
+            Color = "outline"
+        }
+        --
+        local list_inline = utility:Create("Frame", {Vector2.new(1,1), list_outline}, {
+            Size = utility:Size(1, -2, 1, -2, list_outline),
+            Position = utility:Position(0, 1, 0, 1, list_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[list_inline] = {
+            Color = "inline"
+        }
+        --
+        local list_frame = utility:Create("Frame", {Vector2.new(1,1), list_inline}, {
+            Size = utility:Size(1, -10, 1, -2, list_inline),
+            Position = utility:Position(0, 1, 0, 1, list_inline),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[list_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        local list_scroll = utility:Create("Frame", {Vector2.new(list_inline.Size.X - 9,1), list_inline}, {
+            Size = utility:Size(0, 8, 1, -2, list_inline),
+            Position = utility:Position(1, -9, 0, 1, list_inline),
+            Color = theme.darkcontrast,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[list_scroll] = {
+            Color = "darkcontrast"
+        }
+        --
+        local list_bar = utility:Create("Frame", {Vector2.new(1,1), list_scroll}, {
+            Size = utility:Size(1, -2, 0.5, -2, list_scroll),
+            Position = utility:Position(0, 1, 0, 1, list_scroll),
+            Color = theme.accent,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[list_bar] = {
+            Color = "accent"
+        }
+        --
+        local list_gradient = utility:Create("Image", {Vector2.new(0,0), list_frame}, {
+            Size = utility:Size(1, 0, 1, 0, list_frame),
+            Position = utility:Position(0, 0, 0 , 0, list_frame),
+            Transparency = 0.25,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        for Index = 1, 10 do
+            local item = {}
+            local listitemposition = (Index - 1) * 22
+            --
+            local listitem_line
+            --
+            if Index ~= 10 then
+                listitem_line = utility:Create("Frame", {Vector2.new(3,listitemposition + 21), list_frame}, {
+                    Size = utility:Size(1, -6, 0, 2, list_frame),
+                    Position = utility:Position(0, 3, 0, listitemposition + 21, list_frame),
+                    Transparency = 0,
+                    Color = theme.outline,
+                    Visible = page.open
+                }, playerList.visibleContent)
+                --
+                library.colors[listitem_line] = {
+                    Color = "outline"
+                }
+            end
+            --
+            local listitem_firstline = utility:Create("Frame", {Vector2.new(1/3 * list_frame.Size.X,listitemposition + 3), list_frame}, {
+                Size = utility:Size(0, 2, 0, 16, list_frame),
+                Position = utility:Position(1/3, 1, 0, listitemposition + 3, list_frame),
+                Transparency = 0,
+                Color = theme.outline,
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            library.colors[listitem_firstline] = {
+                Color = "outline"
+            }
+            --
+            local listitem_secondline = utility:Create("Frame", {Vector2.new(2/3 * list_frame.Size.X,listitemposition + 3), list_frame}, {
+                Size = utility:Size(0, 2, 0, 16, list_frame),
+                Position = utility:Position(2/3, 1, 0, listitemposition + 3, list_frame),
+                Transparency = 0,
+                Color = theme.outline,
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            library.colors[listitem_secondline] = {
+                Color = "outline"
+            }
+            --
+            local listitem_username = utility:Create("TextLabel", {Vector2.new(4, 4 + listitemposition), list_frame}, {
+                Text = "",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Position = utility:Position(0, 4, 0, 4 + listitemposition, list_frame),
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            library.colors[listitem_username] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            local listitem_team = utility:Create("TextLabel", {Vector2.new(6 + (1/3 * list_frame.Size.X), 4 + listitemposition), list_frame}, {
+                Text = "",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Position = utility:Position(1/3, 6, 0, 4 + listitemposition, list_frame),
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            library.colors[listitem_team] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            local listitem_status = utility:Create("TextLabel", {Vector2.new(6 + (2/3 * list_frame.Size.X), 4 + listitemposition), list_frame}, {
+                Text = "",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Position = utility:Position(2/3, 6, 0, 4 + listitemposition, list_frame),
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            library.colors[listitem_status] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            function item:Set(enabled, selected)
+                if listitem_line then
+                    if window.isVisible then
+                        listitem_line.Transparency = enabled and 0.3 or 0
+                    end
+                    --
+                    utility:UpdateTransparency(listitem_line, enabled and 0.3 or 0)
+                end
+                --
+                if window.isVisible then
+                    listitem_firstline.Transparency = enabled and 0.3 or 0
+                    listitem_secondline.Transparency = enabled and 0.3 or 0
+                end
+                --
+                utility:UpdateTransparency(listitem_firstline, enabled and 0.3 or 0)
+                utility:UpdateTransparency(listitem_secondline, enabled and 0.3 or 0)
+                --
+                if selected ~= nil then
+                    listitem_team.Text = selected[3]
+                    listitem_team.Color =  selected[3] == "None" and theme.textcolor or selected[3] == "Antilocking" and theme.accent or theme.textcolor
+                    
+                    listitem_username.Text = selected[2]
+                    listitem_username.Color = selected[5] and theme.accent or theme.textcolor
+                    listitem_status.Text = selected[4]
+                    --
+                    listitem_status.Color = selected[4] == "Local Player" and Color3.fromRGB(200, 55, 200) or selected[4] == "Priority" and Color3.fromRGB(55, 55, 200) or selected[4] == "Friend" and Color3.fromRGB(55, 200, 55) or selected[4] == "Enemy" and Color3.fromRGB(200, 55, 55) or selected[4] == "Resolve" and Color3.fromRGB(252, 186, 3) or theme.textcolor
+                end
+                if enabled then
+                    
+                    library.colors[listitem_username] = {
+                        OutlineColor = "textborder",
+                        Color = selected[5] and "accent" or "textcolor"
+                    }
+                    -- 
+                    library.colors[listitem_status] = {
+                        OutlineColor = "textborder",
+                        Color = selected[4] == "None" and "textcolor" or nil
+                    }
+                else
+                    listitem_username.Text = ""
+                    listitem_team.Text = ""
+                    listitem_status.Text = ""
+                end
+            end
+            --
+            playerList.items[#playerList.items + 1] = item
+        end
+        --
+        local options_iconoutline = utility:Create("Frame", {Vector2.new(0,list_outline.Size.Y + 4), list_outline}, {
+            Size = utility:Size(0, 60, 0, 60, list_outline),
+            Position = utility:Position(0, 0, 1, 4, list_outline),
+            Color = theme.outline,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[options_iconoutline] = {
+            Color = "outline"
+        }
+        --
+        local options_iconinline = utility:Create("Frame", {Vector2.new(1,1), options_iconoutline}, {
+            Size = utility:Size(1, -2, 1, -2, options_iconoutline),
+            Position = utility:Position(0, 1, 0, 1, options_iconoutline),
+            Color = theme.inline,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[options_iconinline] = {
+            Color = "inline"
+        }
+        --
+        local options_iconframe = utility:Create("Frame", {Vector2.new(1,1), options_iconinline}, {
+            Size = utility:Size(1, -2, 1, -2, options_iconinline),
+            Position = utility:Position(0, 1, 0, 1, options_iconinline),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[options_iconframe] = {
+            Color = "lightcontrast"
+        }
+        --
+        local options_avatar = utility:Create("Image", {Vector2.new(0,0), options_iconframe}, {
+            Size = utility:Size(1, 0, 1, 0, options_iconframe),
+            Position = utility:Position(0, 0, 0 , 0, options_iconframe),
+            Transparency = 0.8,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        local options_loadingtext = utility:Create("TextLabel", {Vector2.new((options_iconoutline.Size.X / 2) - 1, (options_iconoutline.Size.X / 2) - 10), options_iconframe}, {
+            Text = "..?",
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textdark,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0.5, -1, 0.5, -10, options_iconframe),
+            Center = true,
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[options_loadingtext] = {
+            OutlineColor = "textborder",
+            Color = "textdark"
+        }
+        --
+        local options_title = utility:Create("TextLabel", {Vector2.new(options_iconoutline.Size.X + 5, 0), options_iconoutline}, {
+            Text = "No player selected.", -- ("Display Name : %s\nName : %s\nHealth : %s/%s"):format("gg_bbot", "1envo", "100", "100")
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(1, 5, 0, 0, options_iconoutline),
+            Visible = page.open
+        }, playerList.visibleContent)
+        --
+        library.colors[options_title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        for Index = 1, 1 do
+            local button = {
+                open = false,
+                current = "None",
+                options = {"None", "Friend", "Enemy", "Priority", "Resolve"},
+                holder = {buttons = {}, drawings = {}},
+                selection = nil
+            }
+            --
+            local button_outline = utility:Create("Frame", {Vector2.new(list_outline.Size.X - 180, list_outline.Size.Y + (Index == 1 and 10 or 36)), list_outline}, {
+                Size = utility:Size(0, 180, 0, 22, list_outline),
+                Position = utility:Position(1, -180, 1, Index == 1 and 10 or 36, list_outline),
+                Color = theme.outline,
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            library.colors[button_outline] = {
+                Color = "outline"
+            }
+            --
+            local button_inline = utility:Create("Frame", {Vector2.new(1,1), button_outline}, {
+                Size = utility:Size(1, -2, 1, -2, button_outline),
+                Position = utility:Position(0, 1, 0, 1, button_outline),
+                Color = theme.inline,
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            library.colors[button_inline] = {
+                Color = "inline"
+            }
+            --
+            local button_frame = utility:Create("Frame", {Vector2.new(1,1), button_inline}, {
+                Size = utility:Size(1, -2, 1, -2, button_inline),
+                Position = utility:Position(0, 1, 0, 1, button_inline),
+                Color = theme.lightcontrast,
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            library.colors[button_frame] = {
+                Color = "lightcontrast"
+            }
+            --
+            local button_gradient = utility:Create("Image", {Vector2.new(0,0), button_frame}, {
+                Size = utility:Size(1, 0, 1, 0, button_frame),
+                Position = utility:Position(0, 0, 0 , 0, button_frame),
+                Transparency = 0.5,
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            local button_title = utility:Create("TextLabel", {Vector2.new(button_frame.Size.X/2,1), button_frame}, {
+                Text = Index == 1 and "Prioritise" or "Friendly",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Center = true,
+                Position = utility:Position(0.5, 0, 0, 1, button_frame),
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            library.colors[button_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            local button_image = utility:Create("Image", {Vector2.new(button_frame.Size.X - 15,button_frame.Size.Y/2 - 3), button_frame}, {
+                Size = utility:Size(0, 9, 0, 6, button_frame),
+                Position = utility:Position(1, -15, 0.5, -3, button_frame),
+                Visible = page.open
+            }, playerList.visibleContent)
+            --
+            utility:LoadImage(button_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+            --
+            function button:Update(Selection)
+                local Visible = Selection ~= nil and (Selection[1] ~= localplayer) or false
+                --
+                for Index, Value in pairs({button_outline, button_inline, button_frame, button_gradient, button_title, button_image}) do
+                    Value.Visible = page.open and Visible or false
+                    --
+                    if Visible then
+                        local fnd = table.find(playerList.visibleContent, Value)
+                        --
+                        if not fnd then
+                            playerList.visibleContent[#playerList.visibleContent + 1] = Value
+                        end
+                    else
+                        local fnd = table.find(playerList.visibleContent, Value)
+                        --
+                        if fnd then
+                            table.remove(playerList.visibleContent, fnd)
+                        end
+                    end
+                end
+                --
+                if Selection then
+                    button_title.Text = Selection[4]
+                    button.current = Selection[4]
+                    button.selection = Selection
+                else
+                    button.selection = nil
+                end
+            end
+            --
+            function button:UpdateValue()
+                if button.open and button.holder.inline then
+                    for i,v in pairs(button.holder.buttons) do
+                        local value = button.options[i]
+                        --
+                        v[1].Text = value
+                        v[1].Color = value == tostring(button.current) and theme.accent or theme.textcolor
+                        v[1].Position = utility:Position(0, value == tostring(button.current) and 8 or 6, 0, 2, v[2])
+                        library.colors[v[1]] = {
+                            Color = v[1].Text == tostring(button.current) and "accent" or "textcolor"
+                        }
+                        utility:UpdateOffset(v[1], {Vector2.new(v[1].Text == tostring(button.current) and 8 or 6, 2), v[2]})
+                    end
+                end
+            end
+            --
+            function button:Close()
+                button.open = not button.open
+                utility:LoadImage(button_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                --
+                for i,v in pairs(button.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                button.holder.drawings = {}
+                button.holder.buttons = {}
+                button.holder.inline = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.button = nil
+            end
+            --
+            function button:Open()
+                window:CloseContent()
+                button.open = not button.open
+                utility:LoadImage(button_image, "arrow_up", "https://i.imgur.com/SL9cbQp.png")
+                --
+                local button_open_outline = utility:Create("Frame", {Vector2.new(0,21), button_outline}, {
+                    Size = utility:Size(1, 0, 0, 3 + (#button.options * 19), button_outline),
+                    Position = utility:Position(0, 0, 0, 21, button_outline),
+                    Color = theme.outline,
+                    Visible = page.open
+                }, button.holder.drawings);button.holder.outline = button_open_outline
+                --
+                library.colors[button_open_outline] = {
+                    Color = "outline"
+                }
+                --
+                local button_open_inline = utility:Create("Frame", {Vector2.new(1,1), button_open_outline}, {
+                    Size = utility:Size(1, -2, 1, -2, button_open_outline),
+                    Position = utility:Position(0, 1, 0, 1, button_open_outline),
+                    Color = theme.inline,
+                    Visible = page.open
+                }, button.holder.drawings);button.holder.inline = button_open_inline
+                --
+                library.colors[button_open_inline] = {
+                    Color = "inline"
+                }
+                --
+                for Index = 1, (#button.options) do
+                    local Value = button.options[Index]
+                    --
+                    if Value then
+                        local button_value_frame = utility:Create("Frame", {Vector2.new(1,1 + (19 * (Index-1))), button_open_inline}, {
+                            Size = utility:Size(1, -2, 0, 18, button_open_inline),
+                            Position = utility:Position(0, 1, 0, 1 + (19 * (Index-1)), button_open_inline),
+                            Color = theme.lightcontrast,
+                            Visible = page.open
+                        }, button.holder.drawings)
+                        --
+                        library.colors[button_value_frame] = {
+                            Color = "lightcontrast"
+                        }
+                        --
+                        local button_value = utility:Create("TextLabel", {Vector2.new(Value == tostring(button.current) and 8 or 6,2), button_value_frame}, {
+                            Text = Value,
+                            Size = theme.textsize,
+                            Font = theme.font,
+                            Color = Value == tostring(button.current) and theme.accent or theme.textcolor,
+                            OutlineColor = theme.textborder,
+                            Position = utility:Position(0, Value == tostring(button.current) and 8 or 6, 0, 2, button_value_frame),
+                            Visible = page.open
+                        }, button.holder.drawings)
+                        --
+                        button.holder.buttons[#button.holder.buttons + 1] = {button_value, button_value_frame}
+                        --
+                        library.colors[button_value] = {
+                            OutlineColor = "textborder",
+                            Color = Value == tostring(button.current) and "accent" or "textcolor"
+                        }
+                    end
+                end
+                --
+                window.currentContent.frame = button_open_inline
+                window.currentContent.button = button
+            end
+            --
+            utility:LoadImage(button_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+            --
+            library.began[#library.began + 1] = function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 and (button_outline.Visible or button.open) and window.isVisible then
+                    if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and button_outline.Visible then
+                        if button.open and button.holder.inline and utility:MouseOverDrawing({button.holder.inline.Position.X, button.holder.inline.Position.Y, button.holder.inline.Position.X + button.holder.inline.Size.X, button.holder.inline.Position.Y + button.holder.inline.Size.Y}) then
+                            for i,v in pairs(button.holder.buttons) do
+                                local value = button.options[i]
+                                --
+                                if utility:MouseOverDrawing({v[2].Position.X, v[2].Position.Y, v[2].Position.X + v[2].Size.X, v[2].Position.Y + v[2].Size.Y}) and value ~= button.current then
+                                    button.current = value
+                                    button_title.Text = button.current
+        
+                                    if button.selection then
+                                        button.selection[4] = value
+                                        playerList:Refresh(button.selection)
+                                    end
+        
+                                    button:UpdateValue()
+                                end
+                            end
+                        elseif utility:MouseOverDrawing({button_outline.Position.X, button_outline.Position.Y, button_outline.Position.X + button_outline.Size.X, button_outline.Position.Y + button_outline.Size.Y}) and not window:IsOverContent() then
+                            task.spawn(function()
+                                utility:LoadImage(button_gradient, "gradientdown", "https://i.imgur.com/DzrzUt3.png") 
+                                --
+                                task.wait(0.15)
+                                --
+                                utility:LoadImage(button_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png") 
+                            end)
+                            --
+                            if not button.open then
+                                button:Open()
+                            else
+                                button:Close()
+                            end
+                        else
+                            if button.open then
+                                button:Close()
+                            end
+                        end
+                    elseif Input.UserInputType == Enum.UserInputType.MouseButton1 and button.open then
+                        button:Close()
+                    end
+                end
+            end
+            --
+            playerList.buttons[#playerList.buttons + 1] = button
+        end
+        --
+        utility:LoadImage(list_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        function playerList:GetSelection()
+            for Index, Value in pairs(playerList.players) do
+                if Value[5] then
+                    return Value
+                end
+            end
+        end
+        --
+        function playerList:UpdateScroll()
+            if (#playerList.players - 10) > 0 then
+                playerList.scrollingindex = math.clamp(playerList.scrollingindex, 0, (#playerList.players - 10))
+                --
+                list_bar.Transparency = window.isVisible and 1 or 0
+                list_bar.Size = utility:Size(1, -2, (10 / #playerList.players), -2, list_scroll)
+                list_bar.Position = utility:Position(0, 1, 0, 1 + ((((list_scroll.Size.Y - 2) - list_bar.Size.Y) / (#playerList.players - 10)) * playerList.scrollingindex), list_scroll)
+                utility:UpdateTransparency(list_bar, 1)
+                utility:UpdateOffset(list_bar, {Vector2.new(1, 1 + ((((list_scroll.Size.Y - 2) - list_bar.Size.Y) / (#playerList.players - 10)) * playerList.scrollingindex)), list_scroll})
+            else
+                playerList.scrollingindex = 0
+                list_bar.Transparency = 0
+                utility:UpdateTransparency(list_bar, 0)
+            end
+            --
+            playerList:Refresh()
+        end
+        --
+        local lastselection
+        --
+        function playerList:Refresh(Relation)
+            for Index, Value in pairs(playerList.items) do
+                local Found = playerList.players[Index + playerList.scrollingindex]
+                --
+                if Found then
+                    Value:Set(true, Found)
+                else
+                    Value:Set(false)
+                end
+            end
+            --
+            if Relation then
+                library.Relations[Relation[1].UserId] = Relation[4] ~= "None" and Relation[4] or nil
+            end
+            --
+            
+            --
+            playerList_title.Text = ("Player List - %s Players"):format(#playerList.items - 1)
+            --
+            local Selection = playerList:GetSelection()
+            --
+            playerList.buttons[1]:Update(Selection)
+            --
+            
+            --
+            window:Move(window.main_frame.Position)
+            --
+            if Selection then
+                if lastselection ~= Selection then
+                    lastselection = Selection
+                    --
+                    playerlistIndividualTweak:UpdateTitle(Selection[1].Name.." ["..Selection[1].DisplayName.."]'s - Tweaks")
+                    --
+                    if isAimviewerTarget(Selection[1]) == true then
+                        pListMistToggle:Set(true)
+                    else
+                        pListMistToggle:Set(false)
+                    end
+                    --
+                    options_avatar.Data = ""
+                    options_loadingtext.Text = "..?"
+                    --
+                    options_title.Text = ("User ID : %s\nDisplay Name : %s\nName : %s\nHealth : %s/%s"):format(Selection[1].UserId, Selection[1].DisplayName ~= "" and Selection[1].DisplayName or Selection[1].Name, Selection[1].Name, "100", "100")
+                    --
+                    task.spawn(function()
+                        
+                        local pImageData = game:GetService("HttpService"):JSONDecode(game:HttpGet(("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=%s&size=352x352&format=Png&isCircular=false"):format(Selection[1].UserId)))
+
+                        local imagedata = game:HttpGet((pImageData["data"][1]["imageUrl"]))
+                        --
+                        if playerList:GetSelection() == Selection then
+                            options_avatar.Data = imagedata
+                            options_loadingtext.Text = ""
+                        end
+                    end)
+                end
+            else
+                options_title.Text = "No player selected."
+                options_avatar.Data = ""
+                options_loadingtext.Text = "..?"
+                lastselection = nil
+            end
+        end
+        --
+        function playerList:Update() end
+        --
+        utility:Connection(plrs.PlayerAdded, function(Player)
+            playerList.players[#playerList.players + 1] = {Player, Player.Name,"None", "None",false}
+            --
+            playerList:UpdateScroll()
+        end)
+        --
+        utility:Connection(plrs.PlayerRemoving, function(Player)
+            for Index, Value in pairs(playerList.players) do
+                if Value[1] == Player then
+                    Remove(playerList.players, Index)
+                end
+            end
+            --
+            playerList:UpdateScroll()
+        end)
+        --
+        for Index, Value in pairs(plrs:GetPlayers()) do
+            playerList.players[#playerList.players + 1] = {Value, Value.Name, "None",  Value == localplayer and "Local Player" or "None", false}
+        end
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and list_outline.Visible and window.isVisible then
+                if utility:MouseOverDrawing({list_bar.Position.X, list_bar.Position.Y, list_bar.Position.X + list_bar.Size.X, list_bar.Position.Y + list_bar.Size.Y}) then
+                    playerList.scrolling = {true, (utility:MouseLocation().Y - list_bar.Position.Y)}
+                elseif utility:MouseOverDrawing({list_frame.Position.X, list_frame.Position.Y, list_frame.Position.X + list_frame.Size.X, list_frame.Position.Y + list_frame.Size.Y}) and not window:IsOverContent() then
+                    for Index = 1, 10 do
+                        local Found = playerList.players[Index + playerList.scrollingindex]
+                        --
+                        if Found and utility:MouseOverDrawing({list_frame.Position.X, list_frame.Position.Y + 2 + (22 * (Index - 1)), list_frame.Position.X + list_frame.Size.X, list_frame.Position.Y + 2 + (22 * (Index - 1)) + 22}) then
+                            if Found[5] then
+                                Found[5] = false
+                            else
+                                for Index2, Value2 in pairs(playerList.players) do
+                                    if Value2 ~= Found then
+                                        Value2[5] = false
+                                    end
+                                end
+                                --
+                                Found[5] = true
+                            end
+                            --
+                            playerList:UpdateScroll()
+                            --
+                            break
+                        end
+                    end
+                end
+            end
+        end
+        --
+        library.ended[#library.ended + 1] = function(Input)
+            if playerList.scrolling[1] and Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                playerList.scrolling = {false, nil}
+            end
+        end
+        --
+        library.changed[#library.changed + 1] = function(Input)
+            if playerList.scrolling[1] then
+                local MouseLocation = utility:MouseLocation()
+                local Position = math.clamp((MouseLocation.Y - list_scroll.Position.Y - playerList.scrolling[2]), 0, ((list_scroll.Size.Y - list_bar.Size.Y)))
+                --
+                playerList.scrollingindex = math.clamp(math.round((((Position + list_scroll.Position.Y) - list_scroll.Position.Y) / ((list_scroll.Size.Y - list_bar.Size.Y))) * (#playerList.players - 10)), 0, #playerList.players - 10)
+                playerList:UpdateScroll()
+            end
+        end
+        --
+        utility:Connection(mouse.WheelForward,function()
+            if (#playerList.players - 10) > 0 and page.open and list_bar.Visible and utility:MouseOverDrawing({list_frame.Position.X, list_frame.Position.Y, list_frame.Position.X + list_frame.Size.X, list_frame.Position.Y + list_frame.Size.Y}) and not window:IsOverContent() then
+                playerList.scrollingindex = math.clamp(playerList.scrollingindex - 1, 0, #playerList.players - 10)
+                playerList:UpdateScroll()
+            end
+        end)
+        --
+        utility:Connection(mouse.WheelBackward,function()
+            if (#playerList.players - 10) > 0 and page.open and list_bar.Visible and utility:MouseOverDrawing({list_frame.Position.X, list_frame.Position.Y, list_frame.Position.X + list_frame.Size.X, list_frame.Position.Y + list_frame.Size.Y}) and not window:IsOverContent() then
+                playerList.scrollingindex = math.clamp(playerList.scrollingindex + 1, 0, #playerList.players - 10)
+                playerList:UpdateScroll()
+            end
+        end)
+        --
+        playerList:UpdateScroll()
+        --
+        page.sectionOffset["left"] = page.sectionOffset["left"] + playerList_inline.Size.Y + 5
+        page.sectionOffset["right"] = page.sectionOffset["right"] + playerList_inline.Size.Y + 5
+        page.sections[#page.sections + 1] = playerList
+        return playerList
+    end
+    --
+    function sections:Label(info)
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title or "New Label"
+        local middle = info.middle or info.Middle or info.center or info.Center or false
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local label = {axis = section.currentAxis}
+        --
+        local label_title = utility:Create("TextLabel", {Vector2.new(middle and (section.section_frame.Size.X/2) or 4,label.axis), section.section_frame}, {
+            Text = name,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Center = middle,
+            Position = utility:Position(middle and 0.5 or 0, middle and 0 or 4, 0, 0, section.section_frame),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[label_title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = label
+        end
+        --
+        section.currentAxis = section.currentAxis + label_title.TextBounds.Y + 4
+        --
+        return label
+    end
+    --
+    function sections:Toggle(info)
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title or "New Toggle"
+        local def = info.def or info.Def or info.default or info.Default or false
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local toggle = {axis = section.currentAxis, current = def, addedAxis = 0, addedKeybind = nil, colorpickers = 0, keybind = nil}
+        --
+        local toggle_outline = utility:Create("Frame", {Vector2.new(4,toggle.axis), section.section_frame}, {
+            Size = utility:Size(0, 15, 0, 15),
+            Position = utility:Position(0, 4, 0, toggle.axis, section.section_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[toggle_outline] = {
+            Color = "outline"
+        }
+        --
+        local toggle_inline = utility:Create("Frame", {Vector2.new(1,1), toggle_outline}, {
+            Size = utility:Size(1, -2, 1, -2, toggle_outline),
+            Position = utility:Position(0, 1, 0, 1, toggle_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[toggle_inline] = {
+            Color = "inline"
+        }
+        --
+        local toggle_frame = utility:Create("Frame", {Vector2.new(1,1), toggle_inline}, {
+            Size = utility:Size(1, -2, 1, -2, toggle_inline),
+            Position = utility:Position(0, 1, 0, 1, toggle_inline),
+            Color = toggle.current == true and theme.accent or theme.lightcontrast,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[toggle_frame] = {
+            Color = toggle.current == true and "accent" or "lightcontrast"
+        }
+        --
+        local toggle__gradient = utility:Create("Image", {Vector2.new(0,0), toggle_frame}, {
+            Size = utility:Size(1, 0, 1, 0, toggle_frame),
+            Position = utility:Position(0, 0, 0 , 0, toggle_frame),
+            Transparency = 0.5,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        local toggle_title = utility:Create("TextLabel", {Vector2.new(23,toggle.axis + (15/2) - (utility:GetTextBounds(name, theme.textsize, theme.font).Y/2)), section.section_frame}, {
+            Text = name,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0, 23, 0, toggle.axis + (15/2) - (utility:GetTextBounds(name, theme.textsize, theme.font).Y/2), section.section_frame),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[toggle_title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        utility:LoadImage(toggle__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        function toggle:Get()
+            return toggle.current
+        end
+        --
+        function toggle:Set(bool)
+            if typeof(bool) == "boolean" then
+                toggle.current = bool
+                toggle_frame.Color = toggle.current == true and theme.accent or theme.lightcontrast
+                --
+                library.colors[toggle_frame] = {
+                    Color = toggle.current == true and "accent" or "lightcontrast"
+                }
+                --
+                callback(toggle.current)
+                --
+                if toggle.keybind then
+                    toggle.keybind.active = (bool and (toggle.keybind.mode == "Always" or toggle.keybind.mode == "Off Hold") or false)
+                    toggle.keybind:Callback()
+                    --
+                    if toggle.keybind.mode == "Off Hold" and toggle.current then
+                        window.keybindslist:Add(toggle.keybind.keybindname, toggle.keybind.keybind_value.Text)
+                    else
+                        window.keybindslist:Remove(toggle.keybind.keybindname)
+                    end
+                end
+            end
+        end
+        --
+        library.colors[toggle_frame] = {
+            Color = toggle.current == true and "accent" or "lightcontrast"
+        }
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and toggle_outline.Visible and window.isVisible and page.open and utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + toggle.axis, section.section_frame.Position.X + section.section_frame.Size.X - toggle.addedAxis, section.section_frame.Position.Y + toggle.axis + 15}) and not window:IsOverContent() then
+                toggle.current = not toggle.current
+                toggle_frame.Color = toggle.current == true and theme.accent or theme.lightcontrast
+                --
+                library.colors[toggle_frame] = {
+                    Color = toggle.current == true and "accent" or "lightcontrast"
+                }
+                --
+                callback(toggle.current)
+                --
+                if toggle.keybind then
+                    toggle.keybind.active = (toggle.current and (toggle.keybind.mode == "Always" or toggle.keybind.mode == "Off Hold") or false)
+                    toggle.keybind:Callback()
+                    if toggle.keybind.mode == "Off Hold" and toggle.current then
+                        window.keybindslist:Add(toggle.keybind.keybindname, toggle.keybind.keybind_value.Text)
+                    else
+                        window.keybindslist:Remove(toggle.keybind.keybindname)
+                    end
+                end
+            end
+        end
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = toggle
+        end
+        --
+        section.currentAxis = section.currentAxis + 15 + 4
+        --
+        function toggle:Colorpicker(info)
+            local info = info or {}
+            local cpinfo = info.info or info.Info or name
+            local def = info.def or info.Def or info.default or info.Default or Color3.fromRGB(255, 0, 0)
+            local transp = info.transparency or info.Transparency or info.transp or info.Transp or info.alpha or info.Alpha or nil
+            local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+            local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+            --
+            local hh, ss, vv = def:ToHSV()
+            local colorpicker = {toggle, axis = toggle.axis, index = toggle.colorpickers, current = {hh, ss, vv , (transp or 0)}, holding = {picker = false, huepicker = false, transparency = false}, holder = {inline = nil, picker = nil, picker_cursor = nil, huepicker = nil, huepicker_cursor = {}, transparency = nil, transparencybg = nil, transparency_cursor = {}, drawings = {}}}
+            --
+            local colorpicker_outline = utility:Create("Frame", {Vector2.new(section.section_frame.Size.X-(toggle.colorpickers == 0 and (30+4) or (64 + 4)),colorpicker.axis), section.section_frame}, {
+                Size = utility:Size(0, 30, 0, 15),
+                Position = utility:Position(1, -(toggle.colorpickers == 0 and (30+4) or (64 + 4)), 0, colorpicker.axis, section.section_frame),
+                Color = theme.outline,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[colorpicker_outline] = {
+                Color = "outline"
+            }
+            --
+            local colorpicker_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_outline}, {
+                Size = utility:Size(1, -2, 1, -2, colorpicker_outline),
+                Position = utility:Position(0, 1, 0, 1, colorpicker_outline),
+                Color = theme.inline,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[colorpicker_inline] = {
+                Color = "inline"
+            }
+            --
+            local colorpicker__transparency
+            if transp then
+                colorpicker__transparency = utility:Create("Image", {Vector2.new(1,1), colorpicker_inline}, {
+                    Size = utility:Size(1, -2, 1, -2, colorpicker_inline),
+                    Position = utility:Position(0, 1, 0 , 1, colorpicker_inline),
+                    Visible = page.open
+                }, section.visibleContent)
+            end
+            --
+            local colorpicker_frame = utility:Create("Frame", {Vector2.new(1,1), colorpicker_inline}, {
+                Size = utility:Size(1, -2, 1, -2, colorpicker_inline),
+                Position = utility:Position(0, 1, 0, 1, colorpicker_inline),
+                Color = def,
+                Transparency = transp and (1 - transp) or 1,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            local colorpicker__gradient = utility:Create("Image", {Vector2.new(0,0), colorpicker_frame}, {
+                Size = utility:Size(1, 0, 1, 0, colorpicker_frame),
+                Position = utility:Position(0, 0, 0 , 0, colorpicker_frame),
+                Transparency = 0.5,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            if transp then
+                utility:LoadImage(colorpicker__transparency, "cptransp", "https://i.imgur.com/IIPee2A.png")
+            end
+            utility:LoadImage(colorpicker__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+            --
+            function colorpicker:Set(color, transp_val)
+                if typeof(color) == "table" then
+                    if color.Color and color.Transparency then
+                        local h, s, v = Unpack(color.Color)
+                        colorpicker.current = {h, s, v , color.Transparency}
+                        colorpicker_frame.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                        colorpicker_frame.Transparency = 1 - colorpicker.current[4]
+                        callback(Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3]), colorpicker.current[4])
+                    else
+                        colorpicker.current = color
+                        colorpicker_frame.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                        colorpicker_frame.Transparency = 1 - colorpicker.current[4]
+                        callback(Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3]), colorpicker.current[4])
+                    end
+                elseif typeof(color) == "Color3" then
+                    local h, s, v = color:ToHSV()
+                    colorpicker.current = {h, s, v, (transp_val or 0)}
+                    colorpicker_frame.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                    colorpicker_frame.Transparency = 1 - colorpicker.current[4]
+                    callback(Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3]), colorpicker.current[4]) 
+                end
+            end
+            --
+            function colorpicker:Refresh()
+                local mouseLocation = utility:MouseLocation()
+                if colorpicker.open and colorpicker.holder.picker and colorpicker.holding.picker then
+                    colorpicker.current[2] = math.clamp(mouseLocation.X - colorpicker.holder.picker.Position.X, 0, colorpicker.holder.picker.Size.X) / colorpicker.holder.picker.Size.X
+                    --
+                    colorpicker.current[3] = 1-(math.clamp(mouseLocation.Y - colorpicker.holder.picker.Position.Y, 0, colorpicker.holder.picker.Size.Y) / colorpicker.holder.picker.Size.Y)
+                    --
+                    colorpicker.holder.picker_cursor.Position = utility:Position(colorpicker.current[2], -3, 1-colorpicker.current[3] , -3, colorpicker.holder.picker)
+                    --
+                    utility:UpdateOffset(colorpicker.holder.picker_cursor, {Vector2.new((colorpicker.holder.picker.Size.X*colorpicker.current[2])-3,(colorpicker.holder.picker.Size.Y*(1-colorpicker.current[3]))-3), colorpicker.holder.picker})
+                    --
+                    if colorpicker.holder.transparencybg then
+                        colorpicker.holder.transparencybg.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                    end
+                elseif colorpicker.open and colorpicker.holder.huepicker and colorpicker.holding.huepicker then
+                    colorpicker.current[1] = (math.clamp(mouseLocation.Y - colorpicker.holder.huepicker.Position.Y, 0, colorpicker.holder.huepicker.Size.Y) / colorpicker.holder.huepicker.Size.Y)
+                    --
+                    colorpicker.holder.huepicker_cursor[1].Position = utility:Position(0, -3, colorpicker.current[1], -3, colorpicker.holder.huepicker)
+                    colorpicker.holder.huepicker_cursor[2].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.huepicker_cursor[1])
+                    colorpicker.holder.huepicker_cursor[3].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.huepicker_cursor[2])
+                    colorpicker.holder.huepicker_cursor[3].Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                    --
+                    utility:UpdateOffset(colorpicker.holder.huepicker_cursor[1], {Vector2.new(-3,(colorpicker.holder.huepicker.Size.Y*colorpicker.current[1])-3), colorpicker.holder.huepicker})
+                    --
+                    colorpicker.holder.background.Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                    --
+                    if colorpicker.holder.transparency_cursor and colorpicker.holder.transparency_cursor[3] then
+                        colorpicker.holder.transparency_cursor[3].Color = Color3.fromHSV(0, 0, 1 - colorpicker.current[4])
+                    end
+                    --
+                    if colorpicker.holder.transparencybg then
+                        colorpicker.holder.transparencybg.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                    end
+                elseif colorpicker.open and colorpicker.holder.transparency and colorpicker.holding.transparency then
+                    colorpicker.current[4] = 1 - (math.clamp(mouseLocation.X - colorpicker.holder.transparency.Position.X, 0, colorpicker.holder.transparency.Size.X) / colorpicker.holder.transparency.Size.X)
+                    --
+                    colorpicker.holder.transparency_cursor[1].Position = utility:Position(1-colorpicker.current[4], -3, 0, -3, colorpicker.holder.transparency)
+                    colorpicker.holder.transparency_cursor[2].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.transparency_cursor[1])
+                    colorpicker.holder.transparency_cursor[3].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.transparency_cursor[2])
+                    colorpicker.holder.transparency_cursor[3].Color = Color3.fromHSV(0, 0, 1 - colorpicker.current[4])
+                    colorpicker_frame.Transparency = (1 - colorpicker.current[4])
+                    --
+                    utility:UpdateTransparency(colorpicker_frame, (1 - colorpicker.current[4]))
+                    utility:UpdateOffset(colorpicker.holder.transparency_cursor[1], {Vector2.new((colorpicker.holder.transparency.Size.X*(1-colorpicker.current[4]))-3,-3), colorpicker.holder.transparency})
+                    --
+                    colorpicker.holder.background.Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                end
+                --
+                colorpicker:Set(colorpicker.current)
+            end
+            --
+            function colorpicker:Get()
+                return {Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3]), Transparency = colorpicker.current[4]}
+            end
+            --
+            library.began[#library.began + 1] = function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and colorpicker_outline.Visible then
+                    if colorpicker.open and colorpicker.holder.inline and utility:MouseOverDrawing({colorpicker.holder.inline.Position.X, colorpicker.holder.inline.Position.Y, colorpicker.holder.inline.Position.X + colorpicker.holder.inline.Size.X, colorpicker.holder.inline.Position.Y + colorpicker.holder.inline.Size.Y}) then
+                        if colorpicker.holder.picker and utility:MouseOverDrawing({colorpicker.holder.picker.Position.X - 2, colorpicker.holder.picker.Position.Y - 2, colorpicker.holder.picker.Position.X - 2 + colorpicker.holder.picker.Size.X + 4, colorpicker.holder.picker.Position.Y - 2 + colorpicker.holder.picker.Size.Y + 4}) then
+                            colorpicker.holding.picker = true
+                            colorpicker:Refresh()
+                        elseif colorpicker.holder.huepicker and utility:MouseOverDrawing({colorpicker.holder.huepicker.Position.X - 2, colorpicker.holder.huepicker.Position.Y - 2, colorpicker.holder.huepicker.Position.X - 2 + colorpicker.holder.huepicker.Size.X + 4, colorpicker.holder.huepicker.Position.Y - 2 + colorpicker.holder.huepicker.Size.Y + 4}) then
+                            colorpicker.holding.huepicker = true
+                            colorpicker:Refresh()
+                        elseif colorpicker.holder.transparency and utility:MouseOverDrawing({colorpicker.holder.transparency.Position.X - 2, colorpicker.holder.transparency.Position.Y - 2, colorpicker.holder.transparency.Position.X - 2 + colorpicker.holder.transparency.Size.X + 4, colorpicker.holder.transparency.Position.Y - 2 + colorpicker.holder.transparency.Size.Y + 4}) then
+                            colorpicker.holding.transparency = true
+                            colorpicker:Refresh()
+                        end
+                    elseif utility:MouseOverDrawing({section.section_frame.Position.X + (section.section_frame.Size.X - (colorpicker.index == 0 and (30 + 4 + 2) or (64 + 4 + 2))), section.section_frame.Position.Y + colorpicker.axis, section.section_frame.Position.X + section.section_frame.Size.X - (colorpicker.index == 1 and 36 or 0), section.section_frame.Position.Y + colorpicker.axis + 15}) and not window:IsOverContent() then
+                        if not colorpicker.open then
+                            window:CloseContent()
+                            colorpicker.open = not colorpicker.open
+                            --
+                            local colorpicker_open_outline = utility:Create("Frame", {Vector2.new(4,colorpicker.axis + 19), section.section_frame}, {
+                                Size = utility:Size(1, -8, 0, transp and 219 or 200, section.section_frame),
+                                Position = utility:Position(0, 4, 0, colorpicker.axis + 19, section.section_frame),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings);colorpicker.holder.inline = colorpicker_open_outline
+                            --
+                            library.colors[colorpicker_open_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_outline),
+                                Color = theme.inline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_inline] = {
+                                Color = "inline"
+                            }
+                            --
+                            local colorpicker_open_frame = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_inline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_inline),
+                                Color = theme.darkcontrast
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_frame] = {
+                                Color = "darkcontrast"
+                            }
+                            --
+                            local colorpicker_open_accent = utility:Create("Frame", {Vector2.new(0,0), colorpicker_open_frame}, {
+                                Size = utility:Size(1, 0, 0, 2, colorpicker_open_frame),
+                                Position = utility:Position(0, 0, 0, 0, colorpicker_open_frame),
+                                Color = theme.accent
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_accent] = {
+                                Color = "accent"
+                            }
+                            --
+                            local colorpicker_title = utility:Create("TextLabel", {Vector2.new(4,2), colorpicker_open_frame}, {
+                                Text = cpinfo,
+                                Size = theme.textsize,
+                                Font = theme.font,
+                                Color = theme.textcolor,
+                                OutlineColor = theme.textborder,
+                                Position = utility:Position(0, 4, 0, 2, colorpicker_open_frame),
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_title] = {
+                                OutlineColor = "textborder",
+                                Color = "textcolor"
+                            }
+                            --
+                            local colorpicker_open_picker_outline = utility:Create("Frame", {Vector2.new(4,17), colorpicker_open_frame}, {
+                                Size = utility:Size(1, -27, 1, transp and -40 or -21, colorpicker_open_frame),
+                                Position = utility:Position(0, 4, 0, 17, colorpicker_open_frame),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_picker_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_picker_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_picker_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_picker_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_picker_outline),
+                                Color = theme.inline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_picker_inline] = {
+                                Color = "inline"
+                            }
+                            --
+                            local colorpicker_open_picker_bg = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_picker_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_picker_inline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_picker_inline),
+                                Color = Color3.fromHSV(colorpicker.current[1],1,1)
+                            }, colorpicker.holder.drawings);colorpicker.holder.background = colorpicker_open_picker_bg
+                            --
+                            local colorpicker_open_picker_image = utility:Create("Image", {Vector2.new(0,0), colorpicker_open_picker_bg}, {
+                                Size = utility:Size(1, 0, 1, 0, colorpicker_open_picker_bg),
+                                Position = utility:Position(0, 0, 0 , 0, colorpicker_open_picker_bg),
+                            }, colorpicker.holder.drawings);colorpicker.holder.picker = colorpicker_open_picker_image
+                            --
+                            local colorpicker_open_picker_cursor = utility:Create("Image", {Vector2.new((colorpicker_open_picker_image.Size.X*colorpicker.current[2])-3,(colorpicker_open_picker_image.Size.Y*(1-colorpicker.current[3]))-3), colorpicker_open_picker_image}, {
+                                Size = utility:Size(0, 6, 0, 6, colorpicker_open_picker_image),
+                                Position = utility:Position(colorpicker.current[2], -3, 1-colorpicker.current[3] , -3, colorpicker_open_picker_image),
+                            }, colorpicker.holder.drawings);colorpicker.holder.picker_cursor = colorpicker_open_picker_cursor
+                            --
+                            local colorpicker_open_huepicker_outline = utility:Create("Frame", {Vector2.new(colorpicker_open_frame.Size.X-19,17), colorpicker_open_frame}, {
+                                Size = utility:Size(0, 15, 1, transp and -40 or -21, colorpicker_open_frame),
+                                Position = utility:Position(1, -19, 0, 17, colorpicker_open_frame),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_huepicker_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_huepicker_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_huepicker_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_huepicker_outline),
+                                Color = theme.inline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_huepicker_inline] = {
+                                Color = "inline"
+                            }
+                            --
+                            local colorpicker_open_huepicker_image = utility:Create("Image", {Vector2.new(1,1), colorpicker_open_huepicker_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_inline),
+                                Position = utility:Position(0, 1, 0 , 1, colorpicker_open_huepicker_inline),
+                            }, colorpicker.holder.drawings);colorpicker.holder.huepicker = colorpicker_open_huepicker_image
+                            --
+                            local colorpicker_open_huepicker_cursor_outline = utility:Create("Frame", {Vector2.new(-3,(colorpicker_open_huepicker_image.Size.Y*colorpicker.current[1])-3), colorpicker_open_huepicker_image}, {
+                                Size = utility:Size(1, 6, 0, 6, colorpicker_open_huepicker_image),
+                                Position = utility:Position(0, -3, colorpicker.current[1], -3, colorpicker_open_huepicker_image),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings);colorpicker.holder.huepicker_cursor[1] = colorpicker_open_huepicker_cursor_outline
+                            --
+                            library.colors[colorpicker_open_huepicker_cursor_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_huepicker_cursor_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_huepicker_cursor_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_cursor_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_huepicker_cursor_outline),
+                                Color = theme.textcolor
+                            }, colorpicker.holder.drawings);colorpicker.holder.huepicker_cursor[2] = colorpicker_open_huepicker_cursor_inline
+                            --
+                            library.colors[colorpicker_open_huepicker_cursor_inline] = {
+                                Color = "textcolor"
+                            }
+                            --
+                            local colorpicker_open_huepicker_cursor_color = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_huepicker_cursor_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_cursor_inline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_huepicker_cursor_inline),
+                                Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                            }, colorpicker.holder.drawings);colorpicker.holder.huepicker_cursor[3] = colorpicker_open_huepicker_cursor_color
+                            --
+                            if transp then
+                                local colorpicker_open_transparency_outline = utility:Create("Frame", {Vector2.new(4,colorpicker_open_frame.Size.Y-19), colorpicker_open_frame}, {
+                                    Size = utility:Size(1, -27, 0, 15, colorpicker_open_frame),
+                                    Position = utility:Position(0, 4, 1, -19, colorpicker_open_frame),
+                                    Color = theme.outline
+                                }, colorpicker.holder.drawings)
+                                --
+                                library.colors[colorpicker_open_transparency_outline] = {
+                                    Color = "outline"
+                                }
+                                --
+                                local colorpicker_open_transparency_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_outline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_outline),
+                                    Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_outline),
+                                    Color = theme.inline
+                                }, colorpicker.holder.drawings)
+                                --
+                                library.colors[colorpicker_open_transparency_inline] = {
+                                    Color = "inline"
+                                }
+                                --
+                                local colorpicker_open_transparency_bg = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_inline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_inline),
+                                    Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_inline),
+                                    Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparencybg = colorpicker_open_transparency_bg
+                                --
+                                local colorpicker_open_transparency_image = utility:Create("Image", {Vector2.new(1,1), colorpicker_open_transparency_inline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_inline),
+                                    Position = utility:Position(0, 1, 0 , 1, colorpicker_open_transparency_inline),
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparency = colorpicker_open_transparency_image
+                                --
+                                local colorpicker_open_transparency_cursor_outline = utility:Create("Frame", {Vector2.new((colorpicker_open_transparency_image.Size.X*(1-colorpicker.current[4]))-3,-3), colorpicker_open_transparency_image}, {
+                                    Size = utility:Size(0, 6, 1, 6, colorpicker_open_transparency_image),
+                                    Position = utility:Position(1-colorpicker.current[4], -3, 0, -3, colorpicker_open_transparency_image),
+                                    Color = theme.outline
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparency_cursor[1] = colorpicker_open_transparency_cursor_outline
+                                --
+                                library.colors[colorpicker_open_transparency_cursor_outline] = {
+                                    Color = "outline"
+                                }
+                                --
+                                local colorpicker_open_transparency_cursor_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_cursor_outline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_cursor_outline),
+                                    Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_cursor_outline),
+                                    Color = theme.textcolor
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparency_cursor[2] = colorpicker_open_transparency_cursor_inline
+                                --
+                                library.colors[colorpicker_open_transparency_cursor_inline] = {
+                                    Color = "textcolor"
+                                }
+                                --
+                                local colorpicker_open_transparency_cursor_color = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_cursor_inline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_cursor_inline),
+                                    Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_cursor_inline),
+                                    Color = Color3.fromHSV(0, 0, 1 - colorpicker.current[4]),
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparency_cursor[3] = colorpicker_open_transparency_cursor_color
+                                --
+                                utility:LoadImage(colorpicker_open_transparency_image, "transp", "https://i.imgur.com/ncssKbH.png")
+                                --utility:LoadImage(colorpicker_open_transparency_image, "transp", "https://i.imgur.com/VcMAYjL.png")
+                            end
+                            --
+                            utility:LoadImage(colorpicker_open_picker_image, "valsat", "https://i.imgur.com/wpDRqVH.png")
+                            utility:LoadImage(colorpicker_open_picker_cursor, "valsat_cursor", "https://raw.githubusercontent.com/mvonwalk/splix-assets/main/Images-cursor.png")
+                            utility:LoadImage(colorpicker_open_huepicker_image, "hue", "https://i.imgur.com/iEOsHFv.png")
+                            --
+                            window.currentContent.frame = colorpicker_open_inline
+                            window.currentContent.colorpicker = colorpicker
+                        else
+                            colorpicker.open = not colorpicker.open
+                            --
+                            for i,v in pairs(colorpicker.holder.drawings) do
+                                utility:Remove(v)
+                            end
+                            --
+                            colorpicker.holder.drawings = {}
+                            colorpicker.holder.inline = nil
+                            --
+                            window.currentContent.frame = nil
+                            window.currentContent.colorpicker = nil
+                        end
+                    else
+                        if colorpicker.open then
+                            colorpicker.open = not colorpicker.open
+                            --
+                            for i,v in pairs(colorpicker.holder.drawings) do
+                                utility:Remove(v)
+                            end
+                            --
+                            colorpicker.holder.drawings = {}
+                            colorpicker.holder.inline = nil
+                            --
+                            window.currentContent.frame = nil
+                            window.currentContent.colorpicker = nil
+                        end
+                    end
+                elseif Input.UserInputType == Enum.UserInputType.MouseButton1 and colorpicker.open then
+                    colorpicker.open = not colorpicker.open
+                    --
+                    for i,v in pairs(colorpicker.holder.drawings) do
+                        utility:Remove(v)
+                    end
+                    --
+                    colorpicker.holder.drawings = {}
+                    colorpicker.holder.inline = nil
+                    --
+                    window.currentContent.frame = nil
+                    window.currentContent.colorpicker = nil
+                end
+            end
+            --
+            library.ended[#library.ended + 1] = function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if colorpicker.holding.picker then
+                        colorpicker.holding.picker = not colorpicker.holding.picker
+                    end
+                    if colorpicker.holding.huepicker then
+                        colorpicker.holding.huepicker = not colorpicker.holding.huepicker
+                    end
+                    if colorpicker.holding.transparency then
+                        colorpicker.holding.transparency = not colorpicker.holding.transparency
+                    end
+                end
+            end
+            --
+            library.changed[#library.changed + 1] = function()
+                if colorpicker.open and colorpicker.holding.picker or colorpicker.holding.huepicker or colorpicker.holding.transparency then
+                    if window.isVisible then
+                        colorpicker:Refresh()
+                    else
+                        if colorpicker.holding.picker then
+                            colorpicker.holding.picker = not colorpicker.holding.picker
+                        end
+                        if colorpicker.holding.huepicker then
+                            colorpicker.holding.huepicker = not colorpicker.holding.huepicker
+                        end
+                        if colorpicker.holding.transparency then
+                            colorpicker.holding.transparency = not colorpicker.holding.transparency
+                        end
+                    end
+                end
+            end
+            --
+            if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+                library.pointers[tostring(pointer)] = colorpicker
+            end
+            --
+            toggle.addedAxis = toggle.addedAxis + 30 + 4 + 2
+            toggle.colorpickers = toggle.colorpickers + 1
+            --
+            return colorpicker, toggle
+        end
+        --
+        function toggle:Keybind(info)
+            local info = info or {}
+            local def = info.def or info.Def or info.default or info.Default or nil
+            local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+            local mode = info.mode or info.Mode or "Always"
+            local keybindname = info.keybindname or info.keybindName or info.KeybindName or info.Keybindname or nil
+            local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+            --
+            toggle.addedaxis = toggle.addedAxis + 40 + 4 + 2
+            --
+            local keybind = {keybindname = keybindname or name, axis = toggle.axis, current = {}, selecting = false, mode = mode, open = false, modemenu = {buttons = {}, drawings = {}}, active = false}
+            --
+            toggle.keybind = keybind
+            --
+            local allowedKeyCodes = {"Q","W","E","R","T","Y","U","I","O","P","A","S","D","F","G","H","J","K","L","Z","X","C","V","B","N","M","One","Two","Three","Four","Five","Six","Seveen","Eight","Nine","Zero", "Minus", "Equals","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","Insert","Tab","Home","End","LeftAlt","LeftControl","LeftShift","RightAlt","RightControl","RightShift","CapsLock"}
+            local allowedInputTypes = {"MouseButton1","MouseButton2","MouseButton3"}
+            local shortenedInputs = {["MouseButton1"] = "MB1", ["MouseButton2"] = "MB2", ["MouseButton3"] = "MB3", ["Insert"] = "Ins", ["Minus"] = "-", ["Equals"] = "=", ["LeftAlt"] = "LAlt", ["LeftControl"] = "LC", ["LeftShift"] = "LS", ["RightAlt"] = "RAlt", ["RightControl"] = "RC", ["RightShift"] = "RS", ["CapsLock"] = "Caps"}
+            --
+            local keybind_outline = utility:Create("Frame", {Vector2.new(section.section_frame.Size.X-(40+4),keybind.axis), section.section_frame}, {
+                Size = utility:Size(0, 40, 0, 17),
+                Position = utility:Position(1, -(40+4), 0, keybind.axis, section.section_frame),
+                Color = theme.outline,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[keybind_outline] = {
+                Color = "outline"
+            }
+            --
+            local keybind_inline = utility:Create("Frame", {Vector2.new(1,1), keybind_outline}, {
+                Size = utility:Size(1, -2, 1, -2, keybind_outline),
+                Position = utility:Position(0, 1, 0, 1, keybind_outline),
+                Color = theme.inline,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[keybind_inline] = {
+                Color = "inline"
+            }
+            --
+            local keybind_frame = utility:Create("Frame", {Vector2.new(1,1), keybind_inline}, {
+                Size = utility:Size(1, -2, 1, -2, keybind_inline),
+                Position = utility:Position(0, 1, 0, 1, keybind_inline),
+                Color = theme.lightcontrast,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[keybind_frame] = {
+                Color = "lightcontrast"
+            }
+            --
+            local keybind__gradient = utility:Create("Image", {Vector2.new(0,0), keybind_frame}, {
+                Size = utility:Size(1, 0, 1, 0, keybind_frame),
+                Position = utility:Position(0, 0, 0 , 0, keybind_frame),
+                Transparency = 0.5,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            local keybind_value = utility:Create("TextLabel", {Vector2.new(keybind_outline.Size.X/2,1), keybind_outline}, {
+                Text = "...",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder, 
+                Center = true,
+                Position = utility:Position(0.5, 0, 1, 0, keybind_outline),
+                Visible = page.open
+            }, section.visibleContent);keybind["keybind_value"] = keybind_value
+            --
+            library.colors[keybind_value] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            utility:LoadImage(keybind__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+            --
+            function keybind:Shorten(string)
+                for i,v in pairs(shortenedInputs) do
+                    string = string.gsub(string, i, v)
+                end
+                return string
+            end
+            --
+            function keybind:Change(input)
+                input = input or "..."
+                local inputTable = {}
+                --
+                if input.EnumType then
+                    if input.EnumType == Enum.KeyCode or input.EnumType == Enum.UserInputType then
+                        if Find(allowedKeyCodes, input.Name) or Find(allowedInputTypes, input.Name) then
+                            inputTable = {input.EnumType == Enum.KeyCode and "KeyCode" or "UserInputType", input.Name}
+                            --
+                            keybind.current = inputTable
+                            keybind_value.Text = #keybind.current > 0 and keybind:Shorten(keybind.current[2]) or "..."
+                            --
+                            return true
+                        end
+                    end
+                end
+                --
+                return false
+            end
+            --
+            function keybind:Get()
+                return keybind.current
+            end
+            --
+            function keybind:Set(tbl)
+                keybind.current = {tbl[1], tbl[2]}
+                keybind_value.Text = #keybind.current > 0 and keybind:Shorten(keybind.current[2]) or "..."
+                --
+                if tbl[3] then
+                    keybind.mode = tbl[3]
+                    keybind.active = (keybind.mode == "Always" or keybind.mode == "Off Hold") and (toggle.current) or false
+                    --
+                    if keybind.mode == "Off Hold" then
+                        window.keybindslist:Add(keybindname or name, keybind_value.Text)
+                    else
+                        window.keybindslist:Remove(keybindname or name)
+                    end
+                end
+                --
+                if keybind.current[1] and keybind.current[2] then
+                    callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                end
+            end
+            --
+            function keybind:Active()
+                return keybind.active
+            end
+            --
+            function keybind:Reset()
+                for i,v in pairs(keybind.modemenu.buttons) do
+                    v.Color = v.Text == keybind.mode and theme.accent or theme.textcolor
+                    --
+                    library.colors[v] = {
+                        Color = v.Text == keybind.mode and "accent" or "textcolor"
+                    }
+                end
+                --
+                keybind.active = (keybind.mode == "Always" or keybind.mode == "Off Hold")
+                --
+                if keybind.mode == "Off Hold" then
+                    window.keybindslist:Add(keybindname or name, keybind_value.Text)
+                else
+                    window.keybindslist:Remove(keybindname or name)
+                end
+                --
+                if keybind.current[1] and keybind.current[2] then
+                    callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                end
+            end
+            --
+            function keybind:Callback()
+                if keybind.current[1] and keybind.current[2] then
+                    callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                end
+            end
+            --
+            keybind:Change(def)
+            --
+            library.began[#library.began + 1] = function(Input, Typing)
+                
+                if Typing then return end
+                if keybind.current[1] and keybind.current[2] then
+                    if Input.KeyCode == Enum[keybind.current[1]][keybind.current[2]] or Input.UserInputType == Enum[keybind.current[1]][keybind.current[2]] then
+                        if keybind.mode == "On Hold" then
+                            local old = keybind.active
+                            keybind.active = toggle:Get()
+                            if keybind.active then window.keybindslist:Add(keybindname or name, keybind_value.Text) else window.keybindslist:Remove(keybindname or name) end
+                            if keybind.active ~= old then callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active) end
+                        elseif keybind.mode == "Off Hold" then
+                            local old = keybind.active
+                            keybind.active = false
+                            if keybind.active then window.keybindslist:Add(keybindname or name, keybind_value.Text) else window.keybindslist:Remove(keybindname or name) end
+                            if keybind.active ~= old then callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active) end
+                        elseif keybind.mode == "Toggle" then
+                            local old = keybind.active
+                            keybind.active = not keybind.active == true and toggle:Get() or false
+                            if keybind.active then window.keybindslist:Add(keybindname or name, keybind_value.Text) else window.keybindslist:Remove(keybindname or name) end
+                            if keybind.active ~= old then callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active) end
+                        end
+                    end
+                end
+                --
+                if keybind.selecting and window.isVisible then
+                    local done = keybind:Change(Input.KeyCode.Name ~= "Unknown" and Input.KeyCode or Input.UserInputType)
+                    if done then
+                        keybind.selecting = false
+                        keybind.active = (keybind.mode == "Always" or keybind.mode == "Off Hold") and true or false
+                        keybind_frame.Color = theme.lightcontrast
+                        --
+                        library.colors[keybind_frame] = {
+                            Color = "lightcontrast"
+                        }
+                        --
+                        window.keybindslist:Remove(keybindname or name)
+                        if keybind.active then window.keybindslist:Add(keybindname or name, keybind_value.Text) else window.keybindslist:Remove(keybindname or name) end
+                        callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                    end
+                end
+                --
+                if not window.isVisible and keybind.selecting then
+                    keybind.selecting = false
+                    keybind_frame.Color = theme.lightcontrast
+                    --
+                    library.colors[keybind_frame] = {
+                        Color = "lightcontrast"
+                    }
+                end
+                --
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and keybind_outline.Visible then
+                    if utility:MouseOverDrawing({section.section_frame.Position.X + (section.section_frame.Size.X - (40+4+2)), section.section_frame.Position.Y + keybind.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + keybind.axis + 17}) and not window:IsOverContent() and not keybind.selecting then
+                        keybind.selecting = true
+                        keybind_frame.Color = theme.darkcontrast
+                        --
+                        library.colors[keybind_frame] = {
+                            Color = "darkcontrast"
+                        }
+                    end
+                    if keybind.open and keybind.modemenu.frame then
+                        if utility:MouseOverDrawing({keybind.modemenu.frame.Position.X, keybind.modemenu.frame.Position.Y, keybind.modemenu.frame.Position.X + keybind.modemenu.frame.Size.X, keybind.modemenu.frame.Position.Y + keybind.modemenu.frame.Size.Y}) then
+                            local changed = false
+                            --
+                            for i,v in pairs(keybind.modemenu.buttons) do
+                                if utility:MouseOverDrawing({keybind.modemenu.frame.Position.X, keybind.modemenu.frame.Position.Y + (15 * (i - 1)), keybind.modemenu.frame.Position.X + keybind.modemenu.frame.Size.X, keybind.modemenu.frame.Position.Y + (15 * (i - 1)) + 15}) then
+                                    keybind.mode = v.Text
+                                    changed = true
+                                end
+                            end
+                            --
+                            if changed then keybind:Reset() end
+                        else
+                            keybind.open = not keybind.open
+                            --
+                            for i,v in pairs(keybind.modemenu.drawings) do
+                                utility:Remove(v)
+                            end
+                            --
+                            keybind.modemenu.drawings = {}
+                            keybind.modemenu.buttons = {}
+                            keybind.modemenu.frame = nil
+                            --
+                            window.currentContent.frame = nil
+                            window.currentContent.keybind = nil
+                        end
+                    end
+                end
+                --
+                if Input.UserInputType == Enum.UserInputType.MouseButton2 and window.isVisible and keybind_outline.Visible then
+                    if utility:MouseOverDrawing({section.section_frame.Position.X  + (section.section_frame.Size.X - (40+4+2)), section.section_frame.Position.Y + keybind.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + keybind.axis + 17}) and not window:IsOverContent() and not keybind.selecting then
+                        window:CloseContent()
+                        keybind.open = not keybind.open
+                        --
+                        local modemenu = utility:Create("Frame", {Vector2.new(keybind_outline.Size.X + 2,0), keybind_outline}, {
+                            Size = utility:Size(0, 68, 0, 64),
+                            Position = utility:Position(1, 2, 0, 0, keybind_outline),
+                            Color = theme.outline,
+                            Visible = page.open
+                        }, keybind.modemenu.drawings);keybind.modemenu.frame = modemenu
+                        --
+                        library.colors[modemenu] = {
+                            Color = "outline"
+                        }
+                        --
+                        local modemenu_inline = utility:Create("Frame", {Vector2.new(1,1), modemenu}, {
+                            Size = utility:Size(1, -2, 1, -2, modemenu),
+                            Position = utility:Position(0, 1, 0, 1, modemenu),
+                            Color = theme.inline,
+                            Visible = page.open
+                        }, keybind.modemenu.drawings)
+                        --
+                        library.colors[modemenu_inline] = {
+                            Color = "inline"
+                        }
+                        --
+                        local modemenu_frame = utility:Create("Frame", {Vector2.new(1,1), modemenu_inline}, {
+                            Size = utility:Size(1, -2, 1, -2, modemenu_inline),
+                            Position = utility:Position(0, 1, 0, 1, modemenu_inline),
+                            Color = theme.lightcontrast,
+                            Visible = page.open
+                        }, keybind.modemenu.drawings)
+                        --
+                        library.colors[modemenu_frame] = {
+                            Color = "lightcontrast"
+                        }
+                        --
+                        local keybind__gradient = utility:Create("Image", {Vector2.new(0,0), modemenu_frame}, {
+                            Size = utility:Size(1, 0, 1, 0, modemenu_frame),
+                            Position = utility:Position(0, 0, 0 , 0, modemenu_frame),
+                            Transparency = 0.5,
+                            Visible = page.open
+                        }, keybind.modemenu.drawings)
+                        --
+                        utility:LoadImage(keybind__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+                        --
+                        for i,v in pairs({"Always", "Toggle", "On Hold", "Off Hold"}) do
+                            local button_title = utility:Create("TextLabel", {Vector2.new(modemenu_frame.Size.X/2,15 * (i-1)), modemenu_frame}, {
+                                Text = v,
+                                Size = theme.textsize,
+                                Font = theme.font,
+                                Color = v == keybind.mode and theme.accent or theme.textcolor,
+                                Center = true,
+                                OutlineColor = theme.textborder,
+                                Position = utility:Position(0.5, 0, 0, 15 * (i-1), modemenu_frame),
+                                Visible = page.open
+                            }, keybind.modemenu.drawings);keybind.modemenu.buttons[#keybind.modemenu.buttons + 1] = button_title
+                            --
+                            library.colors[button_title] = {
+                                OutlineColor = "textborder",
+                                Color = v == keybind.mode and "accent" or "textcolor"
+                            }
+                        end
+                        --
+                        window.currentContent.frame = modemenu
+                        window.currentContent.keybind = keybind
+                    end
+                end
+            end
+            --
+            library.ended[#library.ended + 1] = function(Input)
+                if keybind.mode == "On Hold" or keybind.mode == "Off Hold" then
+                    if keybind.current[1] and keybind.current[2] then
+                        if Input.KeyCode == Enum[keybind.current[1]][keybind.current[2]] or Input.UserInputType == Enum[keybind.current[1]][keybind.current[2]] then
+                            if keybind.mode == "On Hold" and keybind.active then
+                                keybind.active = false
+                                window.keybindslist:Remove(keybindname or name)
+                                callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                            elseif keybind.mode == "Off Hold" and not keybind.active then
+                                keybind.active = toggle:Get()
+                                if keybind.active then window.keybindslist:Add(keybindname or name, keybind_value.Text) else window.keybindslist:Remove(keybindname or name) end
+                                callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                            end
+                        end
+                    end
+                end
+            end
+            --
+            if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+                library.pointers[tostring(pointer)] = keybind
+            end
+            --
+            toggle.addedAxis = 40+4+2
+            --
+            return keybind
+        end
+        --
+        return toggle
+    end
+    --
+    function sections:Slider(info)
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title
+        local def = info.def or info.Def or info.default or info.Default or 10
+        local min = info.min or info.Min or info.minimum or info.Minimum or 0
+        local max = info.max or info.Max or info.maximum or info.Maximum or 100
+        local maxtext = info.maximumtext or info.Maximumtext or info.maximumText or info.MaximumText or max
+        local sub = info.suffix or info.Suffix or info.ending or info.Ending or info.prefix or info.Prefix or info.measurement or info.Measurement or ""
+        local disable = info.disable or info.Disable or info.disabled or info.disabled or false
+        local decimals = info.decimals or info.Decimals or 1
+        decimals = 1 / decimals
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+        def = math.clamp(def, min, max)
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local slider = {min = min, max = max, Disabled = false, sub = sub, decimals = decimals, axis = section.currentAxis, current = -99999, holding = false}
+        --
+        if name then
+            local slider_title = utility:Create("TextLabel", {Vector2.new(4,slider.axis), section.section_frame}, {
+                Text = name,
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Position = utility:Position(0, 4, 0, slider.axis, section.section_frame),
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[slider_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+        end
+        --
+        local slider_outline = utility:Create("Frame", {Vector2.new(4,slider.axis + (name and 15 or 0)), section.section_frame}, {
+            Size = utility:Size(1, -8, 0, 14, section.section_frame),
+            Position = utility:Position(0, 4, 0, slider.axis + (name and 15 or 0), section.section_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[slider_outline] = {
+            Color = "outline"
+        }
+        --
+        local slider_inline = utility:Create("Frame", {Vector2.new(1,1), slider_outline}, {
+            Size = utility:Size(1, -2, 1, -2, slider_outline),
+            Position = utility:Position(0, 1, 0, 1, slider_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[slider_inline] = {
+            Color = "inline"
+        }
+        --
+        local slider_frame = utility:Create("Frame", {Vector2.new(1,1), slider_inline}, {
+            Size = utility:Size(1, -2, 1, -2, slider_inline),
+            Position = utility:Position(0, 1, 0, 1, slider_inline),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[slider_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        local slider_slide = utility:Create("Frame", {Vector2.new(1,1), slider_inline}, {
+            Size = utility:Size(0, (slider_frame.Size.X / (slider.max - slider.min) * (slider.current - slider.min)), 1, -2, slider_inline),
+            Position = utility:Position(0, 1, 0, 1, slider_inline),
+            Color = theme.accent,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[slider_slide] = {
+            Color = "accent"
+        }
+        --
+        local slider__gradient = utility:Create("Image", {Vector2.new(0,0), slider_frame}, {
+            Size = utility:Size(1, 0, 1, 0, slider_frame),
+            Position = utility:Position(0, 0, 0 , 0, slider_frame),
+            Transparency = 0.5,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        local textBounds = utility:GetTextBounds(name, theme.textsize, theme.font)
+        local slider_value = utility:Create("TextLabel", {Vector2.new(slider_outline.Size.X/2,(slider_outline.Size.Y/2) - (textBounds.Y/2)), slider_outline}, {
+            Text = slider.current..slider.sub.."/"..maxtext..slider.sub,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            Center = true,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0.5, 0, 0, (slider_outline.Size.Y/2) - (textBounds.Y/2), slider_outline),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[slider_value] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        utility:LoadImage(slider__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        function slider:Set(value)
+            local oldval = slider.current
+            --
+            slider.current = math.clamp(math.round(value * slider.decimals) / slider.decimals, slider.min, slider.max)
+            --
+            if slider.current ~= oldval then
+                local disabledtext = disable and ((slider.current <= disable[2] or slider.current >= disable[3]) and disable[1])
+                local percent = 1 - ((slider.max - slider.current) / (slider.max - slider.min))
+                slider_value.Text = disabledtext or (slider.current..slider.sub.."/"..maxtext..slider.sub)
+                slider_slide.Size = utility:Size(0, percent * slider_frame.Size.X, 1, -2, slider_inline)
+                slider.Disabled = disabledtext ~= nil and disabledtext ~= false
+                callback(slider.current)
+            end
+        end
+        --
+        function slider:Refresh()
+            local mouseLocation = utility:MouseLocation()
+            local percent = math.clamp(mouseLocation.X - slider_slide.Position.X, 0, slider_frame.Size.X) / slider_frame.Size.X
+            local value = math.round((slider.min + (slider.max - slider.min) * percent) * slider.decimals) / slider.decimals
+            value = math.clamp(value, slider.min, slider.max)
+            slider:Set(value)
+        end
+        --
+        function slider:Get()
+            return slider.current
+        end
+        --
+        slider:Set(def)
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and slider_outline.Visible and window.isVisible and page.open and utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + slider.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + slider.axis + (name and 29 or 14)}) and not window:IsOverContent() then
+                slider.holding = true
+                slider:Refresh()
+            end
+        end
+        --
+        library.ended[#library.ended + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and slider.holding and window.isVisible then
+                slider.holding = false
+            end
+        end
+        --
+        library.changed[#library.changed + 1] = function(Input)
+            if slider.holding and window.isVisible then
+                slider:Refresh()
+            end
+        end
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = slider
+        end
+        --
+        section.currentAxis = section.currentAxis + (name and 29 or 14) + 4
+        --
+        return slider
+    end
+    --
+    function sections:Button(info)
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title or "New Button"
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local button = {axis = section.currentAxis}
+        --
+        local button_outline = utility:Create("Frame", {Vector2.new(4,button.axis), section.section_frame}, {
+            Size = utility:Size(1, -8, 0, 20, section.section_frame),
+            Position = utility:Position(0, 4, 0, button.axis, section.section_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[button_outline] = {
+            Color = "outline"
+        }
+        --
+        local button_inline = utility:Create("Frame", {Vector2.new(1,1), button_outline}, {
+            Size = utility:Size(1, -2, 1, -2, button_outline),
+            Position = utility:Position(0, 1, 0, 1, button_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[button_inline] = {
+            Color = "inline"
+        }
+        --
+        local button_frame = utility:Create("Frame", {Vector2.new(1,1), button_inline}, {
+            Size = utility:Size(1, -2, 1, -2, button_inline),
+            Position = utility:Position(0, 1, 0, 1, button_inline),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[button_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        local button_gradient = utility:Create("Image", {Vector2.new(0,0), button_frame}, {
+            Size = utility:Size(1, 0, 1, 0, button_frame),
+            Position = utility:Position(0, 0, 0 , 0, button_frame),
+            Transparency = 0.5,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        local button_title = utility:Create("TextLabel", {Vector2.new(button_frame.Size.X/2,1), button_frame}, {
+            Text = name,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Center = true,
+            Position = utility:Position(0.5, 0, 0, 1, button_frame),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[button_title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        utility:LoadImage(button_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and button_outline.Visible and window.isVisible and utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + button.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + button.axis + 20}) and not window:IsOverContent() then
+                task.spawn(function()
+                    utility:LoadImage(button_gradient, "gradientdown", "https://i.imgur.com/DzrzUt3.png") 
+                    --
+                    task.wait(0.15)
+                    --
+                    utility:LoadImage(button_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png") 
+                end)
+                --
+                callback()
+            end
+        end
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = button
+        end
+        --
+        section.currentAxis = section.currentAxis + 20 + 4
+        --
+        return button
+    end
+    --
+    function sections:TextBox(info)
+        local info = info or {}
+        local def = info.def or info.Def or info.default or info.Default or ""
+        local max = info.max or info.Max or info.maximum or info.Maximum or 200
+        local placeholder = info.placeholder or info.Placeholder or info.placeHolder or info.PlaceHolder
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        local reactive = info.reactive or info.Reactive;reactive = reactive == nil or reactive
+        local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+        local identifier = tostring(math.random(500, 500000)) .. "-" .. tostring(math.random(500, 500000)) .. "-" .. tostring(math.random(500, 500000))
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local textbox = {axis = section.currentAxis, max = max, current = def, oldenter = "", callback = callback}
+        --
+        local textbox_outline = utility:Create("Frame", {Vector2.new(4,textbox.axis), section.section_frame}, {
+            Size = utility:Size(1, -8, 0, 20, section.section_frame),
+            Position = utility:Position(0, 4, 0, textbox.axis, section.section_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[textbox_outline] = {
+            Color = "outline"
+        }
+        --
+        local textbox_inline = utility:Create("Frame", {Vector2.new(1,1), textbox_outline}, {
+            Size = utility:Size(1, -2, 1, -2, textbox_outline),
+            Position = utility:Position(0, 1, 0, 1, textbox_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[textbox_inline] = {
+            Color = "inline"
+        }
+        --
+        local textbox_inneroutline = utility:Create("Frame", {Vector2.new(1,1), textbox_inline}, {
+            Size = utility:Size(1, -2, 1, -2, textbox_inline),
+            Position = utility:Position(0, 1, 0, 1, textbox_inline),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[textbox_inneroutline] = {
+            Color = "outline"
+        }
+        --
+        local textbox_frame = utility:Create("Frame", {Vector2.new(1,1), textbox_inneroutline}, {
+            Size = utility:Size(1, -2, 1, -2, textbox_inneroutline),
+            Position = utility:Position(0, 1, 0, 1, textbox_inneroutline),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[textbox_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        local textbox_gradient = utility:Create("Image", {Vector2.new(0,0), textbox_frame}, {
+            Size = utility:Size(1, 0, 1, 0, textbox_frame),
+            Position = utility:Position(0, 0, 0 , 0, textbox_frame),
+            Transparency = 0.5,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        local textbox_value = utility:Create("TextLabel", {Vector2.new(textbox_frame.Size.X/2,0), textbox_frame}, {
+            Text = textbox.current == "" and placeholder or textbox.current,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = textbox.current == "" and (placeholder and theme.textdark) or theme.textcolor,
+            OutlineColor = theme.textborder,
+            Center = true,
+            Position = utility:Position(0.5, 0, 0, 0, textbox_frame),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[textbox_value] = {
+            OutlineColor = "textborder",
+            Color = textbox.current == "" and (placeholder and "textdark") or "textcolor"
+        }
+        --
+        utility:LoadImage(textbox_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        function textbox:Get()
+            return textbox.current
+        end
+        --
+        function textbox:Set(state, first)
+            textbox.current = state or ""
+            --
+            local newtext = utility:WrapText(textbox.current == "" and placeholder or textbox.current, textbox_frame.Size.X - 30)
+            textbox_value.Text = (textbox.current == "" and placeholder or textbox.current) ~= newtext and (newtext .. "...") or newtext
+            textbox_value.Color = textbox.current == "" and (placeholder and theme.textdark) or theme.textcolor
+            --
+            library.colors[textbox_value] = {
+                OutlineColor = "textborder",
+                Color = textbox.current == "" and (placeholder and "textdark") or "textcolor"
+            }
+            --
+            if not first then
+                callback(textbox.current)
+            end
+        end
+        --
+        textbox:Set(textbox.current, true)
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and textbox_outline.Visible and window.isVisible then
+                if reactive and utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + textbox.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + textbox.axis + 20}) and not window:IsOverContent() then
+                    task.spawn(function()
+                        utility:LoadImage(textbox_gradient, "gradientdown", "https://i.imgur.com/DzrzUt3.png") 
+                        --
+                        task.wait(0.15)
+                        --
+                        utility:LoadImage(textbox_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png") 
+                    end)
+                    --
+                    if not (window.currentContent.textbox and window.currentContent.textbox.Name == identifier) then
+                        window:CloseContent()
+                        --
+                        textbox_value.Color = theme.accent
+                        --
+                        library.colors[textbox_value] = {
+                            OutlineColor = "textborder",
+                            Color = "accent"
+                        }
+                        --
+                        cas:BindActionAtPriority("DisableKeyboard", function() return Enum.ContextActionResult.Sink end, false, 3000, Enum.UserInputType.Keyboard)
+                        --
+                        window.currentContent.textbox = {
+                            Name = identifier,
+                            Item = textbox,
+                            Fire = function(Text)
+                                textbox.current = (Text == "Backspace" and textbox.current:sub(0, #textbox.current - 1) or (textbox.current .. Text)):sub(0, textbox.max)
+                                --
+                                local newtext = utility:WrapText(textbox.current == "" and placeholder or textbox.current, textbox_frame.Size.X - 30)
+                                textbox_value.Text = (textbox.current == "" and placeholder or textbox.current) ~= newtext and (newtext .. "...") or newtext
+                                textbox.callback(textbox.current)
+                            end,
+                            Disconnect = function()
+                                cas:UnbindAction('DisableKeyboard')
+                                --
+                                textbox_value.Color = textbox.current == "" and (placeholder and theme.textdark) or theme.textcolor
+                                --
+                                library.colors[textbox_value] = {
+                                    OutlineColor = "textborder",
+                                    Color = textbox.current == "" and (placeholder and "textdark") or "textcolor"
+                                }
+                            end
+                        }
+                    else
+                        if window.currentContent.textbox.Name == identifier then
+                            window:CloseContent()
+                        end
+                    end
+                elseif reactive then
+                    if window.currentContent.textbox and window.currentContent.textbox.Name == identifier then
+                        window:CloseContent()
+                    end
+                end
+                --
+                if uis:IsKeyDown(Enum.KeyCode.LeftControl) and utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + textbox.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + textbox.axis + 20}) and not window:IsOverContent() then
+                    task.spawn(function()
+                        textbox_value.Color = theme.accent
+                        --
+                        library.colors[textbox_value] = {
+                            OutlineColor = "textborder",
+                            Color = "accent"
+                        }
+                        --
+                        utility:LoadImage(textbox_gradient, "gradientdown", "https://i.imgur.com/DzrzUt3.png") 
+                        --
+                        task.wait(0.15)
+                        --
+                        textbox_value.Color = textbox.current == "" and (placeholder and theme.textdark) or theme.textcolor
+                        --
+                        library.colors[textbox_value] = {
+                            OutlineColor = "textborder",
+                            Color = textbox.current == "" and (placeholder and "textdark") or "textcolor"
+                        }
+                        --
+                        utility:LoadImage(textbox_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+                    end)
+                    --
+                    setclipboard(textbox.current)
+                end
+            elseif Input.KeyCode and Input.KeyCode == Enum.KeyCode.Return then
+                if window.currentContent.textbox and window.currentContent.textbox.Name == identifier then
+                    window:CloseContent()
+                end
+            end
+        end
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = textbox
+        end
+        --
+        section.currentAxis = section.currentAxis + 20 + 4
+        --
+        return textbox
+    end
+    --
+    function sections:ButtonHolder(info)
+        local info = info or {}
+        local buttons = info.buttons or info.Buttons or {}
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local buttonHolder = {buttons = {}}
+        --
+        for i=1, 2 do
+            local button = {axis = section.currentAxis}
+            --
+            local button_outline = utility:Create("Frame", {Vector2.new(i == 2 and ((section.section_frame.Size.X / 2) + 2) or 4,button.axis), section.section_frame}, {
+                Size = utility:Size(0.5, -6, 0, 20, section.section_frame),
+                Position = utility:Position(0, i == 2 and 2 or 4, 0, button.axis, section.section_frame),
+                Color = theme.outline,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[button_outline] = {
+                Color = "outline"
+            }
+            --
+            local button_inline = utility:Create("Frame", {Vector2.new(1,1), button_outline}, {
+                Size = utility:Size(1, -2, 1, -2, button_outline),
+                Position = utility:Position(0, 1, 0, 1, button_outline),
+                Color = theme.inline,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[button_inline] = {
+                Color = "inline"
+            }
+            --
+            local button_frame = utility:Create("Frame", {Vector2.new(1,1), button_inline}, {
+                Size = utility:Size(1, -2, 1, -2, button_inline),
+                Position = utility:Position(0, 1, 0, 1, button_inline),
+                Color = theme.lightcontrast,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[button_frame] = {
+                Color = "lightcontrast"
+            }
+            --
+            local button_gradient = utility:Create("Image", {Vector2.new(0,0), button_frame}, {
+                Size = utility:Size(1, 0, 1, 0, button_frame),
+                Position = utility:Position(0, 0, 0 , 0, button_frame),
+                Transparency = 0.5,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            local button_title = utility:Create("TextLabel", {Vector2.new(button_frame.Size.X/2,1), button_frame}, {
+                Text = buttons[i][1],
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Center = true,
+                Position = utility:Position(0.5, 0, 0, 1, button_frame),
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[button_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+            --
+            utility:LoadImage(button_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+            --
+            library.began[#library.began + 1] = function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 and button_outline.Visible and window.isVisible and utility:MouseOverDrawing({section.section_frame.Position.X + (i == 2 and (section.section_frame.Size.X/2) or 0), section.section_frame.Position.Y + button.axis, section.section_frame.Position.X + section.section_frame.Size.X - (i == 1 and (section.section_frame.Size.X/2) or 0), section.section_frame.Position.Y + button.axis + 20}) and not window:IsOverContent() then
+                    task.spawn(function()
+                        utility:LoadImage(button_gradient, "gradientdown", "https://i.imgur.com/DzrzUt3.png") 
+                        --
+                        task.wait(0.15)
+                        --
+                        utility:LoadImage(button_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png") 
+                    end)
+                    --
+                    buttons[i][2]()
+                end
+            end
+        end
+        --
+        section.currentAxis = section.currentAxis + 20 + 4
+    end
+    --
+    function sections:Dropdown(info)
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title
+        local max = info.max or info.Max
+        local options = info.options or info.Options or {"1", "2", "3"}
+        local def = info.def or info.Def or info.default or info.Default or options[1]
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local dropdown = {open = false, scrollindex = max and 0, scrolling = max and {false, nil}, current = tostring(def), options = options, holder = {buttons = {}, drawings = {}}, axis = section.currentAxis}
+        --
+        local dropdown_outline = utility:Create("Frame", {Vector2.new(4,name and (dropdown.axis + 15) or dropdown.axis), section.section_frame}, {
+            Size = utility:Size(1, -8, 0, 20, section.section_frame),
+            Position = utility:Position(0, 4, 0, name and (dropdown.axis + 15) or dropdown.axis, section.section_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[dropdown_outline] = {
+            Color = "outline"
+        }
+        --
+        local dropdown_inline = utility:Create("Frame", {Vector2.new(1,1), dropdown_outline}, {
+            Size = utility:Size(1, -2, 1, -2, dropdown_outline),
+            Position = utility:Position(0, 1, 0, 1, dropdown_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[dropdown_inline] = {
+            Color = "inline"
+        }
+        --
+        local dropdown_frame = utility:Create("Frame", {Vector2.new(1,1), dropdown_inline}, {
+            Size = utility:Size(1, -2, 1, -2, dropdown_inline),
+            Position = utility:Position(0, 1, 0, 1, dropdown_inline),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[dropdown_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        if name then
+            local dropdown_title = utility:Create("TextLabel", {Vector2.new(4,dropdown.axis), section.section_frame}, {
+                Text = name,
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Position = utility:Position(0, 4, 0, dropdown.axis, section.section_frame),
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[dropdown_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+        end
+        --
+        local dropdown__gradient = utility:Create("Image", {Vector2.new(0,0), dropdown_frame}, {
+            Size = utility:Size(1, 0, 1, 0, dropdown_frame),
+            Position = utility:Position(0, 0, 0 , 0, dropdown_frame),
+            Transparency = 0.5,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        local dropdown_value = utility:Create("TextLabel", {Vector2.new(3,dropdown_frame.Size.Y/2 - 7), dropdown_frame}, {
+            Text = dropdown.current,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0, 3, 0, (dropdown_frame.Size.Y/2) - 7, dropdown_frame),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[dropdown_value] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        local dropdown_image = utility:Create("Image", {Vector2.new(dropdown_frame.Size.X - 15,dropdown_frame.Size.Y/2 - 3), dropdown_frame}, {
+            Size = utility:Size(0, 9, 0, 6, dropdown_frame),
+            Position = utility:Position(1, -15, 0.5, -3, dropdown_frame),
+            Visible = page.open
+        }, section.visibleContent);dropdown["dropdown_image"] = dropdown_image
+        --
+        utility:LoadImage(dropdown_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+        utility:LoadImage(dropdown__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        if max then
+            local lastupdate = dropdown.scrollindex
+            --
+            function dropdown:UpdateScroll()
+                if dropdown.scrollindex ~= lastupdate then
+                    if max and dropdown.bar and dropdown.scroll then
+                        lastupdate = dropdown.scrollindex
+                        --
+                        if (#dropdown.options - max) > 0 then
+                            dropdown.bar.Size = utility:Size(1, 0, (max / #dropdown.options), 0, dropdown.scroll)
+                            dropdown.bar.Position = utility:Position(0, 0, 0, (((dropdown.scroll.Size.Y - dropdown.bar.Size.Y) / (#dropdown.options - max)) * dropdown.scrollindex), dropdown.scroll)
+                            utility:UpdateTransparency(dropdown.bar, 1)
+                            utility:UpdateOffset(dropdown.bar, {Vector2.new(1, (((dropdown.scroll.Size.Y - dropdown.bar.Size.Y) / (#dropdown.options - max)) * dropdown.scrollindex)), dropdown.scroll})
+                        else
+                            dropdown.scrollindex = 0
+                            dropdown.bar.Transparency = 0
+                            utility:UpdateTransparency(dropdown.bar, 0)
+                        end
+                        --
+                        dropdown:Update()
+                    end
+                end
+            end
+        end
+        --
+        function dropdown:Update()
+            if dropdown.open and dropdown.holder.inline then
+                for i,v in pairs(dropdown.holder.buttons) do
+                    local value = max and dropdown.options[i + dropdown.scrollindex] or dropdown.options[i]
+                    --
+                    v[1].Text = value
+                    v[1].Color = value == tostring(dropdown.current) and theme.accent or theme.textcolor
+                    v[1].Position = utility:Position(0, value == tostring(dropdown.current) and 8 or 6, 0, 2, v[2])
+                    library.colors[v[1]] = {
+                        Color = v[1].Text == tostring(dropdown.current) and "accent" or "textcolor"
+                    }
+                    utility:UpdateOffset(v[1], {Vector2.new(v[1].Text == tostring(dropdown.current) and 8 or 6, 2), v[2]})
+                end
+            end
+        end
+        --
+        function dropdown:Set(value)
+            if typeof(value) == "string" and Find(dropdown.options, value) then
+                dropdown.current = value
+                dropdown_value.Text = value
+                callback(value)
+            end
+        end
+        --
+        function dropdown:Get()
+            return dropdown.current
+        end
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and dropdown_outline.Visible then
+                if dropdown.open and dropdown.holder.inline and utility:MouseOverDrawing({dropdown.holder.inline.Position.X, dropdown.holder.inline.Position.Y, dropdown.holder.inline.Position.X + dropdown.holder.inline.Size.X, dropdown.holder.inline.Position.Y + dropdown.holder.inline.Size.Y}) then
+                    if max and dropdown.bar and utility:MouseOverDrawing({dropdown.bar.Position.X - 1, dropdown.bar.Position.Y - 1, dropdown.bar.Position.X - 1 + dropdown.bar.Size.X + 2, dropdown.bar.Position.Y - 1 + dropdown.bar.Size.Y + 2}) then
+                        dropdown.scrolling = {true, (utility:MouseLocation().Y - dropdown.bar.Position.Y)}
+                    else
+                        for i,v in pairs(dropdown.holder.buttons) do
+                            local value = max and dropdown.options[(i + dropdown.scrollindex)] or dropdown.options[i]
+                            --
+                            if utility:MouseOverDrawing({v[2].Position.X, v[2].Position.Y, v[2].Position.X + v[2].Size.X, v[2].Position.Y + v[2].Size.Y}) and v[1].Text ~= dropdown.current then
+                                dropdown.current = value
+                                dropdown_value.Text = dropdown.current
+                                callback(value)
+                                dropdown:Update()
+                            end
+                        end
+                    end
+                elseif utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + dropdown.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + dropdown.axis + (name and (15 + 20) or (20))}) and not window:IsOverContent() then
+                    task.spawn(function()
+                        utility:LoadImage(dropdown__gradient, "gradientdown", "https://i.imgur.com/DzrzUt3.png") 
+                        --
+                        task.wait(0.15)
+                        --
+                        utility:LoadImage(dropdown__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png") 
+                    end)
+                    --
+                    if not dropdown.open then
+                        window:CloseContent()
+                        dropdown.open = not dropdown.open
+                        utility:LoadImage(dropdown_image, "arrow_up", "https://i.imgur.com/SL9cbQp.png")
+                        --
+                        local dropdown_open_outline = utility:Create("Frame", {Vector2.new(0,19), dropdown_outline}, {
+                            Size = utility:Size(1, 0, 0, 3 + ((max and max or #dropdown.options) * 19), dropdown_outline),
+                            Position = utility:Position(0, 0, 0, 19, dropdown_outline),
+                            Color = theme.outline,
+                            Visible = page.open
+                        }, dropdown.holder.drawings);dropdown.holder.outline = dropdown_open_outline
+                        --
+                        library.colors[dropdown_open_outline] = {
+                            Color = "outline"
+                        }
+                        --
+                        local dropdown_open_inline = utility:Create("Frame", {Vector2.new(1,1), dropdown_open_outline}, {
+                            Size = utility:Size(1, -2, 1, -2, dropdown_open_outline),
+                            Position = utility:Position(0, 1, 0, 1, dropdown_open_outline),
+                            Color = theme.inline,
+                            Visible = page.open
+                        }, dropdown.holder.drawings);dropdown.holder.inline = dropdown_open_inline
+                        --
+                        library.colors[dropdown_open_inline] = {
+                            Color = "inline"
+                        }
+                        --
+                        if max then
+                            local dropdown_open_scroll = utility:Create("Frame", {Vector2.new(dropdown_open_inline.Size.X - 5,1), dropdown_open_inline}, {
+                                Size = utility:Size(0, 4, 1, -2, dropdown_open_inline),
+                                Position = utility:Position(1, -5, 0, 1, dropdown_open_inline),
+                                Color = theme.darkcontrast,
+                                Visible = page.open
+                            }, dropdown.holder.drawings);dropdown.scroll = dropdown_open_scroll
+                            --
+                            library.colors[dropdown_open_scroll] = {
+                                Color = "darkcontrast"
+                            }
+                            --
+                            local dropdown_open_bar = utility:Create("Frame", {Vector2.new(0, (((dropdown_open_scroll.Size.Y - ((max / #dropdown.options) * dropdown_open_scroll.Size.Y)) / (#dropdown.options - max)) * dropdown.scrollindex)), dropdown_open_scroll}, {
+                                Size = utility:Size(1, 0, (max / #dropdown.options), 0, dropdown_open_scroll),
+                                Position = utility:Position(0, 0, 0, (((dropdown_open_scroll.Size.Y - ((max / #dropdown.options) * dropdown_open_scroll.Size.Y)) / (#dropdown.options - max)) * dropdown.scrollindex), dropdown_open_scroll),
+                                Color = theme.accent,
+                                Visible = page.open
+                            }, dropdown.holder.drawings);dropdown.bar = dropdown_open_bar
+                            --
+                            library.colors[dropdown_open_bar] = {
+                                Color = "accent"
+                            }
+                        end
+                        --
+                        for Index = 1, (max and max or #dropdown.options) do
+                            local Value = max and dropdown.options[Index + dropdown.scrollindex] or dropdown.options[Index]
+                            --
+                            if Value then
+                                local dropdown_value_frame = utility:Create("Frame", {Vector2.new(1,1 + (19 * (Index-1))), dropdown_open_inline}, {
+                                    Size = utility:Size(1, -(max and 7 or 2), 0, 18, dropdown_open_inline),
+                                    Position = utility:Position(0, 1, 0, 1 + (19 * (Index-1)), dropdown_open_inline),
+                                    Color = theme.lightcontrast,
+                                    Visible = page.open
+                                }, dropdown.holder.drawings)
+                                --
+                                library.colors[dropdown_value_frame] = {
+                                    Color = "lightcontrast"
+                                }
+                                --
+                                local dropdown_value = utility:Create("TextLabel", {Vector2.new(Value == tostring(dropdown.current) and 8 or 6,2), dropdown_value_frame}, {
+                                    Text = Value,
+                                    Size = theme.textsize,
+                                    Font = theme.font,
+                                    Color = Value == tostring(dropdown.current) and theme.accent or theme.textcolor,
+                                    OutlineColor = theme.textborder,
+                                    Position = utility:Position(0, Value == tostring(dropdown.current) and 8 or 6, 0, 2, dropdown_value_frame),
+                                    Visible = page.open
+                                }, dropdown.holder.drawings)
+                                --
+                                dropdown.holder.buttons[#dropdown.holder.buttons + 1] = {dropdown_value, dropdown_value_frame}
+                                --
+                                library.colors[dropdown_value] = {
+                                    OutlineColor = "textborder",
+                                    Color = Value == tostring(dropdown.current) and "accent" or "textcolor"
+                                }
+                            end
+                        end
+                        --
+                        window.currentContent.frame = dropdown_open_inline
+                        window.currentContent.dropdown = dropdown
+                    else
+                        dropdown.open = not dropdown.open
+                        utility:LoadImage(dropdown_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                        --
+                        for i,v in pairs(dropdown.holder.drawings) do
+                            utility:Remove(v)
+                        end
+                        --
+                        dropdown.holder.drawings = {}
+                        dropdown.holder.buttons = {}
+                        dropdown.holder.inline = nil
+                        --
+                        window.currentContent.frame = nil
+                        window.currentContent.dropdown = nil
+                    end
+                else
+                    if dropdown.open then
+                        dropdown.open = not dropdown.open
+                        utility:LoadImage(dropdown_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                        --
+                        for i,v in pairs(dropdown.holder.drawings) do
+                            utility:Remove(v)
+                        end
+                        --
+                        dropdown.holder.drawings = {}
+                        dropdown.holder.buttons = {}
+                        dropdown.holder.inline = nil
+                        --
+                        window.currentContent.frame = nil
+                        window.currentContent.dropdown = nil
+                    end
+                end
+            elseif Input.UserInputType == Enum.UserInputType.MouseButton1 and dropdown.open then
+                dropdown.open = not dropdown.open
+                utility:LoadImage(dropdown_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                --
+                for i,v in pairs(dropdown.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                dropdown.holder.drawings = {}
+                dropdown.holder.buttons = {}
+                dropdown.holder.inline = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.dropdown = nil
+            end
+        end
+        --
+        if max then
+            library.ended[#library.ended + 1] = function(Input)
+                if dropdown.scrolling and dropdown.scrolling[1] and Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dropdown.scrolling = {false, nil}
+                end
+            end
+            --
+            library.changed[#library.changed + 1] = function(Input)
+                if dropdown.scrolling and dropdown.scrolling[1] then
+                    local MouseLocation = utility:MouseLocation()
+                    local Position = math.clamp((MouseLocation.Y - dropdown.scroll.Position.Y - dropdown.scrolling[2]), 0, ((dropdown.scroll.Size.Y - dropdown.bar.Size.Y)))
+                    --
+                    dropdown.scrollindex = math.round((((Position + dropdown.scroll.Position.Y) - dropdown.scroll.Position.Y) / ((dropdown.scroll.Size.Y - dropdown.bar.Size.Y))) * (#dropdown.options - max))
+                    dropdown:UpdateScroll()
+                end
+            end
+            --
+            utility:Connection(mouse.WheelForward,function()
+                if page.open and dropdown.open and dropdown.bar and dropdown.bar.Visible and utility:MouseOverDrawing({dropdown.holder.inline.Position.X, dropdown.holder.inline.Position.Y, dropdown.holder.inline.Position.X + dropdown.holder.inline.Size.X, dropdown.holder.inline.Position.Y + dropdown.holder.inline.Size.Y}) then
+                    dropdown.scrollindex = math.clamp(dropdown.scrollindex - 1, 0, #dropdown.options - max)
+                    dropdown:UpdateScroll()
+                end
+            end)
+            --
+            utility:Connection(mouse.WheelBackward,function()
+                if page.open and dropdown.open and dropdown.bar and dropdown.bar.Visible and utility:MouseOverDrawing({dropdown.holder.inline.Position.X, dropdown.holder.inline.Position.Y, dropdown.holder.inline.Position.X + dropdown.holder.inline.Size.X, dropdown.holder.inline.Position.Y + dropdown.holder.inline.Size.Y}) then
+                    dropdown.scrollindex = math.clamp(dropdown.scrollindex + 1, 0, #dropdown.options - max)
+                    dropdown:UpdateScroll()
+                end
+            end)
+        end
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = dropdown
+        end
+        --
+        section.currentAxis = section.currentAxis + (name and 35 or 20) + 4
+        --
+        return dropdown
+    end
+    --
+    function sections:Multibox(info)
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title
+        local options = info.options or info.Options or {"1", "2", "3"}
+        local def = info.def or info.Def or info.default or info.Default or {options[1]}
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+        local min = info.min or info.Min or info.minimum or info.Minimum or 0
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local multibox = {open = false, current = def, options = options, holder = {buttons = {}, drawings = {}}, axis = section.currentAxis}
+        --
+        local multibox_outline = utility:Create("Frame", {Vector2.new(4, name and (multibox.axis + 15) or multibox.axis), section.section_frame}, {
+            Size = utility:Size(1, -8, 0, 20, section.section_frame),
+            Position = utility:Position(0, 4, 0, name and (multibox.axis + 15) or multibox.axis, section.section_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[multibox_outline] = {
+            Color = "outline"
+        }
+        --
+        local multibox_inline = utility:Create("Frame", {Vector2.new(1,1), multibox_outline}, {
+            Size = utility:Size(1, -2, 1, -2, multibox_outline),
+            Position = utility:Position(0, 1, 0, 1, multibox_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[multibox_inline] = {
+            Color = "inline"
+        }
+        --
+        local multibox_frame = utility:Create("Frame", {Vector2.new(1,1), multibox_inline}, {
+            Size = utility:Size(1, -2, 1, -2, multibox_inline),
+            Position = utility:Position(0, 1, 0, 1, multibox_inline),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[multibox_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        if name then
+            local multibox_title = utility:Create("TextLabel", {Vector2.new(4,multibox.axis), section.section_frame}, {
+                Text = name,
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = theme.textcolor,
+                OutlineColor = theme.textborder,
+                Position = utility:Position(0, 4, 0, multibox.axis, section.section_frame),
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[multibox_title] = {
+                OutlineColor = "textborder",
+                Color = "textcolor"
+            }
+        end
+        --
+        local multibox__gradient = utility:Create("Image", {Vector2.new(0,0), multibox_frame}, {
+            Size = utility:Size(1, 0, 1, 0, multibox_frame),
+            Position = utility:Position(0, 0, 0 , 0, multibox_frame),
+            Transparency = 0.5,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        local multibox_value = utility:Create("TextLabel", {Vector2.new(3,multibox_frame.Size.Y/2 - 7), multibox_frame}, {
+            Text = "",
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0, 3, 0, (multibox_frame.Size.Y/2) - 7, multibox_frame),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[multibox_value] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        local multibox_image = utility:Create("Image", {Vector2.new(multibox_frame.Size.X - 15,multibox_frame.Size.Y/2 - 3), multibox_frame}, {
+            Size = utility:Size(0, 9, 0, 6, multibox_frame),
+            Position = utility:Position(1, -15, 0.5, -3, multibox_frame),
+            Visible = page.open
+        }, section.visibleContent);multibox["multibox_image"] = multibox_image
+        --
+        utility:LoadImage(multibox_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+        utility:LoadImage(multibox__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        function multibox:Update()
+            if multibox.open and multibox.holder.inline then
+                for i,v in pairs(multibox.holder.buttons) do
+                    v[1].Color = Find(multibox.current, v[1].Text) and theme.accent or theme.textcolor
+                    v[1].Position = utility:Position(0, Find(multibox.current, v[1].Text) and 8 or 6, 0, 2, v[2])
+                    --
+                    library.colors[v[1]] = {
+                        Color = Find(multibox.current, v[1].Text) and "accent" or "textcolor"
+                    }
+                    --
+                    utility:UpdateOffset(v[1], {Vector2.new(Find(multibox.current, v[1].Text) and 8 or 6, 2), v[2]})
+                end
+            end
+        end
+        --
+        function multibox:Serialize(tbl)
+            local str = ""
+            --
+            for i,v in pairs(tbl) do
+                str = str..v..", "
+            end
+            --
+            return string.sub(str, 0, #str - 2)
+        end
+        --
+        function multibox:Resort(tbl,original)
+            local newtbl = {}
+            --
+            for i,v in pairs(original) do
+                if Find(tbl, v) then
+                    newtbl[#newtbl + 1] = v
+                end
+            end
+            --
+            return newtbl
+        end
+        --
+        function multibox:Set(tbl)
+            if typeof(tbl) == "table" then
+                multibox.current = tbl
+                --
+                local text = multibox:Serialize(multibox:Resort(multibox.current, multibox.options))
+                multibox_value.Text = utility:WrapText(text, multibox_frame.Size.X - 25)
+            end
+        end
+        --
+        function multibox:Get()
+            return multibox.current
+        end
+        --
+        multibox_value.Text = utility:WrapText(multibox:Serialize(multibox:Resort(multibox.current, multibox.options)), multibox_frame.Size.X - 25)
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and multibox_outline.Visible then
+                if multibox.open and multibox.holder.inline and utility:MouseOverDrawing({multibox.holder.inline.Position.X, multibox.holder.inline.Position.Y, multibox.holder.inline.Position.X + multibox.holder.inline.Size.X, multibox.holder.inline.Position.Y + multibox.holder.inline.Size.Y}) then
+                    for i,v in pairs(multibox.holder.buttons) do
+                        if utility:MouseOverDrawing({v[2].Position.X, v[2].Position.Y, v[2].Position.X + v[2].Size.X, v[2].Position.Y + v[2].Size.Y}) and v[1].Text ~= multibox.current then
+                            if not Find(multibox.current, v[1].Text) then
+                                multibox.current[#multibox.current + 1] = v[1].Text
+                                multibox_value.Text = utility:WrapText(multibox:Serialize(multibox:Resort(multibox.current, multibox.options)), multibox_frame.Size.X - 25)
+                                multibox:Update()
+                            else
+                                if #multibox.current > min then
+                                    Remove(multibox.current, Find(multibox.current, v[1].Text))
+                                    multibox_value.Text = utility:WrapText(multibox:Serialize(multibox:Resort(multibox.current, multibox.options)), multibox_frame.Size.X - 25)
+                                    multibox:Update()
+                                end
+                            end
+                        end
+                    end
+                elseif utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + multibox.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + multibox.axis + (name and 15 or 0) + 20}) and not window:IsOverContent() then
+                    task.spawn(function()
+                        utility:LoadImage(multibox__gradient, "gradientdown", "https://i.imgur.com/DzrzUt3.png") 
+                        --
+                        task.wait(0.15)
+                        --
+                        utility:LoadImage(multibox__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png") 
+                    end)
+                    --
+                    if not multibox.open then
+                        window:CloseContent()
+                        multibox.open = not multibox.open
+                        utility:LoadImage(multibox_image, "arrow_up", "https://i.imgur.com/SL9cbQp.png")
+                        --
+                        local multibox_open_outline = utility:Create("Frame", {Vector2.new(0,19), multibox_outline}, {
+                            Size = utility:Size(1, 0, 0, 3 + (#multibox.options * 19), multibox_outline),
+                            Position = utility:Position(0, 0, 0, 19, multibox_outline),
+                            Color = theme.outline,
+                            Visible = page.open
+                        }, multibox.holder.drawings);multibox.holder.outline = multibox_open_outline
+                        --
+                        library.colors[multibox_open_outline] = {
+                            Color = "outline"
+                        }
+                        --
+                        local multibox_open_inline = utility:Create("Frame", {Vector2.new(1,1), multibox_open_outline}, {
+                            Size = utility:Size(1, -2, 1, -2, multibox_open_outline),
+                            Position = utility:Position(0, 1, 0, 1, multibox_open_outline),
+                            Color = theme.inline,
+                            Visible = page.open
+                        }, multibox.holder.drawings);multibox.holder.inline = multibox_open_inline
+                        --
+                        library.colors[multibox_open_inline] = {
+                            Color = "inline"
+                        }
+                        --
+                        for i,v in pairs(multibox.options) do
+                            local multibox_value_frame = utility:Create("Frame", {Vector2.new(1,1 + (19 * (i-1))), multibox_open_inline}, {
+                                Size = utility:Size(1, -2, 0, 18, multibox_open_inline),
+                                Position = utility:Position(0, 1, 0, 1 + (19 * (i-1)), multibox_open_inline),
+                                Color = theme.lightcontrast,
+                                Visible = page.open
+                            }, multibox.holder.drawings)
+                            --
+                            library.colors[multibox_value_frame] = {
+                                Color = "lightcontrast"
+                            }
+                            --[[
+                            local multibox_value_gradient = utility:Create("Image", {Vector2.new(0,0), multibox_value_frame}, {
+                                Size = utility:Size(1, 0, 1, 0, multibox_value_frame),
+                                Position = utility:Position(0, 0, 0 , 0, multibox_value_frame),
+                                Transparency = 0.5,
+                                Visible = page.open
+                            }, multibox.holder.drawings)
+                            --
+                            utility:LoadImage(multibox_value_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")]]
+                            --
+                            local multibox_value = utility:Create("TextLabel", {Vector2.new(Find(multibox.current, v) and 8 or 6,2), multibox_value_frame}, {
+                                Text = v,
+                                Size = theme.textsize,
+                                Font = theme.font,
+                                Color = Find(multibox.current, v) and theme.accent or theme.textcolor,
+                                OutlineColor = theme.textborder,
+                                Position = utility:Position(0, Find(multibox.current, v) and 8 or 6, 0, 2, multibox_value_frame),
+                                Visible = page.open
+                            }, multibox.holder.drawings);multibox.holder.buttons[#multibox.holder.buttons + 1] = {multibox_value, multibox_value_frame}
+                            --
+                            library.colors[multibox_value] = {
+                                OutlineColor = "textborder",
+                                Color = Find(multibox.current, v) and "accent" or "textcolor"
+                            }
+                        end
+                        --
+                        window.currentContent.frame = multibox_open_inline
+                        window.currentContent.multibox = multibox
+                    else
+                        multibox.open = not multibox.open
+                        utility:LoadImage(multibox_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                        --
+                        for i,v in pairs(multibox.holder.drawings) do
+                            utility:Remove(v)
+                        end
+                        --
+                        multibox.holder.drawings = {}
+                        multibox.holder.buttons = {}
+                        multibox.holder.inline = nil
+                        --
+                        window.currentContent.frame = nil
+                        window.currentContent.multibox = nil
+                    end
+                else
+                    if multibox.open then
+                        multibox.open = not multibox.open
+                        utility:LoadImage(multibox_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                        --
+                        for i,v in pairs(multibox.holder.drawings) do
+                            utility:Remove(v)
+                        end
+                        --
+                        multibox.holder.drawings = {}
+                        multibox.holder.buttons = {}
+                        multibox.holder.inline = nil
+                        --
+                        window.currentContent.frame = nil
+                        window.currentContent.multibox = nil
+                    end
+                end
+            elseif Input.UserInputType == Enum.UserInputType.MouseButton1 and multibox.open then
+                multibox.open = not multibox.open
+                utility:LoadImage(multibox_image, "arrow_down", "https://i.imgur.com/tVqy0nL.png")
+                --
+                for i,v in pairs(multibox.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                multibox.holder.drawings = {}
+                multibox.holder.buttons = {}
+                multibox.holder.inline = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.multibox = nil
+            end
+        end
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = multibox
+        end
+        --
+        section.currentAxis = section.currentAxis + (name and 35 or 20) + 4
+        --
+        return multibox
+    end
+    --
+    function sections:Keybind(info)
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title or "New Keybind"
+        local def = info.def or info.Def or info.default or info.Default or nil
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        local mode = info.mode or info.Mode or "Always"
+        local keybindname = info.keybindname or info.keybindName or info.Keybindname or info.KeybindName or nil
+        local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local keybind = {keybindname = keybindname or name, axis = section.currentAxis, current = {}, selecting = false, mode = mode, open = false, modemenu = {buttons = {}, drawings = {}}, active = false}
+        --
+        local allowedKeyCodes = {"Q","W","E","R","T","Y","U","I","O","P","A","S","D","F","G","H","J","K","L","Z","X","C","V","B","N","M","One","Two","Three","Four","Five","Six","Seveen","Eight","Nine","Zero", "Minus", "Equals","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","Insert","Tab","Home","End","LeftAlt","LeftControl","LeftShift","RightAlt","RightControl","RightShift","CapsLock"}
+        local allowedInputTypes = {"MouseButton1","MouseButton2","MouseButton3"}
+        local shortenedInputs = {["MouseButton1"] = "MB1", ["MouseButton2"] = "MB2", ["MouseButton3"] = "MB3", ["Insert"] = "Ins", ["LeftAlt"] = "LAlt", ["LeftControl"] = "LC", ["LeftShift"] = "LS", ["RightAlt"] = "RAlt", ["RightControl"] = "RC", ["RightShift"] = "RS", ["CapsLock"] = "Caps"}
+        --
+        local keybind_outline = utility:Create("Frame", {Vector2.new(section.section_frame.Size.X-(40+4),keybind.axis), section.section_frame}, {
+            Size = utility:Size(0, 40, 0, 17),
+            Position = utility:Position(1, -(40+4), 0, keybind.axis, section.section_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[keybind_outline] = {
+            Color = "outline"
+        }
+        --
+        local keybind_inline = utility:Create("Frame", {Vector2.new(1,1), keybind_outline}, {
+            Size = utility:Size(1, -2, 1, -2, keybind_outline),
+            Position = utility:Position(0, 1, 0, 1, keybind_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[keybind_inline] = {
+            Color = "inline"
+        }
+        --
+        local keybind_frame = utility:Create("Frame", {Vector2.new(1,1), keybind_inline}, {
+            Size = utility:Size(1, -2, 1, -2, keybind_inline),
+            Position = utility:Position(0, 1, 0, 1, keybind_inline),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[keybind_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        local keybind_title = utility:Create("TextLabel", {Vector2.new(4,keybind.axis + (17/2) - (utility:GetTextBounds(name, theme.textsize, theme.font).Y/2)), section.section_frame}, {
+            Text = name,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0, 4, 0, keybind.axis + (17/2) - (utility:GetTextBounds(name, theme.textsize, theme.font).Y/2), section.section_frame),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[keybind_title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        local keybind__gradient = utility:Create("Image", {Vector2.new(0,0), keybind_frame}, {
+            Size = utility:Size(1, 0, 1, 0, keybind_frame),
+            Position = utility:Position(0, 0, 0 , 0, keybind_frame),
+            Transparency = 0.5,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        local keybind_value = utility:Create("TextLabel", {Vector2.new(keybind_outline.Size.X/2,1), keybind_outline}, {
+            Text = "...",
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder, 
+            Center = true,
+            Position = utility:Position(0.5, 0, 1, 0, keybind_outline),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[keybind_value] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        utility:LoadImage(keybind__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        function keybind:Shorten(string)
+            for i,v in pairs(shortenedInputs) do
+                string = string.gsub(string, i, v)
+            end
+            return string
+        end
+        --
+        function keybind:Change(input)
+            input = input or "..."
+            local inputTable = {}
+            --
+            if input.EnumType then
+                if input.EnumType == Enum.KeyCode or input.EnumType == Enum.UserInputType then
+                    if Find(allowedKeyCodes, input.Name) or Find(allowedInputTypes, input.Name) then
+                        inputTable = {input.EnumType == Enum.KeyCode and "KeyCode" or "UserInputType", input.Name}
+                        --
+                        keybind.current = inputTable
+                        keybind_value.Text = #keybind.current > 0 and keybind:Shorten(keybind.current[2]) or "..."
+                        --
+                        return true
+                    end
+                end
+            end
+            --
+            return false
+        end
+        --
+        function keybind:Get()
+            return keybind.current
+        end
+        --
+        function keybind:Set(tbl)
+            keybind.current = {tbl[1], tbl[2]}
+            keybind_value.Text = #keybind.current > 0 and keybind:Shorten(keybind.current[2]) or "..."
+            --
+            if tbl[3] then
+                keybind.mode = tbl[3]
+            end
+            --
+            keybind.active = (keybind.mode == "Always" or keybind.mode == "Off Hold") and true or false
+            --
+            if keybind.mode == "Off Hold" then
+                window.keybindslist:Add(keybindname or name, keybind_value.Text)
+            else
+                window.keybindslist:Remove(keybindname or name)
+            end
+            --
+            if keybind.current[1] and keybind.current[2] then
+                callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+            end
+        end
+        --
+        function keybind:Active()
+            return keybind.active
+        end
+        --
+        function keybind:Reset()
+            for i,v in pairs(keybind.modemenu.buttons) do
+                v.Color = v.Text == keybind.mode and theme.accent or theme.textcolor
+                --
+                library.colors[v] = {
+                    Color = v.Text == keybind.mode and "accent" or "textcolor"
+                }
+            end
+            --
+            keybind.active = (keybind.mode == "Always" or keybind.mode == "Off Hold") and true or false
+            --
+            if keybind.mode == "Off Hold" then
+                window.keybindslist:Add(keybindname or name, keybind_value.Text)
+            else
+                window.keybindslist:Remove(keybindname or name)
+            end
+            --
+            if keybind.current[1] and keybind.current[2] then
+                callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+            end
+        end
+        --
+        keybind:Change(def)
+        --
+        library.began[#library.began + 1] = function(Input, Typing)
+            
+            if Typing then return end
+            if keybind.current[1] and keybind.current[2] then
+                if Input.KeyCode == Enum[keybind.current[1]][keybind.current[2]] or Input.UserInputType == Enum[keybind.current[1]][keybind.current[2]] then
+                    if keybind.mode == "On Hold" then
+                        keybind.active = true
+                        if keybind.active then window.keybindslist:Add(keybindname or name, keybind_value.Text) else window.keybindslist:Remove(keybindname or name) end
+                        callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                    elseif keybind.mode == "Off Hold" then
+                        keybind.active = false
+                        if keybind.active then window.keybindslist:Add(keybindname or name, keybind_value.Text) else window.keybindslist:Remove(keybindname or name) end
+                        callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                    elseif keybind.mode == "Toggle" then
+                        keybind.active = not keybind.active
+                        if keybind.active then window.keybindslist:Add(keybindname or name, keybind_value.Text) else window.keybindslist:Remove(keybindname or name) end
+                        callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                    end
+                end
+            end
+            --
+            if keybind.selecting and window.isVisible then
+                local done = keybind:Change(Input.KeyCode.Name ~= "Unknown" and Input.KeyCode or Input.UserInputType)
+                if done then
+                    keybind.selecting = false
+                    keybind.active = keybind.mode == "Always" and true or false
+                    keybind_frame.Color = theme.lightcontrast
+                    --
+                    library.colors[keybind_frame] = {
+                        Color = "lightcontrast"
+                    }
+                    --
+                    if keybind.mode == "Off Hold" then
+                        window.keybindslist:Add(keybindname or name, keybind_value.Text)
+                    else
+                        window.keybindslist:Remove(keybindname or name)
+                    end
+                    --
+                    callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                end
+            end
+            --
+            if not window.isVisible and keybind.selecting then
+                keybind.selecting = false
+                keybind_frame.Color = theme.lightcontrast
+                --
+                library.colors[keybind_frame] = {
+                    Color = "lightcontrast"
+                }
+            end
+            --
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and keybind_outline.Visible then
+                if utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + keybind.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + keybind.axis + 17}) and not window:IsOverContent() and not keybind.selecting then
+                    keybind.selecting = true
+                    keybind_frame.Color = theme.darkcontrast
+                    --
+                    library.colors[keybind_frame] = {
+                        Color = "darkcontrast"
+                    }
+                end
+                if keybind.open and keybind.modemenu.frame then
+                    if utility:MouseOverDrawing({keybind.modemenu.frame.Position.X, keybind.modemenu.frame.Position.Y, keybind.modemenu.frame.Position.X + keybind.modemenu.frame.Size.X, keybind.modemenu.frame.Position.Y + keybind.modemenu.frame.Size.Y}) then
+                        local changed = false
+                        --
+                        for i,v in pairs(keybind.modemenu.buttons) do
+                            if utility:MouseOverDrawing({keybind.modemenu.frame.Position.X, keybind.modemenu.frame.Position.Y + (15 * (i - 1)), keybind.modemenu.frame.Position.X + keybind.modemenu.frame.Size.X, keybind.modemenu.frame.Position.Y + (15 * (i - 1)) + 15}) then
+                                keybind.mode = v.Text
+                                changed = true
+                            end
+                        end
+                        --
+                        if changed then keybind:Reset() end
+                    else
+                        keybind.open = not keybind.open
+                        --
+                        for i,v in pairs(keybind.modemenu.drawings) do
+                            utility:Remove(v)
+                        end
+                        --
+                        keybind.modemenu.drawings = {}
+                        keybind.modemenu.buttons = {}
+                        keybind.modemenu.frame = nil
+                        --
+                        window.currentContent.frame = nil
+                        window.currentContent.keybind = nil
+                    end
+                end
+            end
+            --
+            if Input.UserInputType == Enum.UserInputType.MouseButton2 and window.isVisible and keybind_outline.Visible then
+                if utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + keybind.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + keybind.axis + 17}) and not window:IsOverContent() and not keybind.selecting then
+                    window:CloseContent()
+                    keybind.open = not keybind.open
+                    --
+                    local modemenu = utility:Create("Frame", {Vector2.new(keybind_outline.Size.X + 2,0), keybind_outline}, {
+                        Size = utility:Size(0, 68, 0, 64),
+                        Position = utility:Position(1, 2, 0, 0, keybind_outline),
+                        Color = theme.outline,
+                        Visible = page.open
+                    }, keybind.modemenu.drawings);keybind.modemenu.frame = modemenu
+                    --
+                    library.colors[modemenu] = {
+                        Color = "outline"
+                    }
+                    --
+                    local modemenu_inline = utility:Create("Frame", {Vector2.new(1,1), modemenu}, {
+                        Size = utility:Size(1, -2, 1, -2, modemenu),
+                        Position = utility:Position(0, 1, 0, 1, modemenu),
+                        Color = theme.inline,
+                        Visible = page.open
+                    }, keybind.modemenu.drawings)
+                    --
+                    library.colors[modemenu_inline] = {
+                        Color = "inline"
+                    }
+                    --
+                    local modemenu_frame = utility:Create("Frame", {Vector2.new(1,1), modemenu_inline}, {
+                        Size = utility:Size(1, -2, 1, -2, modemenu_inline),
+                        Position = utility:Position(0, 1, 0, 1, modemenu_inline),
+                        Color = theme.lightcontrast,
+                        Visible = page.open
+                    }, keybind.modemenu.drawings)
+                    --
+                    library.colors[modemenu_frame] = {
+                        Color = "lightcontrast"
+                    }
+                    --
+                    local keybind__gradient = utility:Create("Image", {Vector2.new(0,0), modemenu_frame}, {
+                        Size = utility:Size(1, 0, 1, 0, modemenu_frame),
+                        Position = utility:Position(0, 0, 0 , 0, modemenu_frame),
+                        Transparency = 0.5,
+                        Visible = page.open
+                    }, keybind.modemenu.drawings)
+                    --
+                    utility:LoadImage(keybind__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+                    --
+                    for i,v in pairs({"Always", "Toggle", "On Hold", "Off Hold"}) do
+                        local button_title = utility:Create("TextLabel", {Vector2.new(modemenu_frame.Size.X/2,15 * (i-1)), modemenu_frame}, {
+                            Text = v,
+                            Size = theme.textsize,
+                            Font = theme.font,
+                            Color = v == keybind.mode and theme.accent or theme.textcolor,
+                            Center = true,
+                            OutlineColor = theme.textborder,
+                            Position = utility:Position(0.5, 0, 0, 15 * (i-1), modemenu_frame),
+                            Visible = page.open
+                        }, keybind.modemenu.drawings);keybind.modemenu.buttons[#keybind.modemenu.buttons + 1] = button_title
+                        --
+                        library.colors[button_title] = {
+                            OutlineColor = "textborder",
+                            Color = v == keybind.mode and "accent" or "textcolor"
+                        }
+                    end
+                    --
+                    window.currentContent.frame = modemenu
+                    window.currentContent.keybind = keybind
+                end
+            end
+        end
+        --
+        library.ended[#library.ended + 1] = function(Input, Typing)
+            
+            if Typing then return end
+            if keybind.mode == "On Hold" or keybind.mode == "Off Hold" then
+                if keybind.current[1] and keybind.current[2] then
+                    if Input.KeyCode == Enum[keybind.current[1]][keybind.current[2]] or Input.UserInputType == Enum[keybind.current[1]][keybind.current[2]] then
+                        if keybind.mode == "On Hold" then
+                            if keybind.active then
+                                keybind.active = false
+                                window.keybindslist:Remove(keybindname or name)
+                                callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                            end
+                        else
+                            keybind.active = true
+                            if keybind.active then window.keybindslist:Add(keybindname or name, keybind_value.Text) else window.keybindslist:Remove(keybindname or name) end
+                            callback(Enum[keybind.current[1]][keybind.current[2]], keybind.active)
+                        end
+                    end
+                end
+            end
+        end
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = keybind
+        end
+        --
+        section.currentAxis = section.currentAxis + 17 + 4
+        --
+        return keybind
+    end
+    --
+    function sections:Colorpicker(info)
+        local info = info or {}
+        local name = info.name or info.Name or info.title or info.Title or "New Colorpicker"
+        local cpinfo = info.info or info.Info or name
+        local def = info.def or info.Def or info.default or info.Default or Color3.fromRGB(255, 0, 0)
+        local transp = info.transparency or info.Transparency or info.transp or info.Transp or info.alpha or info.Alpha or nil
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        --
+        local hh, ss, vv = def:ToHSV()
+        local colorpicker = {axis = section.currentAxis, secondColorpicker = false, current = {hh, ss, vv , (transp or 0)}, holding = {picker = false, huepicker = false, transparency = false}, holder = {inline = nil, picker = nil, picker_cursor = nil, huepicker = nil, huepicker_cursor = {}, transparency = nil, transparencybg = nil, transparency_cursor = {}, drawings = {}}}
+        --
+        local colorpicker_outline = utility:Create("Frame", {Vector2.new(section.section_frame.Size.X-(30+4),colorpicker.axis), section.section_frame}, {
+            Size = utility:Size(0, 30, 0, 15),
+            Position = utility:Position(1, -(30+4), 0, colorpicker.axis, section.section_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[colorpicker_outline] = {
+            Color = "outline"
+        }
+        --
+        local colorpicker_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_outline}, {
+            Size = utility:Size(1, -2, 1, -2, colorpicker_outline),
+            Position = utility:Position(0, 1, 0, 1, colorpicker_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[colorpicker_inline] = {
+            Color = "inline"
+        }
+        --
+        local colorpicker__transparency
+        if transp then
+            colorpicker__transparency = utility:Create("Image", {Vector2.new(1,1), colorpicker_inline}, {
+                Size = utility:Size(1, -2, 1, -2, colorpicker_inline),
+                Position = utility:Position(0, 1, 0 , 1, colorpicker_inline),
+                Visible = page.open
+            }, section.visibleContent)
+        end
+        --
+        local colorpicker_frame = utility:Create("Frame", {Vector2.new(1,1), colorpicker_inline}, {
+            Size = utility:Size(1, -2, 1, -2, colorpicker_inline),
+            Position = utility:Position(0, 1, 0, 1, colorpicker_inline),
+            Color = def,
+            Transparency = transp and (1 - transp) or 1,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        local colorpicker__gradient = utility:Create("Image", {Vector2.new(0,0), colorpicker_frame}, {
+            Size = utility:Size(1, 0, 1, 0, colorpicker_frame),
+            Position = utility:Position(0, 0, 0 , 0, colorpicker_frame),
+            Transparency = 0.5,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        local colorpicker_title = utility:Create("TextLabel", {Vector2.new(4,colorpicker.axis + (15/2) - (utility:GetTextBounds(name, theme.textsize, theme.font).Y/2)), section.section_frame}, {
+            Text = name,
+            Size = theme.textsize,
+            Font = theme.font,
+            Color = theme.textcolor,
+            OutlineColor = theme.textborder,
+            Position = utility:Position(0, 4, 0, colorpicker.axis + (15/2) - (utility:GetTextBounds(name, theme.textsize, theme.font).Y/2), section.section_frame),
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[colorpicker_title] = {
+            OutlineColor = "textborder",
+            Color = "textcolor"
+        }
+        --
+        if transp then
+            utility:LoadImage(colorpicker__transparency, "cptransp", "https://i.imgur.com/IIPee2A.png")
+        end
+        utility:LoadImage(colorpicker__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        function colorpicker:Set(color, transp_val)
+            if typeof(color) == "table" then
+                colorpicker.current = color
+                colorpicker_frame.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                colorpicker_frame.Transparency = 1 - colorpicker.current[4]
+                callback(Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3]), colorpicker.current[4])
+            elseif typeof(color) == "Color3" then
+                local h, s, v = color:ToHSV()
+                colorpicker.current = {h, s, v, (transp_val or 0)}
+                colorpicker_frame.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                colorpicker_frame.Transparency = 1 - colorpicker.current[4]
+                callback(Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3]), colorpicker.current[4])
+            end
+        end
+        --
+        function colorpicker:Refresh()
+            local mouseLocation = utility:MouseLocation()
+            if colorpicker.open and colorpicker.holder.picker and colorpicker.holding.picker then
+                colorpicker.current[2] = math.clamp(mouseLocation.X - colorpicker.holder.picker.Position.X, 0, colorpicker.holder.picker.Size.X) / colorpicker.holder.picker.Size.X
+                --
+                colorpicker.current[3] = 1-(math.clamp(mouseLocation.Y - colorpicker.holder.picker.Position.Y, 0, colorpicker.holder.picker.Size.Y) / colorpicker.holder.picker.Size.Y)
+                --
+                colorpicker.holder.picker_cursor.Position = utility:Position(colorpicker.current[2], -3, 1-colorpicker.current[3] , -3, colorpicker.holder.picker)
+                --
+                utility:UpdateOffset(colorpicker.holder.picker_cursor, {Vector2.new((colorpicker.holder.picker.Size.X*colorpicker.current[2])-3,(colorpicker.holder.picker.Size.Y*(1-colorpicker.current[3]))-3), colorpicker.holder.picker})
+                --
+                if colorpicker.holder.transparencybg then
+                    colorpicker.holder.transparencybg.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                end
+            elseif colorpicker.open and colorpicker.holder.huepicker and colorpicker.holding.huepicker then
+                colorpicker.current[1] = (math.clamp(mouseLocation.Y - colorpicker.holder.huepicker.Position.Y, 0, colorpicker.holder.huepicker.Size.Y) / colorpicker.holder.huepicker.Size.Y)
+                --
+                colorpicker.holder.huepicker_cursor[1].Position = utility:Position(0, -3, colorpicker.current[1], -3, colorpicker.holder.huepicker)
+                colorpicker.holder.huepicker_cursor[2].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.huepicker_cursor[1])
+                colorpicker.holder.huepicker_cursor[3].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.huepicker_cursor[2])
+                colorpicker.holder.huepicker_cursor[3].Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                --
+                utility:UpdateOffset(colorpicker.holder.huepicker_cursor[1], {Vector2.new(-3,(colorpicker.holder.huepicker.Size.Y*colorpicker.current[1])-3), colorpicker.holder.huepicker})
+                --
+                colorpicker.holder.background.Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                --
+                if colorpicker.holder.transparency_cursor and colorpicker.holder.transparency_cursor[3] then
+                    colorpicker.holder.transparency_cursor[3].Color = Color3.fromHSV(0, 0, 1 - colorpicker.current[4])
+                end
+                --
+                if colorpicker.holder.transparencybg then
+                    colorpicker.holder.transparencybg.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                end
+            elseif colorpicker.open and colorpicker.holder.transparency and colorpicker.holding.transparency then
+                colorpicker.current[4] = 1 - (math.clamp(mouseLocation.X - colorpicker.holder.transparency.Position.X, 0, colorpicker.holder.transparency.Size.X) / colorpicker.holder.transparency.Size.X)
+                --
+                colorpicker.holder.transparency_cursor[1].Position = utility:Position(1-colorpicker.current[4], -3, 0, -3, colorpicker.holder.transparency)
+                colorpicker.holder.transparency_cursor[2].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.transparency_cursor[1])
+                colorpicker.holder.transparency_cursor[3].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.transparency_cursor[2])
+                colorpicker.holder.transparency_cursor[3].Color = Color3.fromHSV(0, 0, 1 - colorpicker.current[4])
+                colorpicker_frame.Transparency = (1 - colorpicker.current[4])
+                --
+                utility:UpdateTransparency(colorpicker_frame, (1 - colorpicker.current[4]))
+                utility:UpdateOffset(colorpicker.holder.transparency_cursor[1], {Vector2.new((colorpicker.holder.transparency.Size.X*(1-colorpicker.current[4]))-3,-3), colorpicker.holder.transparency})
+                --
+                colorpicker.holder.background.Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+            end
+            --
+            colorpicker:Set(colorpicker.current)
+        end
+        --
+        function colorpicker:Get()
+            return Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+        end
+        --
+        function colorpicker:GetTransparency()
+            return colorpicker.current[4]
+        end
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and colorpicker_outline.Visible then
+                if colorpicker.open and colorpicker.holder.inline and utility:MouseOverDrawing({colorpicker.holder.inline.Position.X, colorpicker.holder.inline.Position.Y, colorpicker.holder.inline.Position.X + colorpicker.holder.inline.Size.X, colorpicker.holder.inline.Position.Y + colorpicker.holder.inline.Size.Y}) then
+                    if colorpicker.holder.picker and utility:MouseOverDrawing({colorpicker.holder.picker.Position.X - 2, colorpicker.holder.picker.Position.Y - 2, colorpicker.holder.picker.Position.X - 2 + colorpicker.holder.picker.Size.X + 4, colorpicker.holder.picker.Position.Y - 2 + colorpicker.holder.picker.Size.Y + 4}) then
+                        colorpicker.holding.picker = true
+                        colorpicker:Refresh()
+                    elseif colorpicker.holder.huepicker and utility:MouseOverDrawing({colorpicker.holder.huepicker.Position.X - 2, colorpicker.holder.huepicker.Position.Y - 2, colorpicker.holder.huepicker.Position.X - 2 + colorpicker.holder.huepicker.Size.X + 4, colorpicker.holder.huepicker.Position.Y - 2 + colorpicker.holder.huepicker.Size.Y + 4}) then
+                        colorpicker.holding.huepicker = true
+                        colorpicker:Refresh()
+                    elseif colorpicker.holder.transparency and utility:MouseOverDrawing({colorpicker.holder.transparency.Position.X - 2, colorpicker.holder.transparency.Position.Y - 2, colorpicker.holder.transparency.Position.X - 2 + colorpicker.holder.transparency.Size.X + 4, colorpicker.holder.transparency.Position.Y - 2 + colorpicker.holder.transparency.Size.Y + 4}) then
+                        colorpicker.holding.transparency = true
+                        colorpicker:Refresh()
+                    end
+                elseif utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + colorpicker.axis, section.section_frame.Position.X + section.section_frame.Size.X - (colorpicker.secondColorpicker and (30+4) or 0), section.section_frame.Position.Y + colorpicker.axis + 15}) and not window:IsOverContent() then
+                    if not colorpicker.open then
+                        window:CloseContent()
+                        colorpicker.open = not colorpicker.open
+                        --
+                        local colorpicker_open_outline = utility:Create("Frame", {Vector2.new(4,colorpicker.axis + 19), section.section_frame}, {
+                            Size = utility:Size(1, -8, 0, transp and 219 or 200, section.section_frame),
+                            Position = utility:Position(0, 4, 0, colorpicker.axis + 19, section.section_frame),
+                            Color = theme.outline
+                        }, colorpicker.holder.drawings);colorpicker.holder.inline = colorpicker_open_outline
+                        --
+                        library.colors[colorpicker_open_outline] = {
+                            Color = "outline"
+                        }
+                        --
+                        local colorpicker_open_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_outline}, {
+                            Size = utility:Size(1, -2, 1, -2, colorpicker_open_outline),
+                            Position = utility:Position(0, 1, 0, 1, colorpicker_open_outline),
+                            Color = theme.inline
+                        }, colorpicker.holder.drawings)
+                        --
+                        library.colors[colorpicker_open_inline] = {
+                            Color = "inline"
+                        }
+                        --
+                        local colorpicker_open_frame = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_inline}, {
+                            Size = utility:Size(1, -2, 1, -2, colorpicker_open_inline),
+                            Position = utility:Position(0, 1, 0, 1, colorpicker_open_inline),
+                            Color = theme.darkcontrast
+                        }, colorpicker.holder.drawings)
+                        --
+                        library.colors[colorpicker_open_frame] = {
+                            Color = "darkcontrast"
+                        }
+                        --
+                        local colorpicker_open_accent = utility:Create("Frame", {Vector2.new(0,0), colorpicker_open_frame}, {
+                            Size = utility:Size(1, 0, 0, 2, colorpicker_open_frame),
+                            Position = utility:Position(0, 0, 0, 0, colorpicker_open_frame),
+                            Color = theme.accent
+                        }, colorpicker.holder.drawings)
+                        --
+                        library.colors[colorpicker_open_accent] = {
+                            Color = "accent"
+                        }
+                        --
+                        local colorpicker_title = utility:Create("TextLabel", {Vector2.new(4,2), colorpicker_open_frame}, {
+                            Text = cpinfo,
+                            Size = theme.textsize,
+                            Font = theme.font,
+                            Color = theme.textcolor,
+                            OutlineColor = theme.textborder,
+                            Position = utility:Position(0, 4, 0, 2, colorpicker_open_frame),
+                        }, colorpicker.holder.drawings)
+                        --
+                        library.colors[colorpicker_title] = {
+                            OutlineColor = "textborder",
+                            Color = "textcolor"
+                        }
+                        --
+                        local colorpicker_open_picker_outline = utility:Create("Frame", {Vector2.new(4,17), colorpicker_open_frame}, {
+                            Size = utility:Size(1, -27, 1, transp and -40 or -21, colorpicker_open_frame),
+                            Position = utility:Position(0, 4, 0, 17, colorpicker_open_frame),
+                            Color = theme.outline
+                        }, colorpicker.holder.drawings)
+                        --
+                        library.colors[colorpicker_open_picker_outline] = {
+                            Color = "outline"
+                        }
+                        --
+                        local colorpicker_open_picker_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_picker_outline}, {
+                            Size = utility:Size(1, -2, 1, -2, colorpicker_open_picker_outline),
+                            Position = utility:Position(0, 1, 0, 1, colorpicker_open_picker_outline),
+                            Color = theme.inline
+                        }, colorpicker.holder.drawings)
+                        --
+                        library.colors[colorpicker_open_picker_inline] = {
+                            Color = "inline"
+                        }
+                        --
+                        local colorpicker_open_picker_bg = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_picker_inline}, {
+                            Size = utility:Size(1, -2, 1, -2, colorpicker_open_picker_inline),
+                            Position = utility:Position(0, 1, 0, 1, colorpicker_open_picker_inline),
+                            Color = Color3.fromHSV(colorpicker.current[1],1,1)
+                        }, colorpicker.holder.drawings);colorpicker.holder.background = colorpicker_open_picker_bg
+                        --
+                        local colorpicker_open_picker_image = utility:Create("Image", {Vector2.new(0,0), colorpicker_open_picker_bg}, {
+                            Size = utility:Size(1, 0, 1, 0, colorpicker_open_picker_bg),
+                            Position = utility:Position(0, 0, 0 , 0, colorpicker_open_picker_bg),
+                        }, colorpicker.holder.drawings);colorpicker.holder.picker = colorpicker_open_picker_image
+                        --
+                        local colorpicker_open_picker_cursor = utility:Create("Image", {Vector2.new((colorpicker_open_picker_image.Size.X*colorpicker.current[2])-3,(colorpicker_open_picker_image.Size.Y*(1-colorpicker.current[3]))-3), colorpicker_open_picker_image}, {
+                            Size = utility:Size(0, 6, 0, 6, colorpicker_open_picker_image),
+                            Position = utility:Position(colorpicker.current[2], -3, 1-colorpicker.current[3] , -3, colorpicker_open_picker_image),
+                        }, colorpicker.holder.drawings);colorpicker.holder.picker_cursor = colorpicker_open_picker_cursor
+                        --
+                        local colorpicker_open_huepicker_outline = utility:Create("Frame", {Vector2.new(colorpicker_open_frame.Size.X-19,17), colorpicker_open_frame}, {
+                            Size = utility:Size(0, 15, 1, transp and -40 or -21, colorpicker_open_frame),
+                            Position = utility:Position(1, -19, 0, 17, colorpicker_open_frame),
+                            Color = theme.outline
+                        }, colorpicker.holder.drawings)
+                        --
+                        library.colors[colorpicker_open_huepicker_outline] = {
+                            Color = "outline"
+                        }
+                        --
+                        local colorpicker_open_huepicker_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_huepicker_outline}, {
+                            Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_outline),
+                            Position = utility:Position(0, 1, 0, 1, colorpicker_open_huepicker_outline),
+                            Color = theme.inline
+                        }, colorpicker.holder.drawings)
+                        --
+                        library.colors[colorpicker_open_huepicker_inline] = {
+                            Color = "inline"
+                        }
+                        --
+                        local colorpicker_open_huepicker_image = utility:Create("Image", {Vector2.new(1,1), colorpicker_open_huepicker_inline}, {
+                            Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_inline),
+                            Position = utility:Position(0, 1, 0 , 1, colorpicker_open_huepicker_inline),
+                        }, colorpicker.holder.drawings);colorpicker.holder.huepicker = colorpicker_open_huepicker_image
+                        --
+                        local colorpicker_open_huepicker_cursor_outline = utility:Create("Frame", {Vector2.new(-3,(colorpicker_open_huepicker_image.Size.Y*colorpicker.current[1])-3), colorpicker_open_huepicker_image}, {
+                            Size = utility:Size(1, 6, 0, 6, colorpicker_open_huepicker_image),
+                            Position = utility:Position(0, -3, colorpicker.current[1], -3, colorpicker_open_huepicker_image),
+                            Color = theme.outline
+                        }, colorpicker.holder.drawings);colorpicker.holder.huepicker_cursor[1] = colorpicker_open_huepicker_cursor_outline
+                        --
+                        library.colors[colorpicker_open_huepicker_cursor_outline] = {
+                            Color = "outline"
+                        }
+                        --
+                        local colorpicker_open_huepicker_cursor_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_huepicker_cursor_outline}, {
+                            Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_cursor_outline),
+                            Position = utility:Position(0, 1, 0, 1, colorpicker_open_huepicker_cursor_outline),
+                            Color = theme.textcolor
+                        }, colorpicker.holder.drawings);colorpicker.holder.huepicker_cursor[2] = colorpicker_open_huepicker_cursor_inline
+                        --
+                        library.colors[colorpicker_open_huepicker_cursor_inline] = {
+                            Color = "textcolor"
+                        }
+                        --
+                        local colorpicker_open_huepicker_cursor_color = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_huepicker_cursor_inline}, {
+                            Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_cursor_inline),
+                            Position = utility:Position(0, 1, 0, 1, colorpicker_open_huepicker_cursor_inline),
+                            Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                        }, colorpicker.holder.drawings);colorpicker.holder.huepicker_cursor[3] = colorpicker_open_huepicker_cursor_color
+                        --
+                        if transp then
+                            local colorpicker_open_transparency_outline = utility:Create("Frame", {Vector2.new(4,colorpicker_open_frame.Size.Y-19), colorpicker_open_frame}, {
+                                Size = utility:Size(1, -27, 0, 15, colorpicker_open_frame),
+                                Position = utility:Position(0, 4, 1, -19, colorpicker_open_frame),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_transparency_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_transparency_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_outline),
+                                Color = theme.inline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_transparency_inline] = {
+                                Color = "inline"
+                            }
+                            --
+                            local colorpicker_open_transparency_bg = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_inline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_inline),
+                                Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                            }, colorpicker.holder.drawings);colorpicker.holder.transparencybg = colorpicker_open_transparency_bg
+                            --
+                            local colorpicker_open_transparency_image = utility:Create("Image", {Vector2.new(1,1), colorpicker_open_transparency_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_inline),
+                                Position = utility:Position(0, 1, 0 , 1, colorpicker_open_transparency_inline),
+                            }, colorpicker.holder.drawings);colorpicker.holder.transparency = colorpicker_open_transparency_image
+                            --
+                            local colorpicker_open_transparency_cursor_outline = utility:Create("Frame", {Vector2.new((colorpicker_open_transparency_image.Size.X*(1-colorpicker.current[4]))-3,-3), colorpicker_open_transparency_image}, {
+                                Size = utility:Size(0, 6, 1, 6, colorpicker_open_transparency_image),
+                                Position = utility:Position(1-colorpicker.current[4], -3, 0, -3, colorpicker_open_transparency_image),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings);colorpicker.holder.transparency_cursor[1] = colorpicker_open_transparency_cursor_outline
+                            --
+                            library.colors[colorpicker_open_transparency_cursor_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_transparency_cursor_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_cursor_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_cursor_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_cursor_outline),
+                                Color = theme.textcolor
+                            }, colorpicker.holder.drawings);colorpicker.holder.transparency_cursor[2] = colorpicker_open_transparency_cursor_inline
+                            --
+                            library.colors[colorpicker_open_transparency_cursor_inline] = {
+                                Color = "textcolor"
+                            }
+                            --
+                            local colorpicker_open_transparency_cursor_color = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_cursor_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_cursor_inline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_cursor_inline),
+                                Color = Color3.fromHSV(0, 0, 1 - colorpicker.current[4]),
+                            }, colorpicker.holder.drawings);colorpicker.holder.transparency_cursor[3] = colorpicker_open_transparency_cursor_color
+                            --
+                            utility:LoadImage(colorpicker_open_transparency_image, "transp", "https://i.imgur.com/ncssKbH.png")
+                        end
+                        --
+                        utility:LoadImage(colorpicker_open_picker_image, "valsat", "https://i.imgur.com/wpDRqVH.png")
+                        utility:LoadImage(colorpicker_open_picker_cursor, "valsat_cursor", "https://raw.githubusercontent.com/mvonwalk/splix-assets/main/Images-cursor.png")
+                        utility:LoadImage(colorpicker_open_huepicker_image, "hue", "https://i.imgur.com/iEOsHFv.png")
+                        --
+                        window.currentContent.frame = colorpicker_open_inline
+                        window.currentContent.colorpicker = colorpicker
+                    else
+                        colorpicker.open = not colorpicker.open
+                        --
+                        for i,v in pairs(colorpicker.holder.drawings) do
+                            utility:Remove(v)
+                        end
+                        --
+                        colorpicker.holder.drawings = {}
+                        colorpicker.holder.inline = nil
+                        --
+                        window.currentContent.frame = nil
+                        window.currentContent.colorpicker = nil
+                    end
+                else
+                    if colorpicker.open then
+                        colorpicker.open = not colorpicker.open
+                        --
+                        for i,v in pairs(colorpicker.holder.drawings) do
+                            utility:Remove(v)
+                        end
+                        --
+                        colorpicker.holder.drawings = {}
+                        colorpicker.holder.inline = nil
+                        --
+                        window.currentContent.frame = nil
+                        window.currentContent.colorpicker = nil
+                    end
+                end
+            elseif Input.UserInputType == Enum.UserInputType.MouseButton1 and colorpicker.open then
+                colorpicker.open = not colorpicker.open
+                --
+                for i,v in pairs(colorpicker.holder.drawings) do
+                    utility:Remove(v)
+                end
+                --
+                colorpicker.holder.drawings = {}
+                colorpicker.holder.inline = nil
+                --
+                window.currentContent.frame = nil
+                window.currentContent.colorpicker = nil
+            end
+        end
+        --
+        library.ended[#library.ended + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if colorpicker.holding.picker then
+                    colorpicker.holding.picker = not colorpicker.holding.picker
+                end
+                if colorpicker.holding.huepicker then
+                    colorpicker.holding.huepicker = not colorpicker.holding.huepicker
+                end
+                if colorpicker.holding.transparency then
+                    colorpicker.holding.transparency = not colorpicker.holding.transparency
+                end
+            end
+        end
+        --
+        library.changed[#library.changed + 1] = function()
+            if colorpicker.open and colorpicker.holding.picker or colorpicker.holding.huepicker or colorpicker.holding.transparency then
+                if window.isVisible then
+                    colorpicker:Refresh()
+                else
+                    if colorpicker.holding.picker then
+                        colorpicker.holding.picker = not colorpicker.holding.picker
+                    end
+                    if colorpicker.holding.huepicker then
+                        colorpicker.holding.huepicker = not colorpicker.holding.huepicker
+                    end
+                    if colorpicker.holding.transparency then
+                        colorpicker.holding.transparency = not colorpicker.holding.transparency
+                    end
+                end
+            end
+        end
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = colorpicker
+        end
+        --
+        section.currentAxis = section.currentAxis + 15 + 4
+        --
+        function colorpicker:Colorpicker(info)
+            local info = info or {}
+            local cpinfo = info.info or info.Info or name
+            local def = info.def or info.Def or info.default or info.Default or Color3.fromRGB(255, 0, 0)
+            local transp = info.transparency or info.Transparency or info.transp or info.Transp or info.alpha or info.Alpha or nil
+            local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+            local callback = info.callback or info.callBack or info.Callback or info.CallBack or function()end
+            --
+            colorpicker.secondColorpicker = true
+            --
+            local hh, ss, vv = def:ToHSV()
+            local colorpicker = {axis = colorpicker.axis, current = {hh, ss, vv , (transp or 0)}, holding = {picker = false, huepicker = false, transparency = false}, holder = {inline = nil, picker = nil, picker_cursor = nil, huepicker = nil, huepicker_cursor = {}, transparency = nil, transparencybg = nil, transparency_cursor = {}, drawings = {}}}
+            --
+            colorpicker_outline.Position = utility:Position(1, -(60+8), 0, colorpicker.axis, section.section_frame)
+            utility:UpdateOffset(colorpicker_outline, {Vector2.new(section.section_frame.Size.X-(60+8),colorpicker.axis), section.section_frame})
+            --
+            local colorpicker_outline = utility:Create("Frame", {Vector2.new(section.section_frame.Size.X-(30+4),colorpicker.axis), section.section_frame}, {
+                Size = utility:Size(0, 30, 0, 15),
+                Position = utility:Position(1, -(30+4), 0, colorpicker.axis, section.section_frame),
+                Color = theme.outline,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[colorpicker_outline] = {
+                Color = "outline"
+            }
+            --
+            local colorpicker_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_outline}, {
+                Size = utility:Size(1, -2, 1, -2, colorpicker_outline),
+                Position = utility:Position(0, 1, 0, 1, colorpicker_outline),
+                Color = theme.inline,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[colorpicker_inline] = {
+                Color = "inline"
+            }
+            --
+            local colorpicker__transparency
+            if transp then
+                colorpicker__transparency = utility:Create("Image", {Vector2.new(1,1), colorpicker_inline}, {
+                    Size = utility:Size(1, -2, 1, -2, colorpicker_inline),
+                    Position = utility:Position(0, 1, 0 , 1, colorpicker_inline),
+                    Visible = page.open
+                }, section.visibleContent)
+            end
+            --
+            local colorpicker_frame = utility:Create("Frame", {Vector2.new(1,1), colorpicker_inline}, {
+                Size = utility:Size(1, -2, 1, -2, colorpicker_inline),
+                Position = utility:Position(0, 1, 0, 1, colorpicker_inline),
+                Color = def,
+                Transparency = transp and (1 - transp) or 1,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            local colorpicker__gradient = utility:Create("Image", {Vector2.new(0,0), colorpicker_frame}, {
+                Size = utility:Size(1, 0, 1, 0, colorpicker_frame),
+                Position = utility:Position(0, 0, 0 , 0, colorpicker_frame),
+                Transparency = 0.5,
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            if transp then
+                utility:LoadImage(colorpicker__transparency, "cptransp", "https://i.imgur.com/IIPee2A.png")
+            end
+            utility:LoadImage(colorpicker__gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+            --
+            function colorpicker:Set(color, transp_val)
+                if typeof(color) == "table" then
+                    colorpicker.current = color
+                    colorpicker_frame.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                    colorpicker_frame.Transparency = 1 - colorpicker.current[4]
+                    callback(Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3]), colorpicker.current[4])
+                elseif typeof(color) == "Color3" then
+                    local h, s, v = color:ToHSV()
+                    colorpicker.current = {h, s, v, (transp_val or 0)}
+                    colorpicker_frame.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                    colorpicker_frame.Transparency = 1 - colorpicker.current[4]
+                    callback(Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3]), colorpicker.current[4]) 
+                end
+            end
+            --
+            function colorpicker:Refresh()
+                local mouseLocation = utility:MouseLocation()
+                if colorpicker.open and colorpicker.holder.picker and colorpicker.holding.picker then
+                    colorpicker.current[2] = math.clamp(mouseLocation.X - colorpicker.holder.picker.Position.X, 0, colorpicker.holder.picker.Size.X) / colorpicker.holder.picker.Size.X
+                    --
+                    colorpicker.current[3] = 1-(math.clamp(mouseLocation.Y - colorpicker.holder.picker.Position.Y, 0, colorpicker.holder.picker.Size.Y) / colorpicker.holder.picker.Size.Y)
+                    --
+                    colorpicker.holder.picker_cursor.Position = utility:Position(colorpicker.current[2], -3, 1-colorpicker.current[3] , -3, colorpicker.holder.picker)
+                    --
+                    utility:UpdateOffset(colorpicker.holder.picker_cursor, {Vector2.new((colorpicker.holder.picker.Size.X*colorpicker.current[2])-3,(colorpicker.holder.picker.Size.Y*(1-colorpicker.current[3]))-3), colorpicker.holder.picker})
+                    --
+                    if colorpicker.holder.transparencybg then
+                        colorpicker.holder.transparencybg.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                    end
+                elseif colorpicker.open and colorpicker.holder.huepicker and colorpicker.holding.huepicker then
+                    colorpicker.current[1] = (math.clamp(mouseLocation.Y - colorpicker.holder.huepicker.Position.Y, 0, colorpicker.holder.huepicker.Size.Y) / colorpicker.holder.huepicker.Size.Y)
+                    --
+                    colorpicker.holder.huepicker_cursor[1].Position = utility:Position(0, -3, colorpicker.current[1], -3, colorpicker.holder.huepicker)
+                    colorpicker.holder.huepicker_cursor[2].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.huepicker_cursor[1])
+                    colorpicker.holder.huepicker_cursor[3].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.huepicker_cursor[2])
+                    colorpicker.holder.huepicker_cursor[3].Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                    --
+                    utility:UpdateOffset(colorpicker.holder.huepicker_cursor[1], {Vector2.new(-3,(colorpicker.holder.huepicker.Size.Y*colorpicker.current[1])-3), colorpicker.holder.huepicker})
+                    --
+                    colorpicker.holder.background.Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                    --
+                    if colorpicker.holder.transparency_cursor and colorpicker.holder.transparency_cursor[3] then
+                        colorpicker.holder.transparency_cursor[3].Color = Color3.fromHSV(0, 0, 1 - colorpicker.current[4])
+                    end
+                    --
+                    if colorpicker.holder.transparencybg then
+                        colorpicker.holder.transparencybg.Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                    end
+                elseif colorpicker.open and colorpicker.holder.transparency and colorpicker.holding.transparency then
+                    colorpicker.current[4] = 1 - (math.clamp(mouseLocation.X - colorpicker.holder.transparency.Position.X, 0, colorpicker.holder.transparency.Size.X) / colorpicker.holder.transparency.Size.X)
+                    --
+                    colorpicker.holder.transparency_cursor[1].Position = utility:Position(1-colorpicker.current[4], -3, 0, -3, colorpicker.holder.transparency)
+                    colorpicker.holder.transparency_cursor[2].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.transparency_cursor[1])
+                    colorpicker.holder.transparency_cursor[3].Position = utility:Position(0, 1, 0, 1, colorpicker.holder.transparency_cursor[2])
+                    colorpicker.holder.transparency_cursor[3].Color = Color3.fromHSV(0, 0, 1 - colorpicker.current[4])
+                    colorpicker_frame.Transparency = (1 - colorpicker.current[4])
+                    --
+                    utility:UpdateTransparency(colorpicker_frame, (1 - colorpicker.current[4]))
+                    utility:UpdateOffset(colorpicker.holder.transparency_cursor[1], {Vector2.new((colorpicker.holder.transparency.Size.X*(1-colorpicker.current[4]))-3,-3), colorpicker.holder.transparency})
+                    --
+                    colorpicker.holder.background.Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                end
+                --
+                colorpicker:Set(colorpicker.current)
+            end
+            --
+            function colorpicker:Get()
+                return Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+            end
+            --
+            function colorpicker:GetTransparency()
+                return colorpicker.current[4]
+            end
+            --
+            library.began[#library.began + 1] = function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 and window.isVisible and colorpicker_outline.Visible then
+                    if colorpicker.open and colorpicker.holder.inline and utility:MouseOverDrawing({colorpicker.holder.inline.Position.X, colorpicker.holder.inline.Position.Y, colorpicker.holder.inline.Position.X + colorpicker.holder.inline.Size.X, colorpicker.holder.inline.Position.Y + colorpicker.holder.inline.Size.Y}) then
+                        if colorpicker.holder.picker and utility:MouseOverDrawing({colorpicker.holder.picker.Position.X - 2, colorpicker.holder.picker.Position.Y - 2, colorpicker.holder.picker.Position.X - 2 + colorpicker.holder.picker.Size.X + 4, colorpicker.holder.picker.Position.Y - 2 + colorpicker.holder.picker.Size.Y + 4}) then
+                            colorpicker.holding.picker = true
+                            colorpicker:Refresh()
+                        elseif colorpicker.holder.huepicker and utility:MouseOverDrawing({colorpicker.holder.huepicker.Position.X - 2, colorpicker.holder.huepicker.Position.Y - 2, colorpicker.holder.huepicker.Position.X - 2 + colorpicker.holder.huepicker.Size.X + 4, colorpicker.holder.huepicker.Position.Y - 2 + colorpicker.holder.huepicker.Size.Y + 4}) then
+                            colorpicker.holding.huepicker = true
+                            colorpicker:Refresh()
+                        elseif colorpicker.holder.transparency and utility:MouseOverDrawing({colorpicker.holder.transparency.Position.X - 2, colorpicker.holder.transparency.Position.Y - 2, colorpicker.holder.transparency.Position.X - 2 + colorpicker.holder.transparency.Size.X + 4, colorpicker.holder.transparency.Position.Y - 2 + colorpicker.holder.transparency.Size.Y + 4}) then
+                            colorpicker.holding.transparency = true
+                            colorpicker:Refresh()
+                        end
+                    elseif utility:MouseOverDrawing({section.section_frame.Position.X + (section.section_frame.Size.X - (30 + 4 + 2)), section.section_frame.Position.Y + colorpicker.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + colorpicker.axis + 15}) and not window:IsOverContent() then
+                        if not colorpicker.open then
+                            window:CloseContent()
+                            colorpicker.open = not colorpicker.open
+                            --
+                            local colorpicker_open_outline = utility:Create("Frame", {Vector2.new(4,colorpicker.axis + 19), section.section_frame}, {
+                                Size = utility:Size(1, -8, 0, transp and 219 or 200, section.section_frame),
+                                Position = utility:Position(0, 4, 0, colorpicker.axis + 19, section.section_frame),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings);colorpicker.holder.inline = colorpicker_open_outline
+                            --
+                            library.colors[colorpicker_open_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_outline),
+                                Color = theme.inline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_inline] = {
+                                Color = "inline"
+                            }
+                            --
+                            local colorpicker_open_frame = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_inline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_inline),
+                                Color = theme.darkcontrast
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_frame] = {
+                                Color = "darkcontrast"
+                            }
+                            --
+                            local colorpicker_open_accent = utility:Create("Frame", {Vector2.new(0,0), colorpicker_open_frame}, {
+                                Size = utility:Size(1, 0, 0, 2, colorpicker_open_frame),
+                                Position = utility:Position(0, 0, 0, 0, colorpicker_open_frame),
+                                Color = theme.accent
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_accent] = {
+                                Color = "accent"
+                            }
+                            --
+                            local colorpicker_title = utility:Create("TextLabel", {Vector2.new(4,2), colorpicker_open_frame}, {
+                                Text = cpinfo,
+                                Size = theme.textsize,
+                                Font = theme.font,
+                                Color = theme.textcolor,
+                                OutlineColor = theme.textborder,
+                                Position = utility:Position(0, 4, 0, 2, colorpicker_open_frame),
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_title] = {
+                                OutlineColor = "textborder",
+                                Color = "textcolor"
+                            }
+                            --
+                            local colorpicker_open_picker_outline = utility:Create("Frame", {Vector2.new(4,17), colorpicker_open_frame}, {
+                                Size = utility:Size(1, -27, 1, transp and -40 or -21, colorpicker_open_frame),
+                                Position = utility:Position(0, 4, 0, 17, colorpicker_open_frame),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_picker_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_picker_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_picker_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_picker_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_picker_outline),
+                                Color = theme.inline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_picker_inline] = {
+                                Color = "inline"
+                            }
+                            --
+                            local colorpicker_open_picker_bg = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_picker_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_picker_inline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_picker_inline),
+                                Color = Color3.fromHSV(colorpicker.current[1],1,1)
+                            }, colorpicker.holder.drawings);colorpicker.holder.background = colorpicker_open_picker_bg
+                            --
+                            local colorpicker_open_picker_image = utility:Create("Image", {Vector2.new(0,0), colorpicker_open_picker_bg}, {
+                                Size = utility:Size(1, 0, 1, 0, colorpicker_open_picker_bg),
+                                Position = utility:Position(0, 0, 0 , 0, colorpicker_open_picker_bg),
+                            }, colorpicker.holder.drawings);colorpicker.holder.picker = colorpicker_open_picker_image
+                            --
+                            local colorpicker_open_picker_cursor = utility:Create("Image", {Vector2.new((colorpicker_open_picker_image.Size.X*colorpicker.current[2])-3,(colorpicker_open_picker_image.Size.Y*(1-colorpicker.current[3]))-3), colorpicker_open_picker_image}, {
+                                Size = utility:Size(0, 6, 0, 6, colorpicker_open_picker_image),
+                                Position = utility:Position(colorpicker.current[2], -3, 1-colorpicker.current[3] , -3, colorpicker_open_picker_image),
+                            }, colorpicker.holder.drawings);colorpicker.holder.picker_cursor = colorpicker_open_picker_cursor
+                            --
+                            local colorpicker_open_huepicker_outline = utility:Create("Frame", {Vector2.new(colorpicker_open_frame.Size.X-19,17), colorpicker_open_frame}, {
+                                Size = utility:Size(0, 15, 1, transp and -40 or -21, colorpicker_open_frame),
+                                Position = utility:Position(1, -19, 0, 17, colorpicker_open_frame),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_huepicker_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_huepicker_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_huepicker_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_huepicker_outline),
+                                Color = theme.inline
+                            }, colorpicker.holder.drawings)
+                            --
+                            library.colors[colorpicker_open_huepicker_inline] = {
+                                Color = "inline"
+                            }
+                            --
+                            local colorpicker_open_huepicker_image = utility:Create("Image", {Vector2.new(1,1), colorpicker_open_huepicker_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_inline),
+                                Position = utility:Position(0, 1, 0 , 1, colorpicker_open_huepicker_inline),
+                            }, colorpicker.holder.drawings);colorpicker.holder.huepicker = colorpicker_open_huepicker_image
+                            --
+                            local colorpicker_open_huepicker_cursor_outline = utility:Create("Frame", {Vector2.new(-3,(colorpicker_open_huepicker_image.Size.Y*colorpicker.current[1])-3), colorpicker_open_huepicker_image}, {
+                                Size = utility:Size(1, 6, 0, 6, colorpicker_open_huepicker_image),
+                                Position = utility:Position(0, -3, colorpicker.current[1], -3, colorpicker_open_huepicker_image),
+                                Color = theme.outline
+                            }, colorpicker.holder.drawings);colorpicker.holder.huepicker_cursor[1] = colorpicker_open_huepicker_cursor_outline
+                            --
+                            library.colors[colorpicker_open_huepicker_cursor_outline] = {
+                                Color = "outline"
+                            }
+                            --
+                            local colorpicker_open_huepicker_cursor_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_huepicker_cursor_outline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_cursor_outline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_huepicker_cursor_outline),
+                                Color = theme.textcolor
+                            }, colorpicker.holder.drawings);colorpicker.holder.huepicker_cursor[2] = colorpicker_open_huepicker_cursor_inline
+                            --
+                            library.colors[colorpicker_open_huepicker_cursor_inline] = {
+                                Color = "textcolor"
+                            }
+                            --
+                            local colorpicker_open_huepicker_cursor_color = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_huepicker_cursor_inline}, {
+                                Size = utility:Size(1, -2, 1, -2, colorpicker_open_huepicker_cursor_inline),
+                                Position = utility:Position(0, 1, 0, 1, colorpicker_open_huepicker_cursor_inline),
+                                Color = Color3.fromHSV(colorpicker.current[1], 1, 1)
+                            }, colorpicker.holder.drawings);colorpicker.holder.huepicker_cursor[3] = colorpicker_open_huepicker_cursor_color
+                            --
+                            if transp then
+                                local colorpicker_open_transparency_outline = utility:Create("Frame", {Vector2.new(4,colorpicker_open_frame.Size.Y-19), colorpicker_open_frame}, {
+                                    Size = utility:Size(1, -27, 0, 15, colorpicker_open_frame),
+                                    Position = utility:Position(0, 4, 1, -19, colorpicker_open_frame),
+                                    Color = theme.outline
+                                }, colorpicker.holder.drawings)
+                                --
+                                library.colors[colorpicker_open_transparency_outline] = {
+                                    Color = "outline"
+                                }
+                                --
+                                local colorpicker_open_transparency_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_outline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_outline),
+                                    Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_outline),
+                                    Color = theme.inline
+                                }, colorpicker.holder.drawings)
+                                --
+                                library.colors[colorpicker_open_transparency_inline] = {
+                                    Color = "inline"
+                                }
+                                --
+                                local colorpicker_open_transparency_bg = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_inline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_inline),
+                                    Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_inline),
+                                    Color = Color3.fromHSV(colorpicker.current[1], colorpicker.current[2], colorpicker.current[3])
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparencybg = colorpicker_open_transparency_bg
+                                --
+                                local colorpicker_open_transparency_image = utility:Create("Image", {Vector2.new(1,1), colorpicker_open_transparency_inline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_inline),
+                                    Position = utility:Position(0, 1, 0 , 1, colorpicker_open_transparency_inline),
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparency = colorpicker_open_transparency_image
+                                --
+                                local colorpicker_open_transparency_cursor_outline = utility:Create("Frame", {Vector2.new((colorpicker_open_transparency_image.Size.X*(1-colorpicker.current[4]))-3,-3), colorpicker_open_transparency_image}, {
+                                    Size = utility:Size(0, 6, 1, 6, colorpicker_open_transparency_image),
+                                    Position = utility:Position(1-colorpicker.current[4], -3, 0, -3, colorpicker_open_transparency_image),
+                                    Color = theme.outline
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparency_cursor[1] = colorpicker_open_transparency_cursor_outline
+                                --
+                                library.colors[colorpicker_open_transparency_cursor_outline] = {
+                                    Color = "outline"
+                                }
+                                --
+                                local colorpicker_open_transparency_cursor_inline = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_cursor_outline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_cursor_outline),
+                                    Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_cursor_outline),
+                                    Color = theme.textcolor
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparency_cursor[2] = colorpicker_open_transparency_cursor_inline
+                                --
+                                library.colors[colorpicker_open_transparency_cursor_inline] = {
+                                    Color = "textcolor"
+                                }
+                                --
+                                local colorpicker_open_transparency_cursor_color = utility:Create("Frame", {Vector2.new(1,1), colorpicker_open_transparency_cursor_inline}, {
+                                    Size = utility:Size(1, -2, 1, -2, colorpicker_open_transparency_cursor_inline),
+                                    Position = utility:Position(0, 1, 0, 1, colorpicker_open_transparency_cursor_inline),
+                                    Color = Color3.fromHSV(0, 0, 1 - colorpicker.current[4]),
+                                }, colorpicker.holder.drawings);colorpicker.holder.transparency_cursor[3] = colorpicker_open_transparency_cursor_color
+                                --
+                                utility:LoadImage(colorpicker_open_transparency_image, "transp", "https://i.imgur.com/ncssKbH.png")
+                                --utility:LoadImage(colorpicker_open_transparency_image, "transp", "https://i.imgur.com/VcMAYjL.png")
+                            end
+                            --
+                            utility:LoadImage(colorpicker_open_picker_image, "valsat", "https://i.imgur.com/wpDRqVH.png")
+                            utility:LoadImage(colorpicker_open_picker_cursor, "valsat_cursor", "https://raw.githubusercontent.com/mvonwalk/splix-assets/main/Images-cursor.png")
+                            utility:LoadImage(colorpicker_open_huepicker_image, "hue", "https://i.imgur.com/iEOsHFv.png")
+                            --
+                            window.currentContent.frame = colorpicker_open_inline
+                            window.currentContent.colorpicker = colorpicker
+                        else
+                            colorpicker.open = not colorpicker.open
+                            --
+                            for i,v in pairs(colorpicker.holder.drawings) do
+                                utility:Remove(v)
+                            end
+                            --
+                            colorpicker.holder.drawings = {}
+                            colorpicker.holder.inline = nil
+                            --
+                            window.currentContent.frame = nil
+                            window.currentContent.colorpicker = nil
+                        end
+                    else
+                        if colorpicker.open then
+                            colorpicker.open = not colorpicker.open
+                            --
+                            for i,v in pairs(colorpicker.holder.drawings) do
+                                utility:Remove(v)
+                            end
+                            --
+                            colorpicker.holder.drawings = {}
+                            colorpicker.holder.inline = nil
+                            --
+                            window.currentContent.frame = nil
+                            window.currentContent.colorpicker = nil
+                        end
+                    end
+                elseif Input.UserInputType == Enum.UserInputType.MouseButton1 and colorpicker.open then
+                    colorpicker.open = not colorpicker.open
+                    --
+                    for i,v in pairs(colorpicker.holder.drawings) do
+                        utility:Remove(v)
+                    end
+                    --
+                    colorpicker.holder.drawings = {}
+                    colorpicker.holder.inline = nil
+                    --
+                    window.currentContent.frame = nil
+                    window.currentContent.colorpicker = nil
+                end
+            end
+            --
+            library.ended[#library.ended + 1] = function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if colorpicker.holding.picker then
+                        colorpicker.holding.picker = not colorpicker.holding.picker
+                    end
+                    if colorpicker.holding.huepicker then
+                        colorpicker.holding.huepicker = not colorpicker.holding.huepicker
+                    end
+                    if colorpicker.holding.transparency then
+                        colorpicker.holding.transparency = not colorpicker.holding.transparency
+                    end
+                end
+            end
+            --
+            library.changed[#library.changed + 1] = function()
+                if colorpicker.open and colorpicker.holding.picker or colorpicker.holding.huepicker or colorpicker.holding.transparency then
+                    if window.isVisible then
+                        colorpicker:Refresh()
+                    else
+                        if colorpicker.holding.picker then
+                            colorpicker.holding.picker = not colorpicker.holding.picker
+                        end
+                        if colorpicker.holding.huepicker then
+                            colorpicker.holding.huepicker = not colorpicker.holding.huepicker
+                        end
+                        if colorpicker.holding.transparency then
+                            colorpicker.holding.transparency = not colorpicker.holding.transparency
+                        end
+                    end
+                end
+            end
+            --
+            if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+                library.pointers[tostring(pointer)] = keybind
+            end
+            --
+            return colorpicker
+        end
+        --
+        return colorpicker
+    end
+    --
+    function sections:List(info)
+        local info = info or {}
+        local max = info.max or info.Max or info.maximum or info.Maximum or 8
+        local current = info.def or info.Default or info.current or info.Current or 1
+        local options = info.options or info.Options or {"1", "2", "3"}
+        --
+        local window = self.window
+        local page = self.page
+        local section = self
+        local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
+        --
+        local list = {axis = section.currentAxis, options = options, max = max, current = current, scrollingindex = 0, scrolling = {false, nil}, buttons = {}}
+        --
+        local list_outline = utility:Create("Frame", {Vector2.new(4,list.axis), section.section_frame}, {
+            Size = utility:Size(1, -8, 0, ((list.max * 20) + 4), section.section_frame),
+            Position = utility:Position(0, 4, 0, list.axis, section.section_frame),
+            Color = theme.outline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[list_outline] = {
+            Color = "outline"
+        }
+        --
+        local list_inline = utility:Create("Frame", {Vector2.new(1,1), list_outline}, {
+            Size = utility:Size(1, -2, 1, -2, list_outline),
+            Position = utility:Position(0, 1, 0, 1, list_outline),
+            Color = theme.inline,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[list_inline] = {
+            Color = "inline"
+        }
+        --
+        local list_frame = utility:Create("Frame", {Vector2.new(1,1), list_inline}, {
+            Size = utility:Size(1, -2, 1, -2, list_inline),
+            Position = utility:Position(0, 1, 0, 1, list_inline),
+            Color = theme.lightcontrast,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[list_frame] = {
+            Color = "lightcontrast"
+        }
+        --
+        local list_scroll = utility:Create("Frame", {Vector2.new(list_frame.Size.X - 8,0), list_frame}, {
+            Size = utility:Size(0, 8, 1, 0, list_frame),
+            Position = utility:Position(1, -8, 0, 0, list_frame),
+            Color = theme.darkcontrast,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[list_scroll] = {
+            Color = "darkcontrast"
+        }
+        --
+        local list_bar = utility:Create("Frame", {Vector2.new(1,1), list_scroll}, {
+            Size = utility:Size(1, -2, (list.max / #list.options), -2, list_scroll),
+            Position = utility:Position(0, 1, 0, 1, list_scroll),
+            Color = theme.accent,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        library.colors[list_bar] = {
+            Color = "accent"
+        }
+        --
+        local list_gradient = utility:Create("Image", {Vector2.new(0,0), list_frame}, {
+            Size = utility:Size(1, 0, 1, 0, list_frame),
+            Position = utility:Position(0, 0, 0 , 0, list_frame),
+            Transparency = 0.5,
+            Visible = page.open
+        }, section.visibleContent)
+        --
+        for i=1, list.max do
+            local config_title = utility:Create("TextLabel", {Vector2.new(list_frame.Size.X/2,2 + (20 * (i-1))), list_frame}, {
+                Text = list.options[i] or "",
+                Size = theme.textsize,
+                Font = theme.font,
+                Color = i == 1 and theme.accent or theme.textcolor,
+                OutlineColor = theme.textborder,
+                Center = true,
+                Position = utility:Position(0.5, 0, 0, 2 + (20 * (i-1)), list_frame),
+                Visible = page.open
+            }, section.visibleContent)
+            --
+            library.colors[config_title] = {
+                OutlineColor = "textborder",
+                Color = i == 1 and "accent" or "textcolor"
+            }
+            --
+            list.buttons[i] = config_title
+        end
+        --
+        utility:LoadImage(list_gradient, "gradient", "https://i.imgur.com/5hmlrjX.png")
+        --
+        function list:UpdateScroll()
+            if (#list.options - list.max) > 0 then
+                list_bar.Size = utility:Size(1, -2, (list.max / #list.options), -2, list_scroll)
+                list_bar.Position = utility:Position(0, 1, 0, 1 + ((((list_scroll.Size.Y - 2) - list_bar.Size.Y) / (#list.options - list.max)) * list.scrollingindex), list_scroll)
+                list_bar.Transparency = 1
+                utility:UpdateTransparency(list_bar, 1)
+                utility:UpdateOffset(list_bar, {Vector2.new(1, 1 + ((((list_scroll.Size.Y - 2) - list_bar.Size.Y) / (#list.options - list.max)) * list.scrollingindex)), list_scroll})
+            else
+                list.scrollingindex = 0
+                list_bar.Transparency = 0
+                utility:UpdateTransparency(list_bar, 0)
+            end
+            --
+            list:Refresh()
+        end
+        --
+        function list:Refresh()
+            for Index, Value in pairs(list.buttons) do
+                Value.Text = list.options[Index + list.scrollingindex] or ""
+                Value.Color = (Index + list.scrollingindex) == list.current and theme.accent or theme.textcolor
+                --
+                library.colors[Value] = {
+                    OutlineColor = "textborder",
+                    Color = (Index + list.scrollingindex) == list.current and "accent" or "textcolor"
+                }
+            end
+        end
+        --
+        function list:Get()
+            return list.options[list.current + list.scrollingindex]
+        end
+        --
+        function list:Set(current)
+            list.current = current
+            list:Refresh()
+        end
+        --
+        library.began[#library.began + 1] = function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 and list_outline.Visible and window.isVisible then
+                if utility:MouseOverDrawing({list_bar.Position.X, list_bar.Position.Y, list_bar.Position.X + list_bar.Size.X, list_bar.Position.Y + list_bar.Size.Y}) then
+                    list.scrolling = {true, (utility:MouseLocation().Y - list_bar.Position.Y)}
+                elseif utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + list.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + list.axis + ((list.max * 20) + 4)}) and not window:IsOverContent() then
+                    for i=1, list.max do
+                        if utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + list.axis + 2 + (20 * (i-1)), section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + list.axis + 2 + (20 * (i-1)) + 20}) then
+                            list.current = (i + list.scrollingindex)
+                            list:Refresh()
+                        end
+                    end
+                end
+            end
+        end
+        --
+        library.ended[#library.ended + 1] = function(Input)
+            if list.scrolling[1] and Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                list.scrolling = {false, nil}
+            end
+        end
+        --
+        library.changed[#library.changed + 1] = function(Input)
+            if list.scrolling[1] then
+                local MouseLocation = utility:MouseLocation()
+                local Position = math.clamp((MouseLocation.Y - list_scroll.Position.Y - list.scrolling[2]), 0, ((list_scroll.Size.Y - list_bar.Size.Y)))
+                --
+                list.scrollingindex = math.round((((Position + list_scroll.Position.Y) - list_scroll.Position.Y) / ((list_scroll.Size.Y - list_bar.Size.Y))) * (#list.options - list.max))
+                list:UpdateScroll()
+            end
+        end
+        --
+        utility:Connection(mouse.WheelForward,function()
+            if page.open and list_bar.Visible and utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + list.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + list.axis + ((list.max * 20) + 4)}) and not window:IsOverContent() then
+                list.scrollingindex = math.clamp(list.scrollingindex - 1, 0, #list.options - list.max)
+                list:UpdateScroll()
+            end
+        end)
+        --
+        utility:Connection(mouse.WheelBackward,function()
+            if page.open and list_bar.Visible and utility:MouseOverDrawing({section.section_frame.Position.X, section.section_frame.Position.Y + list.axis, section.section_frame.Position.X + section.section_frame.Size.X, section.section_frame.Position.Y + list.axis + ((list.max * 20) + 4)}) and not window:IsOverContent() then
+                list.scrollingindex = math.clamp(list.scrollingindex + 1, 0, #list.options - list.max)
+                list:UpdateScroll()
+            end
+        end)
+        --
+        if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
+            library.pointers[tostring(pointer)] = list
+        end
+        --
+        list:UpdateScroll()
+        --
+        section.currentAxis = section.currentAxis + ((list.max * 20) + 4) + 4
+        --
+        return list
+    end
+end
+--
+
+local Tyrisware = {
+    Locals = {
+        LastPreviewUpdate = 5
+    },
+    Account = {
+        Username = game.Players.LocalPlayer.Name,
+        UserID = game.Players.LocalPlayer.UserId
+    },
+    Configs = {},
+    Weapons = { 
+        "Glock",
+        "SMG",
+        "Silencer",
+        "TacticalShotgun",
+        "P90",
+        "AUG",
+        "Shotgun",
+        "RPG",
+        "AR",
+        "Double-Barrel SG",
+        "Flamethrower",
+        "Revolver",
+        "LMG",
+        "AK47",
+        "DrumGun",
+        "Silencer",
+        "GrenadeLauncher",
+        "Taser",
+        "SilencerAR"
+    }
+}
+-- hello matas
+function utility:UpdatePreview(Pass)
+    if (Tyrisware.Locals.Window and Tyrisware.Locals.Window.isVisible and Tyrisware.Locals.SelectedPage == "Players") or Pass then
+        if Tyrisware.Locals.SelectedPage and Tyrisware.Locals.SelectedPlayersSection then
+            local Size = {0, 0}
+            local Selection = ("Players" .. Tyrisware.Locals.SelectedPlayersSection .. "_")
+            --
+            if Flags[Selection .. "Chams"]:Get() then
+                local ChamsFill, ChamsFillTransparency = Flags[Selection .. "ChamsFill"]:Get().Color, Flags[Selection .. "ChamsFill"]:Get().Transparency
+                local ChamsOutline, ChamsOutlineTransparency = Flags[Selection .. "ChamsOutline"]:Get().Color, Flags[Selection .. "ChamsOutline"]:Get().Transparency
+                --
+                local ChamsAuto = Tyrisware.Locals.SelectedPlayersSection ~= "Local" and Flags[Selection .. "ChamsAuto"]:Get()
+                local ChamsVisible, ChamsVisibleTransparency = ChamsAuto and Flags[Selection .. "ChamsVisible"]:Get().Color, ChamsAuto and Flags[Selection .. "ChamsVisible"]:Get().Transparency
+                local ChamsHidden, ChamsHiddenTransparency = ChamsAuto and Flags[Selection .. "ChamsHidden"]:Get().Color, ChamsAuto and Flags[Selection .. "ChamsHidden"]:Get().Transparency
+                --
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Chams", "Color", ChamsOutline, 1)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Chams", "Transparency", 1 - ChamsOutlineTransparency, 1)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Chams", "Color", ChamsAuto and ((Tyrisware.Locals.Window.VisualPreview.Visible) and ChamsVisible or ChamsHidden) or ChamsFill, 2)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Chams", "Transparency", 1 - (ChamsAuto and ((Tyrisware.Locals.Window.VisualPreview.Visible) and ChamsVisibleTransparency or ChamsHiddenTransparency) or ChamsFillTransparency), 2)
+            else
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Chams", "Transparency", 0, 1)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Chams", "Transparency", 0, 2)
+            end
+            --
+            if Flags[Selection .. "Box"]:Get() then
+                local BoxColor, BoxTransparency = Flags[Selection .. "BoxColor"]:Get().Color, Flags[Selection .. "BoxColor"]:Get().Transparency
+                local BoxFillColor, BoxFillTransparency = Flags[Selection .. "BoxFill"]:Get().Color, Flags[Selection .. "BoxFill"]:Get().Transparency
+                --
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Box", "Box", "Color", BoxColor)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Box", "Box", "Transparency", 1 - BoxTransparency)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Box", "Outline", "Transparency", 1 - BoxTransparency)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Box", "Fill", "Color", BoxFillColor)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Box", "Fill", "Transparency", 1 - BoxFillTransparency)
+            else
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Box", "Transparency", 0)
+            end
+            --
+            local HealthBarColor, HealthBarColor2, HealthBarTransparency = Flags[Selection .. "HealthBarColor1"]:Get().Color, Flags[Selection .. "HealthBarColor2"]:Get().Color, Flags[Selection .. "HealthBarColor1"]:Get().Transparency
+            --
+            if Flags[Selection .. "HealthBar"]:Get() then
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("HealthBar", "Box", "Transparency", 1 - HealthBarTransparency)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("HealthBar", "Outline", "Transparency", 1 - HealthBarTransparency)
+                --
+                Size[1] = 5
+            else
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("HealthBar", "Transparency", 0)
+            end
+            --
+            if Flags[Selection .. "HealthNum"]:Get() or Flags[Selection .. "HealthBar"]:Get() then
+                Tyrisware.Locals.Window.VisualPreview.Color1 = HealthBarColor
+                Tyrisware.Locals.Window.VisualPreview.Color2 = HealthBarColor2
+                --
+                Tyrisware.Locals.Window.VisualPreview:UpdateHealthBar()
+            end
+            --
+            if Flags[Selection .. "HealthNum"]:Get() then
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("HealthBar", "Value", "Transparency", 1 - HealthBarTransparency or 0)
+                --
+                Tyrisware.Locals.Window.VisualPreview:UpdateHealthValue(Size[1])
+            else
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("HealthBar", "Value", "Transparency", 0)
+            end
+            --
+            if Flags[Selection .. "Name"]:Get() then
+                local NameColor, NameTransparency = Flags[Selection .. "NameColor"]:Get().Color, Flags[Selection .. "NameColor"]:Get().Transparency
+                --
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Title", "Text", "Color", NameColor)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Title", "Text", "Transparency", 1 - NameTransparency)
+            else
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Title", "Transparency", 0)
+            end
+            --
+            if Flags[Selection .. "Distance"]:Get() then
+                local DistanceColor, DistanceTransparency = Flags[Selection .. "DistanceColor"]:Get().Color, Flags[Selection .. "DistanceColor"]:Get().Transparency
+                --
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Distance", "Text", "Color", DistanceColor)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Distance", "Text", "Transparency", 1 - DistanceTransparency)
+            else
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Distance", "Transparency", 0)
+            end
+            --
+            if Flags[Selection .. "Tool"]:Get() then
+                local ToolColor, ToolTransparency = Flags[Selection .. "ToolColor"]:Get().Color, Flags[Selection .. "ToolColor"]:Get().Transparency
+                --
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Tool", "Text", "Color", ToolColor)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Tool", "Text", "Transparency", 1 - ToolTransparency)
+            else
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Tool", "Transparency", 0)
+            end
+            --
+            if Flags[Selection .. "Flags"]:Get() then
+                local FlagsColor, FlagsTransparency = Flags[Selection .. "FlagsColor"]:Get().Color, Flags[Selection .. "FlagsColor"]:Get().Transparency
+                --
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Flags", "Text", "Color", FlagsColor)
+                Tyrisware.Locals.Window.VisualPreview:SetComponentSelfProperty("Flags", "Text", "Transparency", 1 - FlagsTransparency)
+            else
+                Tyrisware.Locals.Window.VisualPreview:SetComponentProperty("Flags", "Transparency", 0)
+            end
+            --
+            Tyrisware.Locals.Window.VisualPreview:ValidateSize("X", Size[1])
+        end
+    end
+end
+--
+utility:Connection(rs.Heartbeat, function()
+    local Tick = tick()
+    --
+    if (Tick - Tyrisware.Locals.LastPreviewUpdate) > 0.05 then
+        utility:ThreadFunction(utility.UpdatePreview)
+        Tyrisware.Locals.LastPreviewUpdate = Tick
+    end
+end)
+--
+
+-- init configs
+if isfolder("Tyrisware/Configs") then
+    for i,v in pairs(listfiles("Tyrisware/Configs")) do
+        table.insert(Tyrisware.Configs, v:split("\\")[2]:split(".")[1])
+    end
+else
+    makefolder("Tyrisware/Configs")
+end
+local HttpService = game:GetService("HttpService")
+local Library, utility, Flags, Theme = library, utility, library.pointers, theme
+local Languages, Themes = {}, {
+Default = {1, [[{"Outline":"000000","Accent":"5d3e98","LightText":"ffffff","DarkText":"afafaf","LightContrast":"1e1e1e","CursorOutline":"0a0a0a","DarkContrast":"141414","TextBorder":"000000","Inline":"323232"}]]},
+Abyss = {2, [[{"Outline":"0a0a0a","Accent":"8c87b4","LightText":"ffffff","DarkText":"afafaf","LightContrast":"1e1e1e","CursorOutline":"141414","DarkContrast":"141414","TextBorder":"0a0a0a","Inline":"2d2d2d"}]]},
+Fatality = {3, [[{"Outline":"0f0f28","Accent":"f00f50","LightText":"c8c8ff","DarkText":"afafaf","LightContrast":"231946","CursorOutline":"0f0f28","DarkContrast":"191432","TextBorder":"0a0a0a","Inline":"322850"}]]},
+Neverlose = {4, [[{"Outline":"000005","Accent":"00b4f0","LightText":"ffffff","DarkText":"afafaf","LightContrast":"000f1e","CursorOutline":"0f0f28","DarkContrast":"050514","TextBorder":"0a0a0a","Inline":"0a1e28"}]]},
+Aimware = {5, [[{"Outline":"000005","Accent":"c82828","LightText":"e8e8e8","DarkText":"afafaf","LightContrast":"2b2b2b","CursorOutline":"191919","DarkContrast":"191919","TextBorder":"0a0a0a","Inline":"373737"}]]},
+Youtube = {6, [[{"Outline":"000000","Accent":"ff0000","LightText":"f1f1f1","DarkText":"aaaaaa","LightContrast":"232323","CursorOutline":"121212","DarkContrast":"0f0f0f","TextBorder":"121212","Inline":"393939"}]]},
+Gamesense = {7, [[{"Outline":"000000","Accent":"a7d94d","LightText":"ffffff","DarkText":"afafaf","LightContrast":"171717","CursorOutline":"141414","DarkContrast":"0c0c0c","TextBorder":"141414","Inline":"282828"}]]},
+Onetap = {8, [[{"Outline":"000000","Accent":"dda85d","LightText":"d6d9e0","DarkText":"afafaf","LightContrast":"2c3037","CursorOutline":"000000","DarkContrast":"1f2125","TextBorder":"000000","Inline":"4e5158"}]]},
+Entropy = {9, [[{"Outline":"0a0a0a","Accent":"81bbe9","LightText":"dcdcdc","DarkText":"afafaf","LightContrast":"3d3a43","CursorOutline":"000000","DarkContrast":"302f37","TextBorder":"000000","Inline":"4c4a52"}]]},
+Interwebz = {10, [[{"Outline":"1a1a1a","Accent":"c9654b","LightText":"fcfcfc","DarkText":"a8a8a8","LightContrast":"291f38","CursorOutline":"1a1a1a","DarkContrast":"1f162b","TextBorder":"000000","Inline":"40364f"}]]},
+Dracula = {11, [[{"Outline":"202126","Accent":"9a81b3","LightText":"b4b4b8","DarkText":"88888b","LightContrast":"2a2c38","CursorOutline":"202126","DarkContrast":"252730","TextBorder":"2a2c38","Inline":"3c384d"}]]},
+Spotify = {12, [[{"Outline":"0a0a0a","Accent":"1ed760","LightText":"d0d0d0","DarkText":"949494","LightContrast":"181818","CursorOutline":"000000","DarkContrast":"121212","TextBorder":"000000","Inline":"292929"}]]},
+Sublime = {13, [[{"Outline":"000000","Accent":"ff9800","LightText":"e8ffff","DarkText":"d3d3c2","LightContrast":"32332d","CursorOutline":"000000","DarkContrast":"282923","TextBorder":"000000","Inline":"484944"}]]},
+Vape = {14, [[{"Outline":"0a0a0a","Accent":"26866a","LightText":"dcdcdc","DarkText":"afafaf","LightContrast":"1f1f1f","CursorOutline":"000000","DarkContrast":"1a1a1a","TextBorder":"000000","Inline":"363636"}]]},
+Neko = {15, [[{"Outline":"000000","Accent":"d21f6a","LightText":"ffffff","DarkText":"afafaf","LightContrast":"171717","CursorOutline":"0a0a0a","DarkContrast":"131313","TextBorder":"000000","Inline":"2d2d2d"}]]},
+Corn = {16, [[{"Outline":"000000","Accent":"ff9000","LightText":"dcdcdc","DarkText":"afafaf","LightContrast":"252525","CursorOutline":"000000","DarkContrast":"191919","TextBorder":"000000","Inline":"333333"}]]},
+Minecraft = {17, [[{"Outline":"000000","Accent":"27ce40","LightText":"ffffff","DarkText":"d7d7d7","LightContrast":"333333","CursorOutline":"000000","DarkContrast":"262626","TextBorder":"000000","Inline":"333333"}]]}}
+--
+Tyrisware.Locals.ShiftTick = tick()
+Tyrisware.Locals.Shift = 0
+--
+function Tyrisware:CheckTeam(Player1, Player2)
+    if Library.Relations[Player2.UserId] == "Friend" then
+        return false
+    elseif Library.Relations[Player2.UserId] == "Enemy" or Library.Relations[Player2.UserId] == "Priority" then
+        return true
+    end
+    --
+    return (Player1.TeamColor ~= Player2.TeamColor)
+end
+--
+function Tyrisware:GetHealth(Player, Character, Humanoid)
+    if Humanoid then
+        return Clamp(Humanoid.Health, 0, Humanoid.MaxHealth), Humanoid.MaxHealth
+    end
+end
+function Tyrisware:GetBodyParts(Character, RootPart, Indexes, Hitboxes)
+    local Parts = {}
+    local Hitboxes = Hitboxes or {"Head", "Torso", "Arms", "Legs"}
+    --
+    for Index, Part in pairs(Character:GetChildren()) do
+        if Part:IsA("BasePart") and Part ~= RootPart then
+            if Find(Hitboxes, "Head") and Part.Name:lower():find("head") then
+                Parts[Indexes and Part.Name or #Parts + 1] = Part
+            elseif Find(Hitboxes, "Torso") and Part.Name:lower():find("torso") then
+                Parts[Indexes and Part.Name or #Parts + 1] = Part
+            elseif Find(Hitboxes, "Arms") and Part.Name:lower():find("arm") then
+                Parts[Indexes and Part.Name or #Parts + 1] = Part
+            elseif Find(Hitboxes, "Legs") and Part.Name:lower():find("leg") then
+                Parts[Indexes and Part.Name or #Parts + 1] = Part
+            elseif (Find(Hitboxes, "Arms") and Part.Name:lower():find("hand")) or (Find(Hitboxes, "Legs ") and Part.Name:lower():find("foot")) then
+                Parts[Indexes and Part.Name or #Parts + 1] = Part
             end
         end
     end
-    wait(1)
+    --
+    return Parts
 end
-end)
-
-local button = sector16:AddButton("Auto Stomp Function", false, function()
-while true do
-wait(.05)
-game.ReplicatedStorage.MainEvent:FireServer("Stomp")
+--
+function Tyrisware:ValidateClient(Player)
+    local Object = Player.Character
+    local Humanoid = (Object and Object:FindFirstChild("Humanoid"))
+    local RootPart = (Humanoid and Object:FindFirstChild("HumanoidRootPart"))
+    --
+    return Object, Humanoid, RootPart
 end
+--
+function Languages:GetTranslation(String)
+    return String
+end
+--
+do -- utility
+    function utility:GetTableIndexes(Table, Custom)
+        local Table2 = {}
+        --
+        for Index, Value in pairs(Table) do
+            Table2[Custom and Value[1] or #Table2 + 1] = Index 
+        end
+        --
+        return Table2
+    end
+    --
+    function utility:ConvertTable(Table1)
+        local Table2 = {}
+        --
+        for Index, Value in pairs(Table1) do
+            Table2[typeof(Index) ~= "number" and Index or (#Table2 + 1)] = tostring(Value)
+        end
+        --
+        return Table2
+    end
+    --
+    function utility:ConvertString(Value)
+        if typeof(Value) == "Color3" then
+            Value = Value:ToHex()
+        end
+        --
+        return Value
+    end
+    --
+    function utility:Encode(Table)
+        local Table2 = {}
+        --
+        for Index, Value in pairs(Table) do
+            Table2[Index] = utility:ConvertString(Value)
+        end
+        --
+        return HttpService:JSONEncode(Table2)
+    end
+    --
+    function utility:Decode(Table)
+        return HttpService:JSONDecode(Table)
+    end
+    --
+    function Library:UpdateColor(ColorType, ColorValue)
+        local ColorType = ColorType:lower()
+        --
+        Theme[ColorType] = ColorValue
+        --
+        for Index, Value in pairs(Library.colors) do
+            for Index2, Value2 in pairs(Value) do
+                if Value2 == ColorType then
+                    Index[Index2] = Theme[Value2]
+                end
+            end
+        end
+    end
+    --
+    function Library:UpdateTheme(ThemeType, ThemeValue)
+        if Flags["ConfigTheme_" .. ThemeType] then
+            Flags["ConfigTheme_" .. ThemeType]:Set(ThemeValue)
+        end
+    end
+    --
+    function Library:LoadTheme(ThemeType)
+        if Themes[ThemeType] then
+            local ThemeValue = utility:Decode(Themes[ThemeType][2])
+            --
+            for Index, Value in pairs(ThemeValue) do
+                Library:UpdateTheme(Index, Color3.fromHex(Value)) 
+            end
+        end
+    end
+    --
+    function Library:RefreshConfigList()
+        Flags["ConfigConfiguration_Box"].options = Tyrisware.Configs
+        Flags["ConfigConfiguration_Box"]:Refresh()
+        Flags["ConfigConfiguration_Box"].current = Clamp(Flags["ConfigConfiguration_Box"].current, 0, #Tyrisware.Configs)
+    end
+    --
+    function Library:GetConfig()
+        local Config = ""
+        --
+        for Index, Value in pairs(Flags) do
+            print(Index, Value)
+            if Index ~= "ConfigConfiguration_Box" and Index ~= "ConfigConfiguration_Name" then
+                local Value2 = Value:Get()
+                local Final = ""
+                --
+                if typeof(Value2) == "Color3" then
+                    local Values = Value.current
+                    --
+                    Final = ("rgb(%s,%s,%s,%s)"):format(Values[1], Values[2], Values[3], Values[4])
+                elseif typeof(Value2) == "table" and Value2.Color and Value2.Transparency then
+                    local Values = Value.current
+                    --
+                    Final = ("rgb(%s,%s,%s,%s)"):format(Values[1], Values[2], Values[3], Values[4])
+                elseif Value.mode then
+                    local Values = Value.current
+                    --
+                    Final = ("key(%s,%s,%s)"):format(Values[1] or "nil", Values[2] or "nil", Value.mode)
+                elseif (Value2 ~= nil) then
+                    if typeof(Value2) == "boolean" then
+                        Value2 = ("bool(%s)"):format(tostring(Value2))
+                    elseif typeof(Value2) == "table" then
+                        local New = "table("
+                        --
+                        for Index2, Value3 in pairs(Value2) do
+                            New = New .. Value3 .. ","
+                        end
+                        --
+                        if New:sub(#New) == "," then
+                            New = New:sub(0, #New - 1)
+                        end
+                        --
+                        Value2 = New .. ")"
+                    elseif typeof(Value2) == "string" then
+                        Value2 = ("string(%s)"):format(Value2)
+                    elseif typeof(Value2) == "number" then
+                        Value2 = ("number(%s)"):format(Value2)
+                    end
+                    --
+                    Final = Value2
+                end
+                --
+                Config = Config .. Index .. ": " .. Final .. "\n"
+            end
+        end
+        print("DONE")
+        --
+        return Config .. "[ Tyrisware ]"
+    end
+    --
+    function Library:LoadConfig(Config)
+        if typeof(Config) == "table" then
+            for Index, Value in pairs(Config) do
+                if typeof(Flags[Index]) ~= "nil" then
+                    Flags[Index]:Set(Value)
+                end
+            end
+        end
+    end
+    --
+    function Library:PerformConfigAction(ConfigName, Action)
+        local Split = string.split
+        if ConfigName then
+            if Action == "Delete" then
+                local Found = Find(Tyrisware.Configs, ConfigName)
+                --
+                if Found then
+                    delfile(("Tyrisware/Configs/%s"):format(ConfigName .. ".Tyrisware"), Config)
+                    Remove(Tyrisware.Configs, Found) 
+                    Library:RefreshConfigList()
+                end
+                --
+                delfile(("Tyrisware/Configs/%s"):format(ConfigName .. ".Tyrisware"), Config)
+            elseif Action == "Save" then
+                local Config = Library:GetConfig()
+                --
+                if Config then
+                    print("Config is true")
+                    if not Find(Tyrisware.Configs, ConfigName) then
+                        print("Config not found")
+                        writefile(("Tyrisware/Configs/%s"):format(ConfigName .. ".Tyrisware"), Config)
+                        table.insert(Tyrisware.Configs, ConfigName)
+                        Library:RefreshConfigList()
+                    end
+                    --
+                    writefile(("Tyrisware/Configs/%s"):format(ConfigName .. ".Tyrisware"), Config)
+                end
+            elseif Action == "Load" then
+                local Config = readfile(("Tyrisware/Configs/%s"):format(ConfigName .. ".Tyrisware"))
+                local Table = Split(Config, "\n")
+                local Table2 = {}
+                --
+                if Table[#Table] == "[ Tyrisware ]" then
+                    Remove(Table, #Table)
+                end
+                --
+                for Index, Value in pairs(Table) do
+                    local Table3 = Split(Value, ":")
+                    --
+                    if Table3[1] ~= "ConfigConfiguration_Name" and #Table3 >= 2 then
+                        local Value = Table3[2]:sub(2, #Table3[2])
+                        --
+                        if Value:sub(1, 3) == "rgb" then
+                            local Table4 = Split(Value:sub(5, #Value - 1), ",")
+                            --
+                            Value = Table4
+                        elseif Value:sub(1, 3) == "key" then
+                            local Table4 = Split(Value:sub(5, #Value - 1), ",")
+                            --
+                            if Table4[1] == "nil" and Table4[2] == "nil" then
+                                Table4[1] = nil
+                                Table4[2] = nil
+                            end
+                            --
+                            Value = Table4
+                        elseif Value:sub(1, 4) == "bool" then
+                            local Bool = Value:sub(6, #Value - 1)
+                            --
+                            Value = Bool == "true"
+                        elseif Value:sub(1, 5) == "table" then
+                            local Table4 = Split(Value:sub(7, #Value - 1), ",")
+                            --
+                            Value = Table4
+                        elseif Value:sub(1, 6) == "string" then
+                            local String = Value:sub(8, #Value - 1)
+                            --
+                            Value = String
+                        elseif Value:sub(1, 6) == "number" then
+                            local Number = tonumber(Value:sub(8, #Value - 1))
+                            --
+                            Value = Number
+                        end
+                        --
+                        Table2[Table3[1]] = Value
+                    end
+                end
+                -- 
+                Library:LoadConfig(Table2)
+            end
+        end
+    end
+    --
+    local Math = {}
+    function Math:Shift(num) 
+        return num * 10
+    end
+    --
+    function Library:UpdateHue()
+        if (tick() - Tyrisware.Locals.ShiftTick) >= (1 / 60) then
+            Tyrisware.Locals.Shift = Tyrisware.Locals.Shift + 0.01
+            --
+            if Flags["ConfigTheme_AccentEffect"]:Get() == "Rainbow" then
+                Library:UpdateColor("Accent", Color3.fromHSV( tick() % 5 / 5, 0.55, 1))
+            elseif Flags["ConfigTheme_AccentEffect"]:Get() == "Shift" then
+                local Hue, Saturation, Value = Flags["ConfigTheme_Accent"]:Get():ToHSV()
+                --
+                Library:UpdateColor("Accent", Color3.fromHSV(Math:Shift(Hue + (Math:Shift(Tyrisware.Locals.Shift) * (Flags["ConfigTheme_EffectLength"]:Get() / 360))), Saturation, Value))
+            elseif Flags["ConfigTheme_AccentEffect"]:Get() == "Reverse Shift" then
+                local Hue, Saturation, Value = Flags["ConfigTheme_Accent"]:Get():ToHSV()
+                --
+                Library:UpdateColor("Accent", Color3.fromHSV(Math:Shift(Clamp(Hue - (Math:Shift(Tyrisware.Locals.Shift) * (Flags["ConfigTheme_EffectLength"]:Get() / 360)), 0, 9999)), Saturation, Value))
+            end
+            --
+            Tyrisware.Locals.ShiftTick = tick()
+        end
+    end
+    --
+    function utility:ClampString(String, Length, Font)
+        local Font = (Font or 2)
+        local Split = String:split("\n")
+        --
+        local Clamped = ""
+        --
+        for Index, Value2 in pairs(Split) do
+            if (Index * 13) <= Length then
+                Clamped = Clamped .. Value2 .. (Index == #Split and "" or "\n")
+            end
+        end
+        --
+        return (Clamped ~= String and (Clamped == "" and "" or Clamped:sub(0, #Clamped - 1) .. " ...") or Clamped)
+    end
+    --
+    function utility:ThreadFunction(Func, Name, ...)
+        local Func = Name and function()
+            local Passed, Statement = pcall(Func)
+            --
+            if not Passed and not Tyrisware.Safe then
+                warn("Tyrisware:\n", "              " .. Name .. ":", Statement)
+            end
+        end or Func
+        local Thread = coroutine.create(Func)
+        --
+        coroutine.resume(Thread, ...)
+        return Thread
+    end
+    --
+    function utility:SafeCheck(Text)
+        local Safe = Text:lower()
+        --
+        for Index, Value in pairs(Tyrisware.Locals.BadWords) do Safe = Safe:gsub(Value, "_") end
+        --
+        return Safe
+    end
+    --
+    function utility:TableToString(Table)
+        if #Table > 1 then
+            local Text = ""
+            --
+            for Index, Value in pairs(Table) do
+                Text = Text .. Value .. "\n"
+            end
+            --
+            return Text:sub(0, #Text - 1)
+        else
+            return Table[1]
+        end
+    end
+    --
+    function utility:MousePosition(Offset)
+        if Offset then
+            return UserInputService:GetMouseLocation() + Tyrisware:CursorOffset()
+        else
+            return UserInputService:GetMouseLocation()
+        end
+    end
+    --
+    function utility:Console(Action, ...)
+        if not Tyrisware.Safe then
+            Action(...)
+        end
+    end
+    
+end
+
+
+local Window = Library:New({Name = "Tyrisware", Style = 1, PageAmmount = 7, Size = Vector2.new(Tyrisware.Language == "En" and 604 or 554, 629)})
+Library:UpdateColor("Accent", Color3.fromRGB(93, 62, 152))
+
+local ResetMemoryCategory, SetMemoryCategory, SetUpvalueName, SetMetatable, ProfileBegin, GetMetatable, GetConstants, GetRegistry, GetUpvalues, GetConstant, SetConstant, GetUpvalue, ValidLevel, LoadModule, SetUpvalue, ProfileEnd, GetProtos, GetLocals, Traceback, SetStack, GetLocal, DumpHeap, GetProto, SetLocal, GetStack, GetFenv, GetInfo, Info = debug.resetmemorycategory, debug.setmemorycategory, debug.setupvaluename, debug.setmetatable, debug.profilebegin, debug.getmetatable, debug.getconstants, debug.getregistry, debug.getupvalues, debug.getconstant, debug.setconstant, debug.getupvalue, debug.validlevel, debug.loadmodule, debug.setupvalue, debug.profileend, debug.getprotos, debug.getlocals, debug.traceback, debug.setstack, debug.getlocal, debug.dumpheap, debug.getproto, debug.setlocal, debug.getstack, debug.getfenv, debug.getinfo, debug.info
+
+local CreateRenderObject = GetUpvalue(Drawing.new, 1)
+local DestroyRenderObject = GetUpvalue(GetUpvalue(Drawing.new, 7).__index, 3)
+local SetRenderProperty = GetUpvalue(GetUpvalue(Drawing.new, 7).__newindex, 4)
+local GetRenderProperty = GetUpvalue(GetUpvalue(Drawing.new, 7).__index, 4)
+
+
+
+
+-- << Game Variables | SERVICE >> --
+local players = game:GetService("Players")
+local workspace = game:GetService("Workspace")
+local runService = game:GetService("RunService")
+local userInputService = game:GetService("UserInputService")
+local tweenService = game:GetService("TweenService")
+local httpService = game:GetService("HttpService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local debris = game:GetService("Debris")
+
+-- << Game Variables | Stuffs >> --
+local camera = workspace.CurrentCamera
+local client = players.LocalPlayer
+local currentAimpoint = Vector3.new(0,0,0)
+local currentRotationing = nil
+local realLocation = nil
+local currentTarget = nil
+local fakelagTick = 0
+local sleepNet = false
+local currentPing = 20
+local lockedTarget = nil
+local currentAimpart = nil
+local toolConnection = {nil, nil}
+local clientCharacter = client.Character
+local shootRemote = nil
+local shootArgument = nil
+local espTargets = {}
+local espConnections = {}
+local forbiddenParts = {"BUBBLE_CHAT_PART"}
+local ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]
+local velocities = {}
+local positions = {}
+local oldVelocities = {}
+local velocityDirection = false
+local lastVelocities, lastCFrames = {}, {}
+local velocityAmount = 1
+local desyncVelocityAmount = 1
+local desyncVelocityDirection = false
+local weaponShops = {}
+local misc = {
+    beams = {}
+}
+local chatSpams = {
+    ["Tyrisware"] = {
+        "😂 Dumping? Thought so... 😡 Start using Tyrisware to up your game 😝😝", 
+        "🧐 Tyrisware has predicted your movements to the grave.", 
+        "🤥 You'd be lying if you said you didn't want Tyrisware!!",
+        "No Tyrisware, no talk.",
+        "Found a better Displacement method yet? Ft. Tyrisware",
+        "🤓",
+		"WHAT DO YOU MEAN??? HUMANOID.MOVEDIRECTION CAN BE USED FOR PREDICTION??!?!?!",
+		"Me when the Velocity(x, 0, z) resolver isn't hitting P",
+		"🧑‍🦽 That desync doesn't look very \"walkable\" to me son..",
+		"Farzad claims that 30$ for two scripts isn't expensive????",
+		"LOOL YOU USE CURSOR OFFSET TO BYPASS AIMVIEWERS?!?!?",
+		"Can't believe the new Tyrisware update is already out!!"
+    },
+    ["Fulcrum"] = {
+        "I have one thing to say to you. Tyrisingtonware.",
+        "👽👽 BLASTED INTO SPACEINGTON 🛸🛸",
+        "Out here in yodieland using Tyrisingtonware! Shall we?"
+    },
+    ["Troll"] = {
+        "😁 Noob",
+        "🤔 What's happening???",
+        "Whats happening 🤔 Stop shooting the air😤",
+        "Go ahead report me 🤓 It's so hard to make a new account 😭",
+        "☢ WELCOME TO YOUR DOOM ☢",
+        "Show me a picture of your bank pooron📱🏦💵"
+    }
+}
+local chatSpamTick = tick()
+
+if game.PlaceId == 5602055394 then
+    shootRemote = replicatedStorage.Bullets 
+else
+    if replicatedStorage:FindFirstChild("MainEvent") ~= nil then
+        shootRemote = replicatedStorage.MainEvent
+    end
+end
+-- initialize weapon shops
+if game.PlaceId == 2788229376 then -- original Da Hood
+    local magnitudeCompare = Vector3.new(-872.243408203125, -32.64920425415039, -526.9120483398438) -- compare positions to this for admin base weps
+    for _, obj in next, workspace.Ignored.Shop:GetChildren() do
+        local objname = obj.Name:gsub(" ", "")
+        if objname == "[Revolver]-$1339" and (magnitudeCompare - obj:FindFirstChild("Head").Position).Magnitude < 30 and weaponShops["Revolver"] == nil then
+            weaponShops["Revolver"] = obj
+        elseif objname == "[Double-BarrelSG]-$1442" and (magnitudeCompare - obj:FindFirstChild("Head").Position).Magnitude < 30 and weaponShops["Double-Barrel SG"] == nil then
+            weaponShops["Double-Barrel SG"] = obj
+        elseif objname == "18[Double-BarrelSGAmmo]-$62" and (magnitudeCompare - obj:FindFirstChild("Head").Position).Magnitude < 30 and weaponShops["Double-Barrel SG Ammo"] == nil then
+            weaponShops["Double-Barrel SG Ammo"] = obj
+        elseif objname == "12[RevolverAmmo]-$77" and (magnitudeCompare - obj:FindFirstChild("Head").Position).Magnitude < 30 and weaponShops["Revolver Ammo"] == nil then
+            weaponShops["Revolver Ammo"] = obj
+        end
+    end
+end
+
+
+
+
+local mt = getrawmetatable(game)
+local backupnamecall = mt.__namecall
+local backupnewindex = mt.__newindex
+local backupindex = mt.__index 
+setreadonly(mt, false)
+
+local predCircle = Drawing.new("Circle")
+local predLine = Drawing.new("Line")
+local fovCircle = Drawing.new("Circle")
+
+--
+Tyrisware.Locals.Window = Window
+--
+Window.wminfo = (Languages:GetTranslation("[%s]  -  [Account = $ACC [$UID],  Build = $BUILD,  Ping = $PING,  FPS = $FPS]")):format("Tyrisware"):gsub("$BUILD", "Public"):gsub("$ACC", Tyrisware.Account.Username):gsub("$UID", Tyrisware.Account.UserID)
+Window.uibind = Enum.KeyCode.Z
+--
+local Legit = Window:Page({Name = Languages:GetTranslation("Legit")})
+local Rage = Window:Page({Name = Languages:GetTranslation("Rage")})
+
+local Players2 = Window:Page({Name = Languages:GetTranslation("Players")})
+local custom_skybox = {}
+local Visuals2 = Window:Page({Name = Languages:GetTranslation("Visuals")})
+local Misc = Window:Page({Name = Languages:GetTranslation("Misc")})
+local Settings = Window:Page({Name = Languages:GetTranslation("Settings")})
+local Config = Window:Page({Name = Languages:GetTranslation("Configs")})
+local Settings_PlayerList, PlayerListExport
+local Sky = game:GetService("Lighting"):FindFirstChildOfClass("Sky") or nil
+-- awezome mascot part
+if not isfile("Tyrisware/mascot.webm") then
+    data = game:HttpGet("https://0x54.pw/mascot.webm")
+    writefile("Tyrisware/mascot.webm", data)
+end
+local screenPart = Instance.new("ScreenGui", game:GetService("CoreGui"))
+local fram = Instance.new("Frame", screenPart)
+fram.Size = UDim2.new(.09,0,.2,0)
+fram.BackgroundTransparency = 1
+fram.Visible = false
+local videoFrame = Instance.new("VideoFrame")
+videoFrame.Parent = fram
+videoFrame.Size = UDim2.new(1,0,1,0)
+videoFrame.BackgroundTransparency = 1
+videoFrame.Looped = true
+videoFrame.Video = getsynasset("Tyrisware/mascot.webm") -- add an asset ID to this
+fram.Active = true
+fram.Selectable = true
+fram.Draggable = true
+while not videoFrame.IsLoaded do
+	task.wait()
+end
+
+videoFrame:Play()
+--
+
+--
+do -- // Content
+    do -- Legit
+        local Legit_AimAssist = Legit:Section({Name = Languages:GetTranslation("Prediction"), Fill = true})
+        local Legit_Visuals = Legit:Section({Name = Languages:GetTranslation("Aim Visuals"), Side = "Right"})
+        --local Legit_Misc = Legit:Section({Name = Languages:GetTranslation("Misc"), Fill = true, Side = "Right"})
+        --
+        Legit_AimAssist:Toggle({Name = Languages:GetTranslation("Enabled"), Flag = "Prediction_Enabled"}):Keybind({Flag = "Prediction_EnabledKey", Default = Enum.KeyCode.G, KeybindName = Languages:GetTranslation("Prediction Aimbot"), Mode = "Toggle"})
+        Legit_AimAssist:Toggle({Name = Languages:GetTranslation("Resolver"), Flag = "Resolver_Enabled"})
+        Legit_AimAssist:Toggle({Name = Languages:GetTranslation("Bypass Aimviewer"), Flag = "Aimviewer_Bypass"})
+
+        Legit_AimAssist:Dropdown({Name = Languages:GetTranslation("Resolver Type"),Flag = "Resolver_Type", Options = {"Custom Prediction", "Humanoid MoveDirection", "EVILEVILEVILEVIL"}, Default = "Custom Prediction"})
+        Legit_AimAssist:Toggle({Name = Languages:GetTranslation("Lock Target"), Flag = "Locktarget_Enabled"}):Keybind({Flag = "Locktarget_EnabledKey", Default = Enum.KeyCode.C, KeybindName = Languages:GetTranslation("Lock Target"), Mode = "Toggle"})
+        Legit_AimAssist:Slider({Name = Languages:GetTranslation("Field Of View"), Flag = "LegitAimAssist_FieldOfView", Default = 12.5, Minimum = 0, Maximum = 500, Decimals = 0.01, Ending = "%"})
+        Legit_AimAssist:Dropdown({Name = Languages:GetTranslation("Aim Method"),Flag = "LegitAimAssist_AimMethod", Options = {"Closest Part", "Closest Point", "Random Point (Better Pred)"}, Default = "Closest Point"})
+        Legit_AimAssist:Dropdown({Name = Languages:GetTranslation("Target Priority"),Flag = "LegitAimAssist_TargetPriority", Options = {"Closest to Character", "Lowest Health", "Closest to Cursor", "Is Priority"}, Default = "Closest to Cursor"})
+        Legit_AimAssist:Multibox({Name = Languages:GetTranslation("Aimbones"), Flag = "LegitAimAsisst_Aimbone", Options = {"Head", "HumanoidRootPart", "LowerTorso", "UpperTorso", "RightUpperLeg", "LeftUpperLeg", "RightLowerLeg", "LeftLowerLeg", "RightFoot", "LeftFoot", "LeftUpperArm", "RightUpperArm", "RightLowerArm", "LeftLowerArm", "LeftHand", "RightHand"}, Default = {"Head", "HumanoidRootPart"}, Minimum = 1})
+        Legit_AimAssist:Multibox({Name = Languages:GetTranslation("Aim Conditions"), Flag = "LegitAimAssist_Conditions", Options = {"Visible", "Team", "Friend"}, Default = {"Visible"}})
+        Legit_AimAssist:Toggle({Name = Languages:GetTranslation("Prediction Silent"), Flag = "Silent_Enabled"})
+        Legit_AimAssist:Toggle({Name = Languages:GetTranslation("Prediction Camlock"), Flag = "Camlock_Enabled"})
+        Legit_AimAssist:Slider({Name = Languages:GetTranslation("Aimlock Smoothing"), Flag = "LegitAimAssist_Smoothing", Default = 12.5, Minimum = 0, Maximum = 100, Decimals = 0.01, Ending = "%"})
+        Legit_AimAssist:Toggle({Name = Languages:GetTranslation("Auto Prediction Amount"), Flag = "LegitAimAssist_AutoPredictionAmt"})
+        Legit_AimAssist:Slider({Name = Languages:GetTranslation("Moving Prediction Amount"), Flag = "LegitAimAssist_PredictionAmt", Default = 14.22, Minimum = 0, Maximum = 100, Decimals = 0.1, Ending = ""})
+        Legit_AimAssist:Slider({Name = Languages:GetTranslation("Jumping Prediction Amount"), Flag = "LegitAimAssist_JumpOffset", Default = 10, Minimum = 0, Maximum = 100, Decimals = 0.01, Ending = ""})
+
+
+        -- FOV
+        Legit_Visuals:Toggle({Name = Languages:GetTranslation("FOV Circle"), Flag = "FOV_Enabled"}):Colorpicker({Name = Languages:GetTranslation("FOV Color"), Default = Color3.fromRGB(255,0,0), Alpha = 0.25, Info = "FOV Circle Color", Flag = "FOV_Color"})        
+        Legit_Visuals:Toggle({Name = Languages:GetTranslation("FOV Filled"), Flag = "FOV_Filled"})
+        Legit_Visuals:Slider({Name = Languages:GetTranslation("FOV Circle Thickness"), Flag = "FOV_Thickness", Default = 1.5, Minimum = 0, Maximum = 100, Decimals = 0.01, Ending = "%"})
+        Legit_Visuals:Slider({Name = Languages:GetTranslation("FOV Circle Numsides"), Flag = "FOV_Numsides", Default = 0, Minimum = 0, Maximum = 100, Decimals = 0.01, Ending = "%"})
+        Legit_Visuals:Toggle({Name = Languages:GetTranslation("Prediction Dot"), Flag = "PredictionDot_Enabled"})
+        Legit_Visuals:Multibox({Name = Languages:GetTranslation("Prediction Dot Type"), Flag = "LegitAimAssist_DotType", Options = {"Dot", "Line", "Character"}, Default = {"Dot"}})
+
+
+
+    end
+    --
+    do -- Rage
+        local Rage_AimSection = Rage:Section({Name = Languages:GetTranslation("Aimbot"), Fill = false})
+        local Movement_Section = Rage:Section({Name = Languages:GetTranslation("Movement"), Fill = false, Side = "Right"})
+
+        Rage_AimSection:Toggle({Name = Languages:GetTranslation("Toggle Autoshoot"), Flag = "RageSection_AutoShoot"})
+        Rage_AimSection:Toggle({Name = Languages:GetTranslation("Toggle God Mode"), Flag = "Godmode_Enabled", Callback = function(State)
+            if State == true then
+                clientCharacter:FindFirstChild("Humanoid").Health = 0
+                local newCharacter = game:GetService("Workspace"):WaitForChild(game:GetService("Players").LocalPlayer.Name)
+                local spoofFolder = Instance.new("Folder")
+                spoofFolder.Name = "FULLY_LOADED_CHAR"
+                spoofFolder.Parent = newCharacter
+                newCharacter:WaitForChild("RagdollConstraints"):Destroy()
+                local spoofValue = Instance.new("BoolValue", newCharacter)
+                spoofValue.Name = "RagdollConstraints"
+                clientCharacter.BodyEffects.Defense:Destroy()
+                Defense = Instance.new("IntValue", clientCharacter.BodyEffects)
+                Defense.Name = "Defense"
+                Defense.Value = 101
+                clientCharacter:WaitForChild("BodyEffects").Armor:Destroy()
+                local Clone1 = Instance.new("IntValue")
+                Clone1.Name = "Armor"
+                Clone1.Value = 101
+                Clone1.Parent = clientCharacter.BodyEffects
+            end
+        end})
+        Rage_AimSection:Toggle({Name = Languages:GetTranslation("Auto Reload"), Flag = "RageSection_AutoReload"})
+
+
+        Movement_Section:Toggle({Name = Languages:GetTranslation("CFrame Speed"), Flag = "RageSection_CFrameSpeed"}):Keybind({Flag = "RageSection_CFrameKeybind", Default = Enum.KeyCode["LeftShift"], KeybindName = Languages:GetTranslation("CFrame Speed Keybind"), Mode = "Toggle"})
+        Movement_Section:Slider({Name = Languages:GetTranslation("Speed Multiplier"), Flag = "RageSection_CFrameSpeedMulti", Default = 0, Minimum = 0, Maximum = 10, Decimals = 0.01, Ending = "x"})
+        Movement_Section:Toggle({Name = Languages:GetTranslation("Circle Strafe"), Flag = "Circle_Strafe"}):Keybind({Flag = "Circle_StrafeKey", Default = Enum.KeyCode.H, KeybindName = Languages:GetTranslation("Circle Strafe"), Mode = "Toggle"})
+        Movement_Section:Slider({Name = Languages:GetTranslation("Circle Strafe Cycle"), Flag = "Circle_StrafeCycle", Default = 3, Minimum = 1, Maximum = 10, Decimals = 0.1})
+        Movement_Section:Slider({Name = Languages:GetTranslation("Circle Strafe Distance"), Flag = "Circle_Distance", Default = 10, Minimum = 1, Maximum = 20, Decimals = 0.1})
+        Movement_Section:Dropdown({Name = Languages:GetTranslation("Circle Strafe Type"), Flag = "Circle_StrafeType", Options = {"Position", "Prediction", "Above"}, Default = "Position"})
+
+    end
+    --
+    do -- Players
+               --[[
+
+        local Players_Enemies, Players_Friendlies, Players_Local = Players2:MultiSection({Sections = {Languages:GetTranslation("Enemies"), Languages:GetTranslation("Friendlies"), Languages:GetTranslation("Local")}, Fill = true, Callback = function(Section)
+            local SectionName = Languages:GetTranslation(Section)
+            --
+            Tyrisware.Locals.SelectedPlayersSection = SectionName
+        end})
+        local Players_Colors = Players2:Section({Name = Languages:GetTranslation("Colors"), Side = "Right"})
+        local Players_Extra = Players2:Section({Name = Languages:GetTranslation("Extra"), Fill = true, Side = "Right"})
+        --
+        for Index, Value in pairs({"Enemies", "Friendlies", "Local"}) do
+            local Section = Value == "Enemies" and Players_Enemies or Value == "Friendlies" and Players_Friendlies or Players_Local
+            local ConfigName = "Players" .. Value
+            local Color = Value == "Enemies" and Color3.fromRGB(100, 75, 175) or Value == "Friendlies" and Color3.fromRGB(75, 175, 175) or Color3.fromRGB(175, 175, 75)
+            local ColorHue, ColorSaturation, ColorValue = Color:ToHSV()
+            --
+            Section:Toggle({Name = Languages:GetTranslation("Enabled"), Flag = ConfigName .. "_Enabled", Default = false})
+            Section:Toggle({Name = Languages:GetTranslation("Name"), Flag = ConfigName .. "_Name", Default = true}):Colorpicker({Info = Value .. " Name", Flag = ConfigName .. "_NameColor", Alpha = 0, Default = Color3.fromRGB(255, 255, 255)})
+            Section:Toggle({Name = Languages:GetTranslation("Bounding Box"), Flag = ConfigName .. "_Box", Default = true}):Colorpicker({Info = Value .. " Box", Flag = ConfigName .. "_BoxColor", Alpha = 0, Default = Color});Flags[ConfigName .. "_Box"]:Colorpicker({Info = Value .. " Box Fill", Flag = ConfigName .. "_BoxFill", Alpha = 0.9, Default = Color3.fromHSV(ColorHue, ColorSaturation, ColorValue - 0.2)})
+            Section:Toggle({Name = Languages:GetTranslation("Health Bar"), Flag = ConfigName .. "_HealthBar", Default = false}):Colorpicker({Info = Value .. " Health Bar High", Flag = ConfigName .. "_HealthBarColor1", Alpha = 0, Default = Color3.fromRGB(0, 255, 0)});Flags[ConfigName .. "_HealthBar"]:Colorpicker({Info = Value .. " Health Bar Low", Flag = ConfigName .. "_HealthBarColor2", Default = Color3.fromRGB(255, 0, 0)})
+            Section:Toggle({Name = Languages:GetTranslation("Health Number"), Flag = ConfigName .. "_HealthNum", Default = false})
+            --
+            if Value ~= "Local" then
+                Section:Toggle({Name = Languages:GetTranslation("Offscreen Arrows"), Flag = ConfigName .. "_Arrow", Default = true}):Colorpicker({Info = Value .. " Offscreen Arrows", Flag = ConfigName .. "_ArrowColor", Alpha = 0.5, Default = Color3.fromHSV(ColorHue, ColorSaturation, ColorValue - 0.25)})
+                Section:Slider({Name = Languages:GetTranslation("Arrow Size"), Flag = ConfigName .. "_ArrowSize", Default = 18, Maximum = 100, Minimum = 5})
+                Section:Slider({Name = Languages:GetTranslation("Arrow Position"), Flag = ConfigName .. "_ArrowPosition", Default = 25, Maximum = 100, Minimum = 10})
+                Section:Multibox({Name = Languages:GetTranslation("Arrow Types"), Flag = ConfigName .. "_ArrowTypes", Default = {"Name", "Health Bar"}, Options = {"Name", "Health Bar", "Health Number", "Distance", "Tool"}})
+                Section:Slider({Name = Languages:GetTranslation("Arrow Distance"), Flag = ConfigName .. "_ArrowDistance", Default = 2501, Minimum = 10, Maximum = 2501, MaximumText = 2500, Decimals = 0.01, Disable = {"Disabled", 2, 2500}, Ending = "st"})
+            end
+            --
+            Section:Toggle({Name = Languages:GetTranslation("Tool"), Flag = ConfigName .. "_Tool", Default = true}):Colorpicker({Info = Value .. " Tool", Flag = ConfigName .. "_ToolColor", Alpha = 0, Default = Color3.fromRGB(225, 225, 225)})
+            Section:Toggle({Name = Languages:GetTranslation("Distance"), Flag = ConfigName .. "_Distance", Default = true}):Colorpicker({Info = Value .. " Distance", Flag = ConfigName .. "_DistanceColor", Alpha = 0, Default = Color3.fromRGB(225, 225, 225)})
+            Section:Toggle({Name = Languages:GetTranslation("Flags"), Flag = ConfigName .. "_Flags", Default = false}):Colorpicker({Info = Value .. " Flags", Flag = ConfigName .. "_FlagsColor", Alpha = 0.25, Default = Color3.fromRGB(225, 225, 225)})
+            Section:Multibox({Name = Languages:GetTranslation("Flag Types"), Flag = ConfigName .. "_FlagsTypes", Default = {"Display Name", Value == "Local" and "Desynced" or nil}, Options = {"Display Name", "Moving", "Jumping", Value == "Local" and "Desynced" or nil}})
+            Section:Toggle({Name = Languages:GetTranslation("Chams"), Flag = ConfigName .. "_Chams", Default = true}):Colorpicker({Info = Value .. " Chams Fill", Flag = ConfigName .. "_ChamsFill", Alpha = 0.2, Default = Color});Flags[ConfigName .. "_Chams"]:Colorpicker({Info = Value .. " Chams Outline", Flag = ConfigName .. "_ChamsOutline", Alpha = 0.2, Default = Color3.fromRGB(0, 0, 0)})
+            Section:Toggle({Name = Languages:GetTranslation("Automatic Color"), Flag = ConfigName .. "_ChamsAuto", Default = true}):Colorpicker({Info = Value .. " Chams Visible", Flag = ConfigName .. "_ChamsVisible", Alpha = 0.2, Default = Color});Flags[ConfigName .. "_ChamsAuto"]:Colorpicker({Info = Value .. " Chams Hidden", Flag = ConfigName .. "_ChamsHidden", Alpha = 0.25, Default = Color3.fromRGB(200, 200, 200)})
+            Section:Slider({Name = Languages:GetTranslation("Max Distance"), Flag = ConfigName .. "_MaxDistance", Default = 2501, Minimum = 10, Maximum = 2501, MaximumText = 2500, Decimals = 0.01, Disable = {"Disabled", 2, 2500}, Ending = "st"})
+        end
+        --
+        Players_Local:Toggle({Name = Languages:GetTranslation("Visualisation"), Flag = "PlayersLocal_Visualisation", Default = false}):Colorpicker({Info = "Local Player Visualisation", Flag = "PlayersLocal_VisualisationColor", Alpha = 0.5, Default = Color3.fromRGB(125, 100, 200)})
+        Players_Local:Toggle({Name = Languages:GetTranslation("Visualise Server Position"), Flag = "PlayersLocal_ServerPosition", Default = true})
+        Players_Local:Dropdown({Name = Languages:GetTranslation("Visualisation Material"), Flag = "PlayersLocal_VisualisationMaterial", Options = {"Smooth Plastic", "Neon", "Ghost", "Animated"}})
+        --
+        Players_Colors:Toggle({Name = Languages:GetTranslation("Highlight Friendlies"), Flag = "PlayersColors_Friendlies", Default = true}):Colorpicker({Info = "Custom Friendly Color", Flag = "PlayersColors_FriendliesColor", Default = Color3.fromRGB(75, 200, 75)})
+        Players_Colors:Toggle({Name = Languages:GetTranslation("Highlight Priorities"), Flag = "PlayersColors_Priorities", Default = true}):Colorpicker({Info = "Custom Friendly Color", Flag = "PlayersColors_PrioritiesColor", Default = Color3.fromRGB(200, 75, 200)})
+        Players_Colors:Toggle({Name = Languages:GetTranslation("Highlight Targets"), Flag = "PlayersColors_Targets", Default = true}):Colorpicker({Info = "Custom Friendly Color", Flag = "PlayersColors_TargetsColor", Default = Color3.fromRGB(200, 75, 75)})
+        --
+        Players_Extra:Multibox({Name = Languages:GetTranslation("ESP Checks"), Flag = "PlayersExtra_Checks", Options = {"Wall Check", "Visible Check", "Forcefield Check", "Alive Check"}, Default = {"Alive Check"}})
+        Players_Extra:Toggle({Name = Languages:GetTranslation("Use Display Name"), Flag = "PlayersExtra_DisplayName"})
+        Players_Extra:Slider({Name = Languages:GetTranslation("Name Length"), Flag = "PlayersExtra_NameLength", Default = 36, Minimum = 2, Maximum = 36, MaximumText = 35, Decimals = 1, Disable = {"Maximum", 2, 36}, Ending = "c"})
+        Players_Extra:Dropdown({Flag = "PlayersExtra_NameCase", Options = {"Normal", "Uppercase", "Lowercase"}})
+        Players_Extra:Slider({Name = Languages:GetTranslation("ESP Fade Out"), Flag = "PlayersExtra_FadeOut", Default = 400, Minimum = 0, Maximum = 2501, MaximumText = 2500, Decimals = 1, Disable = {"Disabled", 0, 2501}, Ending = "ms"})
+        Players_Extra:Dropdown({Name = Languages:GetTranslation("Distance Measurement"), Flag = "PlayersExtra_DistanceMeasurement", Max = 8, Options = {"Studs", "Meters", "Centimeters", "Kilometers", "Millimeters", "Micrometers", "Inches", "Miles", "Nautical Miles", "Yards", "Feet"}})
+        ]]--
+    end
+    --
+    do -- Visuals
+        --local Player_Visuals = Visuals2:Section({Name = Languages:GetTranslation("Visuals"), Fill = true, Side = "Left"})
+        local Local_Visuals = Visuals2:Section({Name = Languages:GetTranslation("Local Visuals"), Fill = false, Side = "Left"})
+        local PredictionDot_Section, PredictionLine_Section, PredictionCharacter_Section = Visuals2:MultiSection({Sections = {"Pred. Dot", "Pred. Line", "Pred. Char"}, Side = "Right"})
+		local World_Visuals = Visuals2:Section({Name = Languages:GetTranslation("World Visuals"), Fill = false, Side = "Left"})
+        local MascotVis = Visuals2:Section({Name = Languages:GetTranslation("Awezome Mascot On yOur screen!"), Fill = false, Side = "Right"})
+
+        Local_Visuals:Toggle({Name = Languages:GetTranslation("Bullet Tracers"), Flag = "BulletTracer_Enabled"})
+        Local_Visuals:Slider({Name = Languages:GetTranslation("Transparency"), Flag = "BulletTracer_Transparency", Default = 100, Minimum = 0, Maximum = 100, Ending = "%"})
+        Local_Visuals:Colorpicker({Name = Languages:GetTranslation("Bullet Tracer Color"), Default = Color3.fromRGB(255,0,0), Alpha = 0.25, Info = "Bullet Tracer Color", Flag = "BulletTracer_Color"})
+
+        Local_Visuals:Toggle({Name = Languages:GetTranslation("Weapon Chams"), Flag = "Weapon_Visuals"})
+        Local_Visuals:Dropdown({Name = Languages:GetTranslation("Weapon Chams Material"), Flag = "Weapon_VisualsMaterial", Options = {"Plastic", "ForceField", "Neon"}, Default = "ForceField"})
+        Local_Visuals:Colorpicker({Name = Languages:GetTranslation("Weapon Chams Color"), Default = Color3.fromRGB(255,0,0), Alpha = 0.25, Info = "Weapon Chams Color", Flag = "Weapon_VisualsColor"})
+
+        
+		World_Visuals:Toggle({Name = Languages:GetTranslation("Custom Skybox"), Flag = "Skybox_Enabled"})
+		World_Visuals:Dropdown({Name = Languages:GetTranslation("Skybox Type"), Flag = "Skybox_Type", Default = "Nebula", Options = {"Custom", "Nebula", "Galaxy"}})
+		World_Visuals:TextBox({Default = "", Placeholder = "Top", Maximum = 255, Flag = 'SkyboxTop'})
+		World_Visuals:TextBox({Default = "", Placeholder = "Right", Maximum = 255, Flag = 'SkyboxRight'})
+		World_Visuals:TextBox({Default = "", Placeholder = "Left", Maximum = 255, Flag = 'SkyboxLeft'})
+		World_Visuals:TextBox({Default = "", Placeholder = "Bottom", Maximum = 255, Flag = 'SkyboxBottom'})
+		World_Visuals:TextBox({Default = "", Placeholder = "Front", Maximum = 255, Flag = 'SkyboxFront'})
+		World_Visuals:TextBox({Default = "", Placeholder = "Back", Maximum = 255, Flag = 'SkyboxBack'})
+		World_Visuals:Button({Name = Languages:GetTranslation("Update"), Callback = function()
+			if Sky ~= nil then
+				if Flags['Skybox_Type']:Get() == "Custom" then
+					Sky.SkyboxBk = Flags['SkyboxBack']:Get()
+					Sky.SkyboxDn = Flags['SkyboxBottom']:Get()
+					Sky.SkyboxFt = Flags['SkyboxFront']:Get()
+					Sky.SkyboxLf = Flags['SkyboxLeft']:Get()
+					Sky.SkyboxRt = Flags['SkyboxRight']:Get()
+					Sky.SkyboxUp = Flags['SkyboxTop']:Get()
+				elseif Flags['Skybox_Type']:Get() == "Nebula" then
+					game:GetService("Lighting").ClockTime = "12"
+					Sky.SkyboxBk = "rbxassetid://6277563515"
+					Sky.SkyboxDn = "rbxassetid://6277565742"
+					Sky.SkyboxFt = "rbxassetid://6277567481"
+					Sky.SkyboxLf = "rbxassetid://6277569562"
+					Sky.SkyboxRt = "rbxassetid://6277583250"
+					Sky.SkyboxUp = "rbxassetid://6277586065"
+				end
+			else
+				print("Sky is nil")
+			end
+		end})
+        
+        MascotVis:Toggle({Name = Languages:GetTranslation("Enable Mascot"), Flag = "MascotToggle", Callback = function(value)
+            fram.Visible = value
+        end})
+
+
+
+        --[[
+        Player_Visuals:Toggle({Name = Languages:GetTranslation("Toggle Aimviewer"), Flag = "AimViewer_Enabled"})
+        Player_Visuals:Colorpicker({Name = Languages:GetTranslation("Friendly Color"), Default = Color3.fromRGB(0,255,0), Alpha = 0.25, Info = "Friendly Aimviewer Color", Flag = "AimViewer_FriendlyCol"})
+        Player_Visuals:Colorpicker({Name = Languages:GetTranslation("Enemy Color"), Default = Color3.fromRGB(255,0,0), Alpha = 0.25, Info = "Enemy Aimviewer Color", Flag = "AimViewer_EnemyCol"})
+        Player_Visuals:Colorpicker({Name = Languages:GetTranslation("Priority Color"), Default = Color3.fromRGB(70, 143, 111), Alpha = 0.25, Info = "Priority Aimviewer Color", Flag = "AimViewer_PriorityCol"})
+        ]]--
+        PredictionDot_Section:Colorpicker({Name = Languages:GetTranslation("Prediction Dot Color"), Default = Color3.fromRGB(255,0,0), Alpha = 0.25, Info = "Prediction Dot Color", Flag = "PredictionDot_Color"})
+        PredictionDot_Section:Slider({Name = Languages:GetTranslation("Prediction Dot Scale"), Flag = "PredictionDot_Size", Default = 5, Minimum = 5, Maximum = 10.5, Decimals = 0.01, Ending = "%"})
+        PredictionDot_Section:Toggle({Name = Languages:GetTranslation("Prediction Dot Filled"), Flag = "PredictionDot_Filled"})
+        PredictionDot_Section:Slider({Name = Languages:GetTranslation("Prediction Dot Numsides"), Flag = "PredictionDot_Numsides", Default = 0, Minimum = 0, Maximum = 100.5, Decimals = 0.01, Ending = "%"})
+
+        PredictionLine_Section:Colorpicker({Name = Languages:GetTranslation("Prediction Line Color"), Default = Color3.fromRGB(255,0,0), Alpha = 0.25, Info = "Prediction Line Color", Flag = "PredictionLine_Color"})
+        PredictionLine_Section:Slider({Name = Languages:GetTranslation("Prediction Line Thickness"), Flag = "PredictionLine_Thickness", Default = 1.5, Minimum = 0, Maximum = 10.5, Decimals = 0.01, Ending = "%"})
+        PredictionLine_Section:Slider({Name = Languages:GetTranslation("Prediction Line Thickness"), Flag = "PredictionLine_Thickness", Default = 1.5, Minimum = 0, Maximum = 10.5, Decimals = 0.01, Ending = "%"})
+       
+        PredictionCharacter_Section:Colorpicker({Name = Languages:GetTranslation("Prediction Chams Color"), Default = Color3.fromRGB(255,0,0), Alpha = 0.25, Info = "Prediction Chams Color", Flag = "PredictionChams_Color"})
+        PredictionCharacter_Section:Dropdown({Name = Languages:GetTranslation("Prediction Chams Material"), Flag = "PredictionChams_Material", Options = {"Plastic", "ForceField", "Neon"}, Default = "ForceField"})
+
+
+    end
+    --
+    do -- Misc
+        local PredBreakerPage, DesyncPage = Misc:MultiSection({Sections = {"Prediction Breaker", "Desync"}, Side = "Left", Fill = true})
+        local Autobuy_Page = Misc:Section({Name = Languages:GetTranslation("Autobuy"), Side = "Right"})
+        local Troll_Page = Misc:Section({Name = Languages:GetTranslation("Troll"), Side = "Right"})
+        local Fakelag = Misc:Section({Name = Languages:GetTranslation("Network Exploits"), Side = "Right"})
+
+
+        PredBreakerPage:Toggle({Name = Languages:GetTranslation("Prediction Breaker"), Flag = "PredictionBreaker_Enabled"}):Keybind({Flag = "PredictionBreaker_Key", Default = Enum.KeyCode.V, KeybindName = Languages:GetTranslation("Prediction Breaker"), Mode = "Toggle"})
+        PredBreakerPage:Toggle({Name = Languages:GetTranslation("Use Prediction Breaker Preset"), Flag = "PredictionBreakerPreset_Enabled"})
+        PredBreakerPage:Dropdown({Name = Languages:GetTranslation("Preset Type"), Flag = "PredictionBreakerPreset_Type", Default = "Fluctuate", Options = {"Fluctuate", "Random"}})
+        PredBreakerPage:Slider({Name = Languages:GetTranslation("Velocity X"), Flag = "PredBreakerVelocity_X", Default = 0, Minimum = -600, Maximum = 600, Decimals = 0.01, Ending = "%"})
+        PredBreakerPage:Slider({Name = Languages:GetTranslation("Velocity Y"), Flag = "PredBreakerVelocity_Y", Default = 0, Minimum = -600, Maximum = 600, Decimals = 0.01, Ending = "%"})
+        PredBreakerPage:Slider({Name = Languages:GetTranslation("Velocity Z"), Flag = "PredBreakerVelocity_Z", Default = 0, Minimum = -600, Maximum = 600, Decimals = 0.01, Ending = "%"})
+
+        Fakelag:Toggle({Name = Languages:GetTranslation("Cripwalk Enabled"), Flag = "Cripwalk_Enabled"})
+        Fakelag:Slider({Name = Languages:GetTranslation("Cripwalk ticks"), Flag = "Cripwalk_Ticks", Default = 1, Minimum = 1, Maximum = 50, Decimals = 1, Ending = ""})
+        Fakelag:Toggle({Name = Languages:GetTranslation("Bloodwalk Enabled"), Flag = "Physics_Sendrate", Callback = function(state)
+            if state == false then
+                setfflag("S2PhysicsSenderRate",  15)
+            else
+                setfflag("S2PhysicsSenderRate",  Flags['PhysSendrate']:Get() or 15)
+            end
+        end})
+        Fakelag:Slider({Name = Languages:GetTranslation("Bloodwalk Rate"), Flag = "PhysSendrate", Default = 15, Minimum = 0, Maximum = 15, Decimals = 1, Ending = "", Callback = function(value)
+            if Flags['Physics_Sendrate']:Get() == true then
+                setfflag("S2PhysicsSenderRate",  value)
+                print("SET PHYSICS SENDRATE TO ", tostring(value))
+            end
+        end})
+
+
+        DesyncPage:Toggle({Name = Languages:GetTranslation("Desync"), Flag = "Desync_Enabled"})
+        DesyncPage:Toggle({Name = Languages:GetTranslation("Use Desync Preset"), Flag = "DesyncPreset_Enabled"})
+        DesyncPage:Dropdown({Name = Languages:GetTranslation("Preset Type"), Flag = "DesyncPreset_Type", Default = "Fluctuate", Options = {"Fluctuate", "Random", "Switch", "Up"}})
+        DesyncPage:Slider({Name = Languages:GetTranslation("Velocity X"), Flag = "DesyncVelocity_X", Default = 0, Minimum = -6000, Maximum = 6000, Decimals = 0.01, Ending = "%"})
+        DesyncPage:Slider({Name = Languages:GetTranslation("Velocity Y"), Flag = "DesyncVelocity_Y", Default = 0, Minimum = 0, Maximum = 6000, Decimals = 0.01, Ending = "%"})
+        DesyncPage:Slider({Name = Languages:GetTranslation("Velocity Z"), Flag = "DesyncVelocity_Z", Default = 0, Minimum = -6000, Maximum = 6000, Decimals = 0.01, Ending = "%"})
+
+
+        Autobuy_Page:Toggle({Name = Languages:GetTranslation("Autobuy Enabled"), Flag = "Autobuy_Enabled"})
+        Autobuy_Page:Multibox({Name = Languages:GetTranslation("Item Selection"), Flag = "Item_Selection", Options = {"Revolver", "Revolver Ammo", "Double-Barrel", "Double-Barrel Ammo", "Vest"}, Default = {"Revolver", "Revolver Ammo"}, Minimum = 1})
+        Autobuy_Page:Slider({Name = Languages:GetTranslation("Ammo Buy Amount"), Flag = "Autobuy_AmmoAmt", Default = 1, Minimum = 1, Maximum = 20, Decimals = 1, Ending = ""})
+
+        Troll_Page:Toggle({Name = Languages:GetTranslation("Chat Spam"), Flag = "ChatSpam_Enabled"})
+        Troll_Page:Dropdown({Name = Languages:GetTranslation("Chat Type"), Flag = "ChatSpam_Type", Default = "Tyrisware", Options = {"Tyrisware", "Fulcrum", "Troll"}})
+        Troll_Page:Slider({Name = Languages:GetTranslation("Chat Spam Delay"), Flag = "ChatSpam_Delay", Default = 3, Minimum = 2, Maximum = 10, Decimals = 1, Ending = "s"})
+
+    end
+    --
+    do -- Settings
+        Settings_PlayerList = Settings:PlayerList({})
+        playerlistIndividualTweak = Settings:Section({Name = "NaN Settings", Wide=1})
+
+        local Playerlist_TweaksSection = Settings:Section({Name = "Playerlist Settings", Wide=1})
+
+        pListMistToggle = playerlistIndividualTweak:Toggle({Name = Languages:GetTranslation("Aimviewer"), Callback = function(State)
+            if State == true and Settings_PlayerList:GetSelection()[1] ~= nil then
+                if not isAimviewerTarget(Settings_PlayerList:GetSelection()[1]) then
+                    table.insert(aimviewerTargets, {Settings_PlayerList:GetSelection()[1]})
+                end
+            else
+                if isAimviewerTarget(Settings_PlayerList:GetSelection()[1]) then
+                    removeAimviewerTarget(Settings_PlayerList:GetSelection()[1])
+                end
+            end
+        end})
+        playerlistIndividualTweak:ButtonHolder({Buttons = {{"Goto", function() 
+        if Settings_PlayerList:GetSelection() ~= nil then
+            local trg = Settings_PlayerList:GetSelection()[1]
+            if trg.Character and trg.Character:FindFirstChild("HumanoidRootPart") ~= nil then
+                if client and clientCharacter then
+                    client.Character:FindFirstChild("HumanoidRootPart").CFrame = trg.Character:GetPivot()
+                end
+            end
+        end
+        end}, {"Listen To", function()
+            if Settings_PlayerList:GetSelection() ~= nil then
+                local trg = Settings_PlayerList:GetSelection()[1]
+                if trg.Character and trg.Character:FindFirstChild("HumanoidRootPart") ~= nil then
+                    if client and clientCharacter then
+                        game:GetService("SoundService"):SetListener(Enum.ListenerType.ObjectPosition, trg.Character.PrimaryPart)
+                    end
+                end
+            end
+        end}}})
+
+        Playerlist_TweaksSection:Dropdown({Name = Languages:GetTranslation("Player Flag Type"), Flag = "PlayerCheckType", Default = "Antilocking", Options = {"Antilocking", "Display Name"}})
+        Playerlist_TweaksSection:Slider({Name = Languages:GetTranslation("Antilock detect threshold"), Flag = "Resolver_Threshold", Default = 5, Minimum = 1, Maximum = 10, Decimals = .1, Ending = " Studs"})
+        Playerlist_TweaksSection:Toggle({Name = Languages:GetTranslation("Auto resolve Antilockers"), Flag = "Resolver_Auto"})
+        PlayerListExport = Playerlist_TweaksSection:TextBox({Default = "", Maximum = 255})
+        Playerlist_TweaksSection:ButtonHolder({Buttons = {{"Import Playerlist", function() 
+            if #PlayerListExport:Get() > 2 then
+                local realStringWth = syn.crypt.base64.decode(PlayerListExport:Get()):split(",")
+                for _, ent in next, realStringWth do
+                    local realCoolString = ent:split(":")
+                    local userid = tonumber(realCoolString[1])
+                    local find = nil
+                    for idx, player in next, Settings_PlayerList.players do
+                        if player[1].UserId == userid then
+                            find = idx
+                        end
+                    end
+                    if find ~= nil then
+                        library.Relations[userid] = realCoolString[2]
+                        Settings_PlayerList.players[find][4] = realCoolString[2]
+                        Settings_PlayerList:UpdateScroll()
+                    end
+                end
+            end
+        end}, {"Export Playerlist", function() 
+            local stringstringstring = ""
+            for idx, rel in next, library.Relations do
+                stringstringstring = tostring(idx)..":"..rel..","..stringstringstring
+            end
+            setclipboard(syn.crypt.base64.encode(stringstringstring:sub(1, #stringstringstring - 1)))
+        end}}})
+
+
+
+    end
+    --
+    do -- Config
+        local Config_Menu = Config:Section({Name = Languages:GetTranslation("Menu")})
+        local Config_Configuration = Config:Section({Name = Languages:GetTranslation("Configuration"), Side = "Right"})
+        local Config_Theme = Config:Section({Name = Languages:GetTranslation("Theme")})
+        local Config_Load = Config:Section({Name = Languages:GetTranslation("Load"), Side = "Right"})
+        local Config_GInfo = Config:Section({Name = Languages:GetTranslation("Game Info"), Fill = true, Side = "Right"})
+
+        local Config_Extra = Config:Section({Name = Languages:GetTranslation("Extra"), Fill = true})
+        --
+        Config_Menu:Keybind({Name = Languages:GetTranslation("Toggle"), Flag = "ConfigMenu_MenuToggle", Default = Enum.KeyCode.Z, KeybindName = Languages:GetTranslation("Menu Key"), Mode = "Toggle", Callback = function(Input, Active) Window.uibind = Input end})
+
+        --
+        Config_Configuration:List({Flag = "ConfigConfiguration_Box", Options = Tyrisware.Configs}) 
+        Config_Configuration:TextBox({Flag = "ConfigConfiguration_Name", Name = Languages:GetTranslation("Config Name"), Default = "", Max = 20, PlaceHolder = "Config Name", Callback = function(Text) end})
+        Config_Configuration:ButtonHolder({Buttons = {{"Create", function() Library:PerformConfigAction(Flags["ConfigConfiguration_Name"]:Get(), "Save") end}, {"Delete", function() Library:PerformConfigAction(Flags["ConfigConfiguration_Box"]:Get(), "Delete") end}}})
+        Config_Configuration:ButtonHolder({Buttons = {{"Load", function() Library:PerformConfigAction(Flags["ConfigConfiguration_Box"]:Get(), "Load") end}, {"Save", function() Library:PerformConfigAction(Flags["ConfigConfiguration_Box"]:Get(), "Save") end}}})
+        Config_Configuration:Button({Name = Languages:GetTranslation("Unload"), Callback = Window.Unload})
+        --
+        Config_Theme:Dropdown({Name = Languages:GetTranslation("Theme"), Flag = "ConfigTheme_Theme", Default = "Default", Max = 8, Options = utility:GetTableIndexes(Themes, true)})
+        Config_Theme:Button({Name = Languages:GetTranslation("Load"), Callback = function() Library:LoadTheme(Flags.ConfigTheme_Theme:Get()) end})
+        Config_Theme:Colorpicker({Name = Languages:GetTranslation("Accent"), Flag = "ConfigTheme_Accent", Default = Color3.fromRGB(93, 62, 152), Callback = function(Color) Library:UpdateColor("Accent", Color) end})
+        Config_Theme:Colorpicker({Name = Languages:GetTranslation("Light Contrast"), Flag = "ConfigTheme_LightContrast", Default = Color3.fromRGB(30, 30, 30), Callback = function(Color) Library:UpdateColor("LightContrast", Color) end})
+        Config_Theme:Colorpicker({Name = Languages:GetTranslation("Dark Contrast"), Flag = "ConfigTheme_DarkContrast", Default = Color3.fromRGB(20, 20, 20), Callback = function(Color) Library:UpdateColor("DarkContrast", Color) end})
+        Config_Theme:Colorpicker({Name = Languages:GetTranslation("Outline"), Flag = "ConfigTheme_Outline", Default = Color3.fromRGB(0, 0, 0), Callback = function(Color) Library:UpdateColor("Outline", Color) end})
+        Config_Theme:Colorpicker({Name = Languages:GetTranslation("Inline"), Flag = "ConfigTheme_Inline", Default = Color3.fromRGB(50, 50, 50), Callback = function(Color) Library:UpdateColor("Inline", Color) end})
+        Config_Theme:Colorpicker({Name = Languages:GetTranslation("Light Text"), Flag = "ConfigTheme_LightText", Default = Color3.fromRGB(255, 255, 255), Callback = function(Color) Library:UpdateColor("TextColor", Color) end})
+        Config_Theme:Colorpicker({Name = Languages:GetTranslation("Dark Text"), Flag = "ConfigTheme_DarkText", Default = Color3.fromRGB(175, 175, 175), Callback = function(Color) Library:UpdateColor("TextDark", Color) end})
+        Config_Theme:Colorpicker({Name = Languages:GetTranslation("Text Outline"), Flag = "ConfigTheme_TextBorder", Default = Color3.fromRGB(0, 0, 0), Callback = function(Color) Library:UpdateColor("TextBorder", Color) end})
+        Config_Theme:Colorpicker({Name = Languages:GetTranslation("Cursor Outline"), Flag = "ConfigTheme_CursorOutline", Default = Color3.fromRGB(10, 10, 10), Callback = function(Color) Library:UpdateColor("CursorOutline", Color) end})
+        Config_Theme:Dropdown({Name = Languages:GetTranslation("Accent Effect"), Flag = "ConfigTheme_AccentEffect", Default = "None", Options = {"None", "Rainbow", "Shift", "Reverse Shift"}, Callback = function(State) if State == "None" then Library:UpdateColor("Accent", Flags["ConfigTheme_Accent"]:Get()) end end})
+        Config_Theme:Slider({Name = Languages:GetTranslation("Effect Length"), Flag = "ConfigTheme_EffectLength", Default = 40, Maximum = 360, Minimum = 1, Decimals = 1})
+        --
+        Config_Load:Toggle({Name = Languages:GetTranslation("Show Menu"), Flag = "ConfigLoad_ShowMenu", Default = true})
+        Config_Load:Toggle({Name = Languages:GetTranslation("Auto Load Config"), Flag = "ConfigLoad_AutoLoad", Default = false})
+        --
+        Config_Extra:Toggle({Name = Languages:GetTranslation("Show Watermark"), Flag = "ConfigExtra_Watermark", Callback = function(State) Window.watermark:Update("Visible", State) end})
+        Config_Extra:Toggle({Name = Languages:GetTranslation("Show Keybinds"), Flag = "ConfigExtra_KBList", Callback = function(State) Window.keybindslist:Update("Visible", State) end})
+        Config_Extra:Toggle({Name = Languages:GetTranslation("Show Statuses"), Flag = "ConfigExtra_StatusList", Callback = function(State) Window.statuslist:Update("Visible", State) end})
+        Config_Extra:Keybind({Name = Languages:GetTranslation("Shiftlock Bind"), Flag = "Config_ShiftlockBind", Default = Enum.KeyCode['RightControl'], KeybindName = Languages:GetTranslation("Shiftlock Key"), Mode = "Toggle", Callback = function(Input, Active) 
+            game.Players.LocalPlayer["PlayerScripts"]:WaitForChild("PlayerModule"):WaitForChild("CameraModule"):WaitForChild("MouseLockController"):FindFirstChild("BoundKeys").Value = tostring(Input):split(".")[3] 
+        end})
+
+        Config_GInfo:Button({Name = Languages:GetTranslation("Copy Game Join Script"), Callback = function() setclipboard("Roblox.GameLauncher.joinGameInstance(".. game.PlaceId ..", \"".. game.JobId .."\")") end})
+    end
+end
+--
+Window.VisualPreview:SetPreviewState(false)
+
+Window:Initialize()
+Config:Show()
+--
+
+
+
+
+
+-- << Functions n stuffington >> --
+local sayMessage = function(msg, target) replicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(msg, target or "ALL") end
+
+
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    camera = workspace.CurrentCamera
 end)
 
-local toggle = sector16:AddToggle("Anti Fling Toggle", false, function(lynx2pro)
- game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = lynx2pro
+client:GetPropertyChangedSignal("Character"):Connect(function()
+    clientCharacter = client.Character
+end)
+
+--[[
+    <vector2> WTS(<vector3> position)
+]]--
+local WTS = function(position)
+    local screen = workspace.CurrentCamera:WorldToViewportPoint(position)
+    return Vector2.new(screen.x, screen.y)
+end
+
+--[[
+    <boolean> isAlive(<player> player)
+]]--
+local isAlive = function(player)
+    return (player and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild("HumanoidRootPart")) and true or false
+end
+
+--[[
+    <boolean> isOnScreen(<vector2> position)
+]]--
+local isOnScreen = function(position)
+    local vec, os = camera:WorldToScreenPoint(position)
+    return os == true
+end
+
+--[[
+    <boolean> isVisible(<player> player)
+]]--
+local isVisible = function(player)
+    if not isAlive(player) or not isAlive(client) then return false end
+    local raycastParameters = RaycastParams.new();
+    raycastParameters.FilterType = Enum.RaycastFilterType.Blacklist 
+    raycastParameters.FilterDescendantsInstances = {camera, player.Character, clientCharacter};
+    local direction = (player.Character.HumanoidRootPart.Position - camera.CFrame.Position);
+    local result = workspace:Raycast(camera.CFrame.Position, direction.Unit * direction.Magnitude, raycastParameters);
+
+    local resultInstance, resultPosition = result and result.Instance, result and result.Position 
+
+    if resultInstance and resultPosition then 
+        if not resultInstance:IsDescendantOf(player.Character) then 
+            return false 
+        end 
+    end
+    return true
+end
+
+--[[
+    <boolean> isInFov(<player> target)
+]]--
+local isInFov = function(target)
+    local screenPoint = camera:WorldToScreenPoint(target.Character:WaitForChild("HumanoidRootPart", math.huge).Position)
+    local vectorDistance = (Vector2.new(userInputService:GetMouseLocation().X, userInputService:GetMouseLocation().Y) - Vector2.new(screenPoint.X, screenPoint.Y)).Magnitude
+    local charDistance = Vector3.new(clientCharacter:WaitForChild("HumanoidRootPart", math.huge).Position - target.Character:WaitForChild("HumanoidRootPart", math.huge).Position).Magnitude
+
+    if vectorDistance < Flags['LegitAimAssist_FieldOfView']:Get() and isOnScreen(target.Character:WaitForChild("HumanoidRootPart", math.huge).Position) then
+        return true
+    end
+    return false
+end
+
+--[[
+    <player> getTarget()
+]]--
+local getTarget = function()
+
+    local conditions = Flags['LegitAimAssist_Conditions']:Get()
+    local targetSelection = Flags['LegitAimAssist_TargetPriority']:Get()
+    local targets = {}
+    if not isAlive(client) then return nil end
+    for _, player in next, players:GetPlayers() do
+        if player == client then continue end 
+        if not player or not player.Character then continue end
+        if Find(conditions, "Friend") then
+            if player:IsFriendsWith(client.UserId) then continue end
+        end
+
+        if Find(conditions, "Visible") then
+            if not isVisible(player) then continue end
+        end
+
+        local screenPoint = camera:WorldToScreenPoint(player.Character:WaitForChild("HumanoidRootPart", math.huge).Position)
+        local vectorDistance = (Vector2.new(userInputService:GetMouseLocation().X, userInputService:GetMouseLocation().Y) - Vector2.new(screenPoint.X, screenPoint.Y)).Magnitude
+        local charDistance = Vector3.new(clientCharacter:WaitForChild("HumanoidRootPart", math.huge).Position - player.Character:WaitForChild("HumanoidRootPart", math.huge).Position).Magnitude
+
+        if vectorDistance < Flags['LegitAimAssist_FieldOfView']:Get() and isOnScreen(player.Character:WaitForChild("HumanoidRootPart", math.huge).Position) then
+            table.insert(targets, {player, vectorDistance, charDistance})
+        end
+    end
+
+    local focusTarget = targets[1]
+
+    if targetSelection == "Closest to Character" then
+
+        for _, target in next, targets do
+            if target[3] == focusTarget[3] then continue end
+
+            if target[3] < focusTarget[3] then
+                focusTarget = target
+            end
+        end
+
+    elseif targetSelection == "Closest to Cursor" then
+        for _, target in next, targets do 
+            if target[2] == focusTarget[2] then continue end
+
+            if target[2] < focusTarget[2] then
+                focusTarget = target
+            end
+        end
+
+    elseif targetSelection == "Is Priority" then 
+        for _, target in next, targets do 
+            if library.Relations[target.UserId] == "Priority" then
+                return target
+            end
+        end
+        return targets[1]
+    else -- Lowest Health
+        for _, target in next, targets do
+            if target[1].Character:WaitForChild("Humanoid", math.huge).Health == focusTarget[1].Character:WaitForChild("Humanoid", math.huge).Health then continue end
+
+            if target[1].Character:WaitForChild("Humanoid", math.huge).Health < focusTarget[1].Character:WaitForChild("Humanoid", math.huge).Health then
+                focusTarget = target
+            end
+        end
+
+    end    
+    
+    if focusTarget ~= nil then return focusTarget[1] else return nil end
+
+end
+
+--[[
+    <boolean> isKnocked(player)
+]]--
+local isKnocked = function(plr)
+    if not isAlive(plr) then return end
+    if game.PlaceId == 9825515356 then
+        if plr.Character:FindFirstChild("BodyEffects") ~= nil then
+            return plr.Character:FindFirstChild("BodyEffects"):FindFirstChild("K.O").Value
+        end
+    end
+    return false
+end
+
+--[[
+    <part> closestPartToCursor(<player>)
+]]--
+local closestPartToCursor = function(player)
+
+    local targetParts = {}
+
+    for _, part in next, player.Character:GetChildren() do
+        if part:IsA("MeshPart") or part:IsA("BasePart") then
+            if Find(Flags["LegitAimAsisst_Aimbone"]:Get(), part.Name) and not Find(forbiddenParts, part.Name) then
+                local screenPoint = camera:WorldToScreenPoint(part.Position)
+                local vectorDistance = (Vector2.new(userInputService:GetMouseLocation().X, userInputService:GetMouseLocation().Y) - Vector2.new(screenPoint.X, screenPoint.Y)).Magnitude
+                table.insert(targetParts, {part, vectorDistance})
+            end
+        end
+    end 
+
+    local focusTarget = targetParts[1]
+
+    for _, part in next, targetParts do
+        if focusTarget[2] > part[2] then
+            focusTarget = part
+        end
+    end
+    return focusTarget[1]
+
+end
+
+--[[
+    <CFrame> getClosestPoint()
+]]--
+local getClosestPoint = function()
+    local Transform = currentAimpart.CFrame:pointToObjectSpace(client:GetMouse().Hit.Position) -- Transform into local space
+    local HalfSize = currentAimpart.Size * 0.5
+    return currentAimpart.CFrame * Vector3.new( -- Clamp & transform into world space
+        math.clamp(Transform.x, -HalfSize.x, HalfSize.x),
+        math.clamp(Transform.y, -HalfSize.y, HalfSize.y),
+        math.clamp(Transform.z, -HalfSize.z, HalfSize.z)
+    )
+end
+
+--[[
+    <void> clearTable(<table> tab)
+]]--
+local clearTable = function(tab)
+    for _, ent in next, tab do
+        ent = nil 
+    end
+end
+
+runService.heartbeat:Connect(function()
+    if Flags['Desync_Enabled']:Get() == true then 
+        if isAlive(client) then
+            oldvel = clientCharacter.HumanoidRootPart.Velocity
+            clientCharacter.HumanoidRootPart.Velocity = Vector3.new(Flags["DesyncVelocity_X"]:Get(), Flags["DesyncVelocity_Y"]:Get(), Flags["DesyncVelocity_Z"]:Get())
+            clientCharacter.HumanoidRootPart.CFrame = clientCharacter.HumanoidRootPart.CFrame * CFrame.Angles(0,0.0001,0)
+            runService.RenderStepped:Wait()
+            clientCharacter.HumanoidRootPart.Velocity = oldvel
+
+            if Flags["DesyncPreset_Enabled"]:Get() == true then
+                if Flags["DesyncPreset_Type"]:Get() == "Random" then
+
+                    Flags["DesyncVelocity_X"]:Set(math.random(-6000, 6000))
+                    Flags["DesyncVelocity_Y"]:Set(math.random(0, 6000))
+                    Flags["DesyncVelocity_Z"]:Set(math.random(-6000, 6000))
+
+                elseif Flags["DesyncPreset_Type"]:Get() == "Fluctuate" then
+                    if Flags["DesyncVelocity_X"]:Get() >= 6000 then
+                        desyncVelocityDirection = true
+                    elseif Flags["DesyncVelocity_X"]:Get() <= -6000 then
+                        desyncVelocityDirection = false
+                    end
+                    xVelAmt = nil
+                    if desyncVelocityAmount >= 0 then xVelAmt = 0 else xVelAmt = desyncVelocityAmount end
+                    Flags["DesyncVelocity_X"]:Set(desyncVelocityAmount)
+                    Flags["DesyncVelocity_Y"]:Set(xVelAmt)
+                    Flags["DesyncVelocity_Z"]:Set(desyncVelocityAmount)
+
+
+
+                    if desyncVelocityDirection then
+                        desyncVelocityAmount -= 1
+                    else
+                        desyncVelocityAmount += 1
+                    end
+
+                elseif Flags["DesyncPreset_Type"]:Get() == "Switch" then
+                    if desyncVelocityDirection then
+                        desyncVelocityDirection = false
+                        Flags["DesyncVelocity_X"]:Set(1000)
+                        Flags["DesyncVelocity_Z"]:Set(1000)
+                    else
+                        Flags["DesyncVelocity_X"]:Set(-1000)
+                        Flags["DesyncVelocity_Z"]:Set(-1000)
+                        desyncVelocityDirection = true
+                    end
+                else
+                    Flags["DesyncVelocity_Y"]:Set(math.random(150, 6000))
+                end
+            end
+
+        end
+    end 
 end)
 
 
 
-local toggle = sector15:AddToggle("CrossHair Visible", false, function(L_178_arg0)
- game:GetService("Players").LocalPlayer.PlayerGui.MainScreenGui.Aim.Visible = L_178_arg0
-	game:GetService("Players").LocalPlayer.PlayerGui.MainScreenGui.Aim.Top.Visible = L_178_arg0
-	game:GetService("Players").LocalPlayer.PlayerGui.MainScreenGui.Aim.Bottom.Visible = L_178_arg0
-	game:GetService("Players").LocalPlayer.PlayerGui.MainScreenGui.Aim.Right.Visible = L_178_arg0
-	game:GetService("Players").LocalPlayer.PlayerGui.MainScreenGui.Aim.Left.Visible = L_178_arg0
+-- stuffington
+spawn(function()
+    while true do
+        fl_info = {}
+        if Flags['Cripwalk_Enabled']:Get() then  
+            if isAlive(client) then
+                fakelagTick += 1
+                fl_info[1] = clientCharacter.HumanoidRootPart.CFrame
+
+
+                if sleepNet == false then
+                    clientCharacter.HumanoidRootPart.CFrame = clientCharacter.HumanoidRootPart.CFrame + Vector3.new(555,0,5)
+                end
+                sethiddenproperty(clientCharacter.HumanoidRootPart, "NetworkIsSleeping", sleepNet)
+                clientCharacter.HumanoidRootPart.CFrame = fl_info[1]
+                if fakelagTick >= Flags['Cripwalk_Ticks']:Get() then
+                    sleepNet = false
+                    fakelagTick = 0
+                else
+                    sleepNet = true
+                end
+            end
+        end
+
+
+
+        if Flags["PredictionBreaker_Enabled"]:Get() == true and Flags['PredictionBreaker_Key']:Active() == true then
+            if isAlive(client) then
+                fakeVelocity = Vector3.new(Flags["PredBreakerVelocity_X"]:Get(), Flags["PredBreakerVelocity_Y"]:Get(), Flags["PredBreakerVelocity_Z"]:Get())
+                realVelocity = clientCharacter["HumanoidRootPart"].Velocity
+
+                for index, part in next, clientCharacter:GetChildren() do
+                    if part and part:IsA("BasePart") then 
+                        lastVelocities[part] = part.Velocity
+                        part.Velocity = fakeVelocity
+    
+                    end
+                end
+                
+                
+                runService.RenderStepped:wait()
+                
+                for index, part in next, clientCharacter:GetChildren() do
+                    if part and part:IsA("BasePart") then 
+                        part.Velocity = lastVelocities[part];
+
+                    end
+                end
+                clearTable(lastVelocities);
+                clearTable(lastCFrames);
+
+                if Flags["PredictionBreakerPreset_Enabled"]:Get() == true then
+                    if Flags["PredictionBreakerPreset_Type"]:Get() == "Random" then
+                        Flags["PredBreakerVelocity_X"]:Set(math.random(-600, 600))
+                        Flags["PredBreakerVelocity_Y"]:Set(math.random(-600, 600))
+                        Flags["PredBreakerVelocity_Z"]:Set(math.random(-600, 600))
+                    else
+                        if Flags["PredBreakerVelocity_X"]:Get() >= 600 then
+                            velocityDirection = true
+                        elseif Flags["PredBreakerVelocity_X"]:Get() <= -600 then
+                            velocityDirection = false
+                        end
+                        Flags["PredBreakerVelocity_X"]:Set(velocityAmount)
+                        Flags["PredBreakerVelocity_Y"]:Set(velocityAmount)
+                        Flags["PredBreakerVelocity_Z"]:Set(velocityAmount)
+
+                        
+
+                        if velocityDirection then
+                            velocityAmount -= 1
+                        else
+                            velocityAmount += 1
+                        end
+
+                    end
+                end
+            end
+        end
+        
+        runService.Heartbeat:Wait()
+    end
 end)
+
+--[[
+    <void> drawFov()
+]]--
+local drawFov = function()
+    if Flags['FOV_Enabled']:Get() then
+        fovCircle.Visible = true
+        fovCircle.Thickness = Flags['FOV_Thickness']:Get() / 100
+        fovCircle.NumSides = Flags['FOV_Numsides']:Get()
+        fovCircle.Radius = Flags['LegitAimAssist_FieldOfView']:Get() 
+        fovCircle.Filled = Flags['FOV_Filled']:Get() or false
+        fovCircle.Position = Vector2.new(userInputService:GetMouseLocation().X, userInputService:GetMouseLocation().Y)
+        fovCircle.Color = Flags['FOV_Color']:Get()["Color"] or Color3.fromRGB(255,0,0)
+        fovCircle.Transparency = tonumber(Flags['FOV_Color']:Get()["Transparency"])
+    else
+        fovCircle.Visible = false
+    end
+end
+
+--[[
+    <void> drawAimpoint()
+]]--
+local drawAimpoint = function()
+    if Flags['PredictionDot_Enabled']:Get() and currentAimpoint ~= nil and currentTarget ~= nil and currentAimpart ~= nil then
+        if Find(Flags['LegitAimAssist_DotType']:Get(), "Dot") then
+            predCircle.Visible = isOnScreen(currentAimpoint) 
+            predCircle.Position = WTS(currentAimpoint)
+            predCircle.Radius = Flags['PredictionDot_Size']:Get()
+            predCircle.Filled = Flags['PredictionDot_Filled']:Get()
+            predCircle.Color = Flags['PredictionDot_Color']:Get()
+            predCircle.Thickness = 1
+            predCircle.NumSides = Flags['PredictionDot_Numsides']:Get()
+        end
+        if Find(Flags['LegitAimAssist_DotType']:Get(), "Line") then
+            predLine.Visible = isOnScreen(currentAimpoint)
+            predLine.From = WTS(currentAimpart.Position)
+            predLine.To = WTS(currentAimpoint)
+            predLine.Color = Flags['PredictionLine_Color']:Get()
+            predLine.Thickness = Flags['PredictionLine_Thickness']:Get()
+            predLine.Transparency = 1
+            predLine.ZIndex = 1
+        end
+        if Find(Flags['LegitAimAssist_DotType']:Get(), "Character") then
+            if workspace:FindFirstChild("ServerChams") ~= nil then
+                for _, part in next, workspace:FindFirstChild("ServerChams"):GetChildren() do
+                    part.Color = Flags['PredictionChams_Color']:Get()
+                    part.Transparency = Flags['PredictionChams_Color']:GetTransparency()
+                    if Flags['Resolver_Enabled']:Get() == true or library.Relations[currentTarget.UserId] == "Resolve" then
+                        part.CFrame = currentTarget.Character:FindFirstChild(part.Name).CFrame + (currentTarget.Character.Humanoid.MoveDirection * Flags['LegitAimAssist_PredictionAmt']:Get()/10)
+                    else
+                        part.CFrame = currentTarget.Character:FindFirstChild(part.Name).CFrame + (Vector3.new(currentAimpart.Velocity.X * (Flags['LegitAimAssist_PredictionAmt']:Get()/100), currentAimpart.Velocity.Y * (Flags['LegitAimAssist_JumpOffset']:Get() / 100) , currentAimpart.Velocity.Z * (Flags['LegitAimAssist_PredictionAmt']:Get()/100)))
+                    end
+                    part.Material = Enum.Material[Flags['PredictionChams_Material']:Get()]
+                end
+            else
+                local fold = Instance.new("Folder", workspace)
+                fold.Name = "ServerChams"
+                for _, part in next, clientCharacter:GetChildren() do
+                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                        local pee = Instance.new("Part", fold)
+                        pee.Name = part.Name
+                        pee.Size = part.Size
+                        pee.Parent = fold
+                        pee.CanCollide = false
+                        pee.Transparency = 0.5
+                        pee.Anchored = true
+                        pee.Color = Flags['PredictionChams_Color']:Get()
+                        pee.Transparency = Flags['PredictionChams_Color']:GetTransparency()
+                        pee.Material = Enum.Material[Flags['PredictionChams_Material']:Get()]
+                    end
+                end
+            end
+        end
+    else
+        if workspace:FindFirstChild("ServerChams") ~= nil then
+            for _, part in next, workspace:FindFirstChild("ServerChams"):GetChildren() do
+                part.Transparency = 1
+            end
+        end
+        predLine.Visible = false
+        predCircle.Visible = false
+    end
+end
+
+
+--[[
+    <void> drawEsp()
+]]--
+
+local function SkeletonLine(from, to)
+    local Line = Drawing.new("Line")
+    Line.Visible = false
+    Line.From = Vector2.new(from.X, from.Y)
+    Line.To = Vector2.new(to.X, to.Y)
+    Line.Color = Color3.new(1,1,1)
+    Line.Thickness = 1.5
+    Line.Transparency = 1
+    return Line
+end
+
+local espTargets = {}
+for _, player in next, players:GetPlayers() do
+    if player == client then continue end
+    local nametag = Drawing.new("Text")
+    nametag.Text = ""
+    nametag.Size = 13
+    nametag.Visible = false
+    nametag.Font = 2
+    nametag.Center = true
+    table.insert(espTargets, {player, nametag})
+end
+players.PlayerAdded:Connect(function(player)
+    local nametag = Drawing.new("Text")
+    nametag.Text = ""
+    nametag.Size = 13
+    nametag.Visible = false
+    nametag.Font = 2
+    nametag.Center = true
+    table.insert(espTargets, {player, nametag})
+end)
+players.PlayerRemoving:Connect(function(player)
+    local newta = {}
+    for _,v in pairs(espTargets) do
+        if v[1] ~= player then
+            table.insert(newta, v)
+        else 
+            v[2].Visible = false
+        end
+    end
+    espTargets = newta
+end)
+local drawEsp = function()
+    for _, targ in next, espTargets do
+        local player = targ[1]
+        local nametag = targ[2]
+        if isAlive(player) then
+            if library.Relations[player.UserId] == "Resolve" or library.Relations[player.UserId] == "Priority" or library.Relations[player.UserId] == "Friend" then
+                nametag.Text = library.Relations[player.UserId]
+                nametag.Color = library.Relations[player.UserId] == "Resolve" and Color3.fromRGB(252, 186, 3) or library.Relations[player.UserId] == "Priority" and Color3.fromRGB(66, 30, 227) or library.Relations[player.UserId] == "Friend" and Color3.fromRGB(55, 200, 55)
+                nametag.Position = WTS(player.Character:GetPivot().p)
+                nametag.Visible = isOnScreen(player.Character:GetPivot().p)
+            else
+                nametag.Visible = false
+            end
+        end
+    end
+end
+
+--[[
+    <bool> isWeapon(<tool> tool)
+]]--
+local isWeapon = function(tool)
+    return tool:IsA("Tool") 
+end
+
+
+
+
+--[[
+    <void> autoShoot()
+]]--
+
+local autoShoot = function()
+    if Flags['RageSection_AutoShoot']:Get() == true then
+        if currentTarget ~= nil and currentAimpoint ~= nil and clientCharacter and isAlive(client) then
+            if isVisible(currentTarget) then
+                if clientCharacter:FindFirstChildOfClass("Tool") ~= nil then
+                    local tool = client.Character:FindFirstChildOfClass("Tool") 
+                    if isWeapon(tool) then
+                        if currentTarget.Character:FindFirstChild("ForceField") == nil then
+                            tool:Activate()
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+--[[
+    <vector3> smoothVelocity(<player> Player)
+]]--
+
+
+
+--[[
+    <void> calculateAimpoint()
+]]--
+local calculateAimpoint = function()
+
+    if currentTarget ~= nil then
+        if currentAimpartOverride == nil then
+            currentAimpart = closestPartToCursor(currentTarget)
+        else
+            currentAimpart = currentTarget.Character:FindFirstChild(currentAimpartOverride)
+        end
+        if Flags['LegitAimAssist_AimMethod']:Get() == "Closest Point" then
+            currentAimpoint = getClosestPoint()
+        elseif Flags['LegitAimAssist_AimMethod']:Get() == "Closest Part" then
+            currentAimpoint = currentAimpart.Position
+        else
+            currentAimpoint = currentAimpart.Position + Vector3.new(math.random(-0.3,0.3), math.random(-0.1,0.1), math.random(-0.3, 0.3))
+        end
+
+        if Flags['Resolver_Enabled']:Get() == true or library.Relations[currentTarget.UserId] == "Resolve" then
+            if Flags['Resolver_Type']:Get() == "Custom Prediction" then
+                currentAimpoint = currentTarget.Character:GetPivot() + (Vector3.new(velocities[currentTarget].X * Flags['LegitAimAssist_PredictionAmt']:Get()/100, velocities[currentTarget].Y * Flags['LegitAimAssist_JumpOffset']:Get() / 100, velocities[currentTarget].Z * Flags['LegitAimAssist_PredictionAmt']:Get()/100))
+            elseif Flags['Resolver_Type']:Get() == "EVILEVILEVILEVIL" then
+                local smoof = smoothVelocity(currentTarget)
+                print("SMOOF:")
+                print(smoof)
+                print("END SMOOF")
+                currentAimpoint = currentTarget.Character:GetPivot().p + (Vector3.new(smoof.X * Flags['LegitAimAssist_PredictionAmt']:Get()/100, smoof.Y * Flags['LegitAimAssist_PredictionAmt']:Get()/100, smoof.Z * Flags['LegitAimAssist_PredictionAmt']:Get()/100))
+            else
+            -- Humanoid WalkTo pred
+                currentAimpoint = currentTarget.Character:GetPivot() + (currentTarget.Character.Humanoid.MoveDirection * Flags['LegitAimAssist_PredictionAmt']:Get()/10)
+            end
+        else
+            --aimPoint = currentTarget.Character:GetPivot().p + (currentTarget.Character.Humanoid.MoveDirection * .11)
+            currentAimpoint = currentAimpoint + (Vector3.new(currentAimpart.Velocity.X * (Flags['LegitAimAssist_PredictionAmt']:Get()/100), currentAimpart.Velocity.Y * (Flags['LegitAimAssist_JumpOffset']:Get() / 100) , currentAimpart.Velocity.Z * (Flags['LegitAimAssist_PredictionAmt']:Get()/100)))
+        end
+
+
+        if typeof(currentAimpoint) == "CFrame" then
+            currentAimpoint = currentAimpoint.p 
+        end
+
+    end
+end
+
+
+
+-- kys
+local oldValuePrios = {}
+local isOldSaved = function(plr)
+    for _, v in next, oldValuePrios do
+        if v[1] == plr then
+            return true
+        end
+    end
+    return false
+end
+local removeOldPrio = function(plr)
+    local relt = {}
+    for _, v in next, oldValuePrios do
+        if v[1] ~= plr then
+            table.insert(relt, v)
+        end
+    end
+    oldValuePrios = relt
+end
+
+local getOldSaved = function(plr)
+    for _, v in next, oldValuePrios do
+        if v[1] == plr then
+            return v[2]
+        end
+    end
+end
+
+function utility:GetTeam(plr)
+    -- get corresponding character
+    if not isAlive(plr) then return end
+    local targ = nil
+    for idx, pl in next, Settings_PlayerList.players do
+        if pl[1] == plr then
+            targ = idx
+        end
+    end
+
+
+    if Flags["PlayerCheckType"]:Get() == "Antilocking" then
+        local predictedPosition = plr.Character:GetPivot().p + (Vector3.new(plr.Character:WaitForChild("HumanoidRootPart").Velocity.X * (Flags['LegitAimAssist_PredictionAmt']:Get()/100), plr.Character:WaitForChild("HumanoidRootPart").Velocity.Y * (Flags['LegitAimAssist_JumpOffset']:Get() / 100) , plr.Character:WaitForChild("HumanoidRootPart").Velocity.Z * (Flags['LegitAimAssist_PredictionAmt']:Get()/100)))
+        local resolvedPosition = plr.Character:GetPivot().p + (Vector3.new(velocities[plr].X * Flags['LegitAimAssist_PredictionAmt']:Get()/100, velocities[plr].Y * Flags['LegitAimAssist_JumpOffset']:Get() / 100, velocities[plr].Z * Flags['LegitAimAssist_PredictionAmt']:Get()/100))
+        --if (plr.Character:GetPivot().p + (Vector3.new(plr.Character:WaitForChild("HumanoidRootPart").Velocity.X * (Flags['LegitAimAssist_PredictionAmt']:Get()/100), plr.Character:WaitForChild("HumanoidRootPart").Velocity.Y * (Flags['LegitAimAssist_JumpOffset']:Get() / 100) , plr.Character:WaitForChild("HumanoidRootPart").Velocity.Z * (Flags['LegitAimAssist_PredictionAmt']:Get()/100))) - plr.Character:GetPivot().p).Magnitude > Flags['Resolver_Threshold']:Get() then
+        if (predictedPosition - resolvedPosition).Magnitude >= Flags['Resolver_Threshold']:Get() then -- this method should work a lot better
+            Settings_PlayerList.players[targ][3] = "Antilocking"
+
+            if Flags['Resolver_Auto']:Get() == true then
+                if library.Relations[plr.UserId] == "Priority" or library.Relations[plr.UserId] == "Friend" and not isOldSaved(plr) then 
+                    table.insert(oldValuePrios, {plr, library.Relations[plr.UserId]})
+                end
+                library.Relations[plr.UserId] = "Resolve"
+            end
+
+        else
+            if Settings_PlayerList.players[targ][3] == "Antilocking" then
+                if isOldSaved(plr) then 
+                    print(isOldSaved(plr), plr.Name)
+                    print(getOldSaved(plr), plr.Name)
+                    library.Relations[plr.UserId] = getOldSaved(plr)
+                    removeOldPrio(plr)
+                else
+                    Settings_PlayerList.players[targ][3] = "None"
+                end
+                if library.Relations[plr.UserId] == "Resolve" then
+                    library.Relations[plr.UserId] = "None"
+                end
+            end
+        end
+	else
+		Settings_PlayerList.players[targ][3] = plr.DisplayName
+	end 
+end
+local xdt = {
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "-",
+    "-B",
+    "-BO",
+    "-BOI",
+    "-BOIN",
+    "-BOING",
+    "-BOING-",
+    "-bOiNg-",
+    "-BoInG-",
+    "-bOiNg-",
+    "-BoInG-",
+    "-BOING-",
+    "BOING-",
+    "OING-",
+    "ING-",
+    "NG-",
+    "G-",
+    "G",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "                                T",
+    "                               Ty",
+    "                              Tyr",
+    "                             Tyri",
+    "                            Tyris",
+    "                           Tyrisw",
+    "                          Tyriswa",
+    "                         Tyriswar",
+    "                        Tyrisware",
+    "                       Tyrisware ",
+    "                      Tyrisware -",
+    "                     Tyrisware - J",
+    "                    Tyrisware - Ju",
+    "                   Tyrisware - Jum",
+    "                  Tyrisware - Jump",
+    "                 Tyrisware - Jumpi",
+    "                Tyrisware - Jumpin",
+    "               Tyrisware - Jumping",
+    "              Tyrisware - Jumping ",
+    "             Tyrisware - Jumping i",
+    "            Tyrisware - Jumping is",
+    "           Tyrisware - Jumping is ",
+    "          Tyrisware - Jumping is n",
+    "         Tyrisware - Jumping is no",
+    "        Tyrisware - Jumping is not",
+    "       Tyrisware - Jumping is not ",
+    "      Tyrisware - Jumping is not a",
+    "     Tyrisware - Jumping is not a ",
+    "    Tyrisware - Jumping is not a c",
+    "   Tyrisware - Jumping is not a cr",
+    "  Tyrisware - Jumping is not a cri",
+    " Tyrisware - Jumping is not a crim",
+    "Tyrisware - Jumping is not a crime",
+    "Tyrisware - Jumping is not a crime!",
+    "Tyrisware - Jumping is not a crime",
+    "Tyrisware - Jumping is not a crime!",
+    "Tyrisware - Jumping is not a crime",
+    "Tyrisware - Jumping is not a crime!",
+    "Tyrisware - Jumping is not a crime",
+    "Tyrisware - Jumping is not a crime!",
+    "Tyrisware - Jumping is not a crime",
+    "Tyrisware - Jumping is not a crime!",
+}
+-- kys
+spawn(function()
+    local counter = 1
+    local total_len = #xdt
+    local dir = false
+    while true do
+        Window:UpdateTitle(xdt[counter])
+        
+        if counter >= total_len then
+            dir = true
+        elseif counter <= 1 then
+            dir = false
+        end
+
+        if dir == true then
+            counter -= 1
+            
+        else
+            counter += 1
+        end
+
+        wait(0.2)
+    end 
+
+end)
+
+spawn(function()
+    while true do
+
+        for _, player in next, players:GetPlayers() do
+            if player == client then continue end
+            utility:GetTeam(player)
+        end
+        wait(1)
+    end
+end)
+
+-- auto adjust pred amount by ping
+task.spawn(function()
+    while true do
+        
+        --- what the fuck fam
+        if Flags['LegitAimAssist_AutoPredictionAmt']:Get() == true then
+            if currentPing < 20 then
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 15.7 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 15.7 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            elseif currentPing < 30 then    
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 15.5 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 15.5 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            elseif currentPing < 40 then
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 14.5 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 14.5 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            elseif currentPing < 50 then
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 14.3 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 14.3 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            elseif currentPing < 60 then
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 14 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 14 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            elseif currentPing < 70 then
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 13.6 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 13.6 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            elseif currentPing < 80 then
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 13.3 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 13.3 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            elseif currentPing < 90 then
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 13 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 13 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            elseif currentPing < 105 then      
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 12.7 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 12.7 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            elseif currentPing < 110 then   
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 12.4 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 12.4 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            else 
+                if Flags['LegitAimAssist_PredictionAmt']:Get() > 12.0 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()-.1) end
+                if Flags['LegitAimAssist_PredictionAmt']:Get() < 12.0 then Flags['LegitAimAssist_PredictionAmt']:Set(Flags['LegitAimAssist_PredictionAmt']:Get()+.1) end
+            end
+        end
+        
+        --[[ this shit reduce ur fps to smitherines
+        for _, player in next, players:GetPlayers() do
+            if player == client then continue end
+            if not isAlive(player) then continue end
+            if player.Character:FindFirstChild("Highlight") then
+                if library.Relations[player.UserId] == "Priority" then
+                    player.Character:FindFirstChild("Highlight"):Destroy()
+                    local hl = Instance.new("Highlight", player.Character)
+                    hl.OutlineColor = Color3.fromRGB(66, 30, 227)
+                    hl.FillTransparency = 1
+                elseif library.Relations[player.UserId] == "Enemy" then
+                    player.Character:FindFirstChild("Highlight"):Destroy()
+                    local hl = Instance.new("Highlight", player.Character)
+                    hl.OutlineColor = Color3.fromRGB(227, 30, 53)
+                    hl.FillTransparency = 1
+                elseif library.Relations[player.UserId] == "Resolve" then
+                    player.Character:FindFirstChild("Highlight"):Destroy()
+                    local hl = Instance.new("Highlight", player.Character)
+                    hl.OutlineColor = Color3.fromRGB(252, 186, 3)
+                    hl.FillTransparency = 1
+                end
+            end
+        end
+        ]]--
+
+        wait(.2)
+    end
+
+end)
+
+
+--[[
+    <boolean> isGun(<tool> tool)
+]]--
+local isGun = function(tool)
+    return tool:IsA("Tool") -- temporary
+end
+
+--[[
+    <void> teleportBuy(<model> weapon)
+]]--
+local teleportBuy = function(weapon)
+    if clientCharacter.Humanoid.Health >= 1 then
+        clientCharacter.HumanoidRootPart.CFrame = weapon:FindFirstChild("Head").CFrame
+        wait(.2)
+        if weapon.Name:match("Ammo") then
+            for i=1, Flags['Autobuy_AmmoAmt']:Get() do
+                fireclickdetector(weapon:FindFirstChild("ClickDetector"))
+                wait(.5)
+            end
+        else
+            fireclickdetector(weapon:FindFirstChild("ClickDetector"))
+            wait(.2)
+        end
+    end
+end
+
+--[[
+    <beam> misc:CreateBeam(<attachment> origin_att, <attachment> ending_att, <string> texture)
+]]--
+function misc:CreateBeam(origin_att, ending_att, texture)
+    local beam = Instance.new("Beam")
+    beam.Texture = texture or "http://www.roblox.com/asset/?id=446111271"
+    beam.TextureMode = Enum.TextureMode.Wrap
+    beam.TextureSpeed = 8
+    beam.LightEmission = 1
+    beam.LightInfluence = 1
+    beam.TextureLength = 12
+    beam.FaceCamera = true
+    beam.Enabled = true
+    beam.ZOffset = -1
+    beam.Transparency = NumberSequence.new(Flags['BulletTracer_Transparency']:Get() / 100, Flags['BulletTracer_Transparency']:Get() / 100)
+    beam.Color = ColorSequence.new(Flags['BulletTracer_Color']:Get(), Color3.new(0, 0, 0))
+    beam.Attachment0 = origin_att
+    beam.Attachment1 = ending_att
+    debris:AddItem(beam, 3)
+    debris:AddItem(origin_att, 3)
+    debris:AddItem(ending_att, 3)
+    
+    local speedtween = TweenInfo.new(5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out, 0, false, 0)
+    tweenService:Create(beam, speedtween, { TextureSpeed = 2 }):Play()
+    beam.Parent = Workspace
+    table.insert(misc.beams, { beam = beam, time = tick() }) 
+    return beam
+end
+
+--[[
+    <void> misc:UpdateBeams()
+]]--
+function misc:UpdateBeams()
+    local time = tick()
+    for i = #self.beams, 1, -1 do
+        if self.beams[i].beam  then
+            local transp = 1 - (Flags['BulletTracer_Transparency']:Get() / 100)
+            local transparency = transp + (((time - self.beams[i].time) - 2) * (1 - transp))
+            self.beams[i].beam.Transparency = NumberSequence.new(transparency, transparency)
+            if transparency >= 1 then
+                table.remove(self.beams, i)
+            end
+        else
+            table.remove(self.beams, i)
+        end
+    end
+end
+
+-- Aimviewer bypassington
+client.CharacterAdded:Connect(function(char)
+    char.ChildAdded:Connect(function(child)
+
+        if child.Name == "Christmas_Sock" then
+            child:Destroy()
+        end
+
+        if isGun(child) then
+            if toolConnection[1] == nil then
+                toolConnection[1] = child 
+            end
+            if toolConnection[1] ~= child and toolConnection[2] ~= nil then 
+                toolConnection[2]:Disconnect()
+                toolConnection[1] = child
+            end
+
+            toolConnection[2] = child.Activated:Connect(function() 
+                
+                if Flags['RageSection_AutoReload']:Get() == true then
+                    if child:FindFirstChild("Ammo") ~= nil then
+
+                        if child["Ammo"].Value == 0 then
+                            shootRemote:FireServer("Reload", child)
+                        end
+                    end
+                end
+
+                if Flags['BulletTracer_Enabled']:Get() == true then
+                    -- for real da hood
+                    if game.PlaceId == 2788229376 then
+                        if child:FindFirstChild("Ammo") ~= nil then
+                            if child["Ammo"].Value == 0 then
+                                return
+                            end
+                        else
+                            return 
+                        end
+                    end
+
+                    local fromAttach = Instance.new("Attachment", workspace.Terrain)
+                    fromAttach.Position = clientCharacter:FindFirstChildOfClass("Tool"):FindFirstChild("Handle").Position 
+                    local toAttach = Instance.new("Attachment", workspace.Terrain)
+                    local pPos = nil
+                    if Flags['Prediction_EnabledKey']:Active() then 
+                        pPos = currentAimpoint 
+                    else 
+                        pPos = mouse.Hit.p
+                    end
+                    toAttach.Position = pPos
+                    local beam = misc:CreateBeam(fromAttach, toAttach)
+                end
+                if currentTarget ~= nil and currentAimpoint ~= nil and Flags['Prediction_EnabledKey']:Active() == true and Flags['Aimviewer_Bypass']:Get() == true then
+                    
+                    shootRemote:FireServer(shootArgument, currentAimpoint)
+                end
+    
+            end)
+        end
+    end)
+
+
+    if Flags['Autobuy_Enabled']:Get() == true and game.PlaceId == 2788229376 then
+        while not isAlive(client) or clientCharacter:FindFirstChild("ForceField") do
+            wait()
+        end
+        oldChar = clientCharacter.HumanoidRootPart.CFrame
+
+        if Find(Flags['Item_Selection']:Get(), "Revolver") and not client.Backpack:FindFirstChild("[Revolver]") then
+            teleportBuy(weaponShops["Revolver"])
+            wait(Flags['Autobuy_AmmoAmt']:Get() * 0.5 + 0.6)
+        end
+
+        if Find(Flags['Item_Selection']:Get(), "Revolver Ammo") and client.Backpack:FindFirstChild("[Revolver]") then
+            teleportBuy(weaponShops["Revolver Ammo"])
+            wait(Flags['Autobuy_AmmoAmt']:Get() * 0.5 + 0.6)
+        end
+
+        if Find(Flags['Item_Selection']:Get(), "Double-Barrel") and not client.Backpack:FindFirstChild("[Double-Barrel SG]") then
+            teleportBuy(weaponShops["Double-Barrel SG"])
+            wait(Flags['Autobuy_AmmoAmt']:Get() * 0.5 + 0.6)
+        end
+
+        if Find(Flags['Item_Selection']:Get(), "Double-Barrel Ammo") and client.Backpack:FindFirstChild("[Double-Barrel SG]") then
+            teleportBuy(weaponShops["Double-Barrel SG Ammo"])
+            wait(Flags['Autobuy_AmmoAmt']:Get() * 0.5 + 0.6)
+        end
+        clientCharacter.HumanoidRootPart.CFrame = oldChar
+
+    end
+end)
+
+client.Character.ChildAdded:Connect(function(child)
+
+    if child.Name == "Christmas_Sock" then
+        child:Destroy()
+    end
+
+    if isGun(child) then
+        if toolConnection[1] == nil then
+            toolConnection[1] = child 
+        end
+        if toolConnection[1] ~= child and toolConnection[2] ~= nil then 
+            toolConnection[2]:Disconnect()
+            toolConnection[1] = child
+        end
+
+        toolConnection[2] = child.Activated:Connect(function() 
+
+            if Flags['RageSection_AutoReload']:Get() == true then
+                if child:FindFirstChild("Ammo") ~= nil then
+                    if child["Ammo"].Value == 0 then
+                        shootRemote:FireServer("Reload", child)
+                    end
+                end
+            end
+
+            if Flags['BulletTracer_Enabled']:Get() == true then
+
+                -- for real da hood
+                if game.PlaceId == 2788229376 then
+                    if child:FindFirstChild("Ammo") ~= nil then
+                        if child["Ammo"].Value == 0 then
+                            return
+                        end
+                    else
+                        return 
+                    end
+                end
+
+                local fromAttach = Instance.new("Attachment", workspace.Terrain)
+                fromAttach.Position = clientCharacter:FindFirstChildOfClass("Tool"):FindFirstChild("Handle").Position 
+                local toAttach = Instance.new("Attachment", workspace.Terrain)
+                local pPos = nil
+                if Flags['Prediction_EnabledKey']:Active() then 
+                    pPos = currentAimpoint 
+                else 
+                    pPos = mouse.Hit.p
+                end
+                toAttach.Position = pPos
+                local beam = misc:CreateBeam(fromAttach, toAttach)
+            end
+            if currentTarget ~= nil and currentAimpoint ~= nil and Flags['Prediction_EnabledKey']:Active() == true and Flags['Aimviewer_Bypass']:Get() == true then
+             
+                shootRemote:FireServer(shootArgument, currentAimpoint)
+            end
+
+        end)
+    end
+end)
+
+
+
+for _, player in next, game:GetService("Players"):GetPlayers() do
+    if player == client then continue end
+    velocities[player] = Vector3.new(0,0,0)
+    positions[player] = Vector3.new(0,0,0)
+    oldVelocities[player] = Vector3.new(0,0,0)
+    if player:IsFriendsWith(client.UserId) == true then
+        library.Relations[player.UserId] = "Friend"  
+        print("FRIEND INGAME ", player.Name)
+    end
+end
+
+game:GetService("Players").PlayerAdded:Connect(function(plr)
+
+    velocities[plr] = Vector3.new(0,0,0)
+    positions[plr] = Vector3.new(0,0,0)
+    oldVelocities[plr] = Vector3.new(0,0,0)
+
+    if plr:IsFriendsWith(client.UserId) == true then
+       library.Relations[plr.UserId] = "Friend"  
+       print("FRIEND JOINED", plr.Name)
+    end
+
+end)
+
+-- thank you xaxa
+runService.Heartbeat:Connect(function(step)
+
+    currentPing = tonumber(string.format("%.3f", ping:GetValue()));
+
+
+    for index, player in next, players:GetPlayers() do 
+        if not isAlive(player) then continue end
+        local lastPosition = positions[player];
+        if not lastPosition or lastPosition == nil then 
+            lastPosition = player.Character:GetPivot().p    
+            continue
+        end 
+        local character = player.Character 
+        local rootPart = character and character:FindFirstChild("HumanoidRootPart");
+
+        velocities[player] = (player.Character:GetPivot().p - lastPosition) / step
+        positions[player] = player.Character:GetPivot().p
+        
+        oldVelocities[player] = rootPart.Velocity
+
+    end
+    
+    
+
+    if Flags['RageSection_CFrameKeybind']:Active() then
+        if isAlive(client) then 
+            if clientCharacter.Humanoid.MoveDirection.Magnitude > 0 then
+                for i=1, Flags['RageSection_CFrameSpeedMulti']:Get() do
+                    clientCharacter:TranslateBy(clientCharacter.Humanoid.MoveDirection)
+                end
+            end
+        end
+    end
+
+end)
+
+--[[
+    <void> camlock()
+]]--
+local camlock = function()
+    if Flags['Camlock_Enabled']:Get() == true then
+        if Flags['Prediction_EnabledKey']:Active() then 
+            if camera then
+                if isAlive(client) then
+                    if currentAimpoint ~= nil and currentTarget ~= nil then
+                        if isKnocked(currentTarget) then return end
+                        if currentTarget.Character:FindFirstChild("ForceField") ~= nil then return end
+                        local Main = CFrame.new(camera.CFrame.p, currentAimpoint)
+                        camera.CFrame = camera.CFrame:Lerp(Main, Flags['LegitAimAssist_Smoothing']:Get() / 100, Enum.EasingStyle.Elastic, Enum.EasingDirection.InOut)
+                    end
+                end
+            end
+        end
+    end
+end
+
+--[[
+    <void> drawWeapons()
+]]--
+local drawWeapons = function() 
+    if Flags['Weapon_Visuals']:Get() == true then
+        if isAlive(client) then
+            if clientCharacter:FindFirstChildOfClass("Tool") then
+                for _, v in next, clientCharacter:FindFirstChildOfClass("Tool"):GetDescendants() do
+                    if v:IsA("MeshPart") then
+                        v.Material = Enum.Material[Flags['Weapon_VisualsMaterial']:Get()]
+                        v.Color = Flags['Weapon_VisualsColor']:Get()
+                    end
+                end
+            end
+        end
+    end
+end
+
+--[[
+    <void> circleStrafe(dt)
+]]--
+local ideez = 0
+local circleStrafe = function(dt)
+    if Flags['Circle_Strafe']:Get() == true and Flags['Circle_StrafeKey']:Active() == true then
+        if currentRotationing == nil then 
+            currentRotationing = getTarget()
+        end
+        if currentRotationing ~= nil then
+            if isAlive(client) and isAlive(currentRotationing) then
+                circleStrafeTargPos = nil
+                if Flags['Circle_StrafeType']:Get() == "Position" then
+                    circleStrafeTargPos = currentRotationing.Character.HumanoidRootPart.Position
+                elseif Flags['Circle_StrafeType']:Get() == "Prediction" then
+                    circleStrafeTargPos = currentRotationing.Character.HumanoidRootPart.Position + (Vector3.new(currentRotationing.Character.HumanoidRootPart.Velocity.X * (Flags['LegitAimAssist_PredictionAmt']:Get()/100), currentRotationing.Character.HumanoidRootPart.Velocity.Y * (Flags['LegitAimAssist_JumpOffset']:Get() / 100) , currentRotationing.Character.HumanoidRootPart.Velocity.Z * (Flags['LegitAimAssist_PredictionAmt']:Get()/100)))
+                else
+                    circleStrafeTargPos = currentRotationing.Character.HumanoidRootPart.Position + Vector3.new(0,5,0)
+                end
+                ideez = (ideez+ dt/(Flags['Circle_StrafeCycle']:Get() / 10)) % 1
+                local alpha = 2 * math.pi * ideez
+                clientCharacter.HumanoidRootPart.CFrame = CFrame.Angles(0, alpha, 0) * CFrame.new(0, 0, Flags['Circle_Distance']:Get()) + circleStrafeTargPos
+            end
+        end
+    else
+        currentRotationing = nil
+    end
+end
+
+--[[
+    <void> drawAimviewer()
+]]--
+local drawAimviewer = function()
+    for _, player in next, aimviewerTargets do
+        if player[2] == nil then
+            -- create a new Aimviewer Beam
+            local beam = Instance.new("Part", workspace)
+            beam.Material = Enum.Material.ForceField
+            beam.Color = theme.accent
+            beam.CanCollide = false
+            player[2] = beam
+        else
+            if isAlive(player[1]) and player[1].Character:FindFirstChildOfClass("Tool") then 
+                player[2].Size = Vector3.new(0.3, 0.3, (player[1].Character.Head.CFrame * CFrame.new(0, 0, 0).Position - player[1].Character["BodyEffects"].MousePos.Value).Magnitude)
+                player[2].CFrame = CFrame.new(player[1].Character.Head.CFrame * CFrame.new(0, 0, 0).Position, player[1].Character["BodyEffects"].MousePos.Value) * CFrame.new(0, 0, player[2].Size.Z / -2)
+                player[2].Color = theme.accent
+            else
+                player[2].Position = Vector3.new(999999,9999999,999999)
+            end
+        end
+    end
+end
+
+
+
+-- main RS
+runService.RenderStepped:Connect(function(dt)
+
+    currentTarget = getTarget() 
+
+    if Flags['Locktarget_EnabledKey']:Active() == true then
+        if lockedTarget ~= nil then
+            if isInFov(lockedTarget) then
+                currentTarget = lockedTarget
+            else
+                currentTarget = nil
+                currentAimpoint = nil
+            end
+        else
+            lockedTarget = currentTarget
+        end
+    else
+        lockedTarget = nil
+    end
+   -- Aim --
+   calculateAimpoint() 
+
+    -- Visuals --
+    drawFov()
+    drawAimpoint()
+    drawEsp()
+    misc:UpdateBeams()
+    drawWeapons()
+    drawAimviewer()
+
+    -- Rage --
+    autoShoot()
+
  
+
+    -- camlock --
+    camlock()
+
+    -- circle strafer --
+    circleStrafe(dt)
+    
+    -- chat spam -- 
+    if Flags['ChatSpam_Enabled']:Get() == true then
+        if tick() >= chatSpamTick + Flags['ChatSpam_Delay']:Get() then
+            sayMessage(chatSpams[Flags['ChatSpam_Type']:Get()][math.random(1, #chatSpams[Flags['ChatSpam_Type']:Get()])])
+            chatSpamTick = tick()
+        end
+    end
+
+    -- anti bag --
+    if clientCharacter ~= nil then
+        if clientCharacter:FindFirstChild("Christmas_Sock") ~= nil then
+            clientCharacter:FindFirstChild("Christmas_Sock"):Destroy()
+        end
+    end
+
+    -- menu effects --
+    --Library:UpdateHue()    
+
+end)
+
+
+local __namecall -- cock ;)
+__namecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local Args = {...}
+    local Method = getnamecallmethod()
+
+    if tostring(self.Name) == "MainEvent" and tostring(Method) == "FireServer" then
+        
+        if Find({"TeleportDetect", "CHECKER_1", "CHECKER", "GUI_CHECK", "OneMoreTime", "checkingSPEED", "BANREMOTE", "KICKREMOTE", "BR_KICKPC", "BR_KICKMOBILE"}, Args[1]) then
+            return
+        end
+    end
+
+    return __namecall(self, ...)
+end)
+
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    
+    if Flags['Aimviewer_Bypass']:Get() == false and currentTarget ~= nil and currentAimpoint ~= nil and Flags['Prediction_EnabledKey']:Active() == true then
+        if typeof(args[2]) == "Vector3" then
+            args[2] = currentAimpoint
+        end
+        return backupnamecall(self, unpack(args))
+    end
+
+    if typeof(args[2]) == "Vector3" then
+        shootArgument = args[1]
+    end
+    
+    if game.PlaceId == 9825515356 then -- afk bypass in customs
+        if args[1] == "RequestAFKDisplay" then
+            args[2] = false
+            return backupnamecall(self, unpack(args))
+        end
+    end
+
+    return backupnamecall(self, ...)
+end)
